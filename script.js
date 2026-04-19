@@ -1,22 +1,18 @@
-// REGISTER
 function register(){
-    let u = document.getElementById("username").value;
-    let p = document.getElementById("password").value;
+    let u = username.value;
+    let p = password.value;
 
-    if(!u || !p) return alert("Fill all fields");
+    if(!u || !p) return alert("Fill all");
 
     localStorage.setItem("user_"+u, p);
     alert("Account Created");
 }
 
-// LOGIN
 function login(){
-    let u = document.getElementById("username").value;
-    let p = document.getElementById("password").value;
+    let u = username.value;
+    let p = password.value;
 
-    let saved = localStorage.getItem("user_"+u);
-
-    if(saved === p){
+    if(localStorage.getItem("user_"+u) === p){
         localStorage.setItem("loggedUser", u);
         showDashboard();
     } else {
@@ -24,60 +20,58 @@ function login(){
     }
 }
 
-// SHOW DASHBOARD
 function showDashboard(){
     let user = localStorage.getItem("loggedUser");
 
     if(user){
-        document.getElementById("authBox").style.display="none";
-        document.getElementById("dashboard").style.display="block";
-        document.getElementById("userNameShow").innerText=user;
+        authBox.style.display="none";
+        dashboard.style.display="block";
+        userNameShow.innerText=user;
 
-        // balance default 0
         let bal = localStorage.getItem("bal_"+user) || 0;
-        document.getElementById("balance").innerText="₹"+bal;
+        balance.innerText="₹"+bal;
     }
 }
 
-// LOGOUT
 function logout(){
     localStorage.removeItem("loggedUser");
     location.reload();
 }
 
-// POPUP
 function openPopup(){
-    document.getElementById("popup").style.display="block";
-}
-function closePopup(){
-    document.getElementById("popup").style.display="none";
+    popup.style.display="flex";
 }
 
-// COPY UPI
+function closePopup(){
+    popup.style.display="none";
+}
+
 function copyUPI(){
-    let upi=document.getElementById("upiText").innerText;
+    let upi=upiText.innerText;
     navigator.clipboard.writeText(upi);
     alert("UPI Copied");
 }
 
-// DEPOSIT (DEMO)
+// 🔥 SECURITY DEPOSIT FIX ₹1000
 function submitDeposit(){
-    let amt = parseInt(document.getElementById("amount").value || 0);
+    let utr = document.getElementById("utr").value;
     let user = localStorage.getItem("loggedUser");
 
+    if(!utr) return alert("Enter UTR");
+
     let bal = parseInt(localStorage.getItem("bal_"+user) || 0);
-    bal += amt;
+
+    bal += 1000; // fixed deposit
 
     localStorage.setItem("bal_"+user, bal);
-    document.getElementById("balance").innerText="₹"+bal;
+    balance.innerText="₹"+bal;
 
-    alert("Deposit Submitted");
+    alert("₹1000 Deposit Submitted");
+    closePopup();
 }
 
-// SUPPORT (AUTO)
 function openSupport(){
-    window.open("https://wa.me/919999999999?text=Hello%20INRPay%20Support");
+    window.open("https://wa.me/919999999999?text=INRPay Support");
 }
 
-// AUTO LOGIN CHECK
 showDashboard();
