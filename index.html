@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="header">
+    <h3>Welcome 👋</h3>
+    <h1>User</h1>
+</div>
+
+<div class="card">
+    <p>Wallet Balance</p>
+    <h1 id="balance">₹1000</h1>
+
+    <div class="btns">
+        <button class="withdraw">Withdraw</button>
+        <button class="deposit" onclick="openPopup()">Deposit</button>
+    </div>
+</div>
+
+<div class="grid">
+    <div onclick="openPopup()">Security Deposit</div>
+    <div>History</div>
+    <div>Support</div>
+</div>
+
+<!-- Popup -->
+<div id="popup" class="popup">
+<div class="popup-box">
+
+<h3>INRPay Deposit</h3>
+
+<p>
+UPI: <b id="upiText">yourupi@okaxis</b>
+<button onclick="copyUPI()">Copy</button>
+</p>
+
+<input type="number" id="amount" placeholder="Enter Amount">
+<input type="text" id="utr" placeholder="Enter UTR">
+
+<button onclick="submitDeposit()">Submit</button>
+<button onclick="closePopup()">Close</button>
+
+</div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
