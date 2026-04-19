@@ -8,13 +8,11 @@
 
 <body>
 
-<!-- LOGIN / REGISTER -->
+<!-- AUTH -->
 <div id="authBox" class="auth">
     <h2>INRPay</h2>
-
     <input id="username" placeholder="Username">
     <input id="password" type="password" placeholder="Password">
-
     <button onclick="register()">Create Account</button>
     <button onclick="login()">Login</button>
 </div>
@@ -30,10 +28,8 @@
 <div class="card">
     <p>Wallet Balance</p>
     <h1 id="balance">₹0</h1>
-
     <div class="btns">
         <button class="withdraw">Withdraw</button>
-        <button class="deposit" onclick="openPopup()">Deposit</button>
     </div>
 </div>
 
@@ -43,26 +39,49 @@
     <div onclick="logout()">Logout</div>
 </div>
 
+<!-- 📊 Graph -->
+<canvas id="chart" width="320" height="150"></canvas>
+
+<!-- 🔥 Live Transactions -->
+<h3 style="padding:10px;">Live Transactions</h3>
+<div id="liveTx" class="live"></div>
+
 </div>
 
 <!-- POPUP -->
 <div id="popup" class="popup">
 <div class="popup-box">
 
-<h3>INRPay Deposit</h3>
+<h3>Security Deposit</h3>
+
+<p><b>Amount: ₹1000</b></p>
 
 <p>
 UPI: <b id="upiText">yourupi@okaxis</b>
 <button onclick="copyUPI()">Copy</button>
 </p>
 
-<input type="number" id="amount" placeholder="Enter Amount">
 <input type="text" id="utr" placeholder="Enter UTR">
 
 <button onclick="submitDeposit()">Submit</button>
 <button onclick="closePopup()">Close</button>
 
 </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" class="loader" style="display:none;">
+    <div class="spinner"></div>
+    <p>Processing Payment...</p>
+</div>
+
+<!-- SUCCESS -->
+<div id="success" class="success" style="display:none;">
+    <div class="success-box">
+        <h2> Payment Varification </h2>
+        <p>₹1000 Added</p>
+        <button onclick="closeSuccess()">OK</button>
+    </div>
 </div>
 
 <script src="script.js"></script>
