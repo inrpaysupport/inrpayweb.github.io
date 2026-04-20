@@ -13,8 +13,6 @@ const db = getFirestore(app);
 // 🔐 REGISTER
 window.register = async function(){
 
-alert("Clicked");
-
 try{
 
 let name = document.getElementById("name").value;
