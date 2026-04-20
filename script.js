@@ -1,4 +1,4 @@
-// AUTH
+// 🔐 AUTH
 function register(){
 let u=username.value,p=password.value;
 if(!u||!p)return alert("Fill all");
@@ -20,7 +20,10 @@ if(u){
 authBox.style.display="none";
 dashboard.style.display="block";
 userNameShow.innerText=u;
-balance.innerText="₹"+(localStorage.getItem("bal_"+u)||0);
+
+let bal=localStorage.getItem("bal_"+u)||0;
+balance.innerText="₹"+bal;
+
 drawChart();
 startLiveTx();
 }
@@ -31,17 +34,17 @@ localStorage.removeItem("loggedUser");
 location.reload();
 }
 
-// POPUP
+// 🔥 POPUP
 function openPopup(){popup.style.display="flex";}
 function closePopup(){popup.style.display="none";}
 
-// COPY
+// 📋 COPY UPI
 function copyUPI(){
 navigator.clipboard.writeText(upiText.innerText);
 alert("UPI Copied");
 }
 
-// PAYMENT FLOW
+// 💳 PAYMENT FLOW
 function submitDeposit(){
 let utr=document.getElementById("utr").value;
 if(!utr)return alert("Enter UTR");
@@ -61,47 +64,70 @@ let bal=parseInt(localStorage.getItem("bal_"+u)||0);
 bal+=1000;
 localStorage.setItem("bal_"+u,bal);
 balance.innerText="₹"+bal;
+
 success.style.display="flex";
 }
 
-function closeSuccess(){success.style.display="none";}
-
-// SUPPORT
-function openSupport(){
-window.open("https://wa.me/919999999999?text=INRPay Support");
+function closeSuccess(){
+success.style.display="none";
 }
 
 // 📊 GRAPH
 function drawChart(){
 let c=document.getElementById("chart");
 let ctx=c.getContext("2d");
+
 ctx.beginPath();
 [0,200,500,1000].forEach((v,i)=>{
 ctx.lineTo(i*80,150-v/10);
 });
+
 ctx.strokeStyle="white";
 ctx.stroke();
 }
 
-// 🔥 FAKE LIVE TRANSACTIONS
+// 🔥 50 INDIAN NAMES
+let names=[
+"Rahul","Amit","Vikas","Rohit","Arjun","Karan","Suresh","Mahesh","Ramesh","Naresh",
+"Imran","Salman","Akash","Deepak","Vivek","Ankit","Manoj","Ajay","Vijay","Nikhil",
+"Yash","Aryan","Kabir","Sanjay","Sunil","Pankaj","Ravi","Sachin","Mukesh","Raj",
+"Ali","Sameer","Farhan","Irfan","Junaid","Aslam","Faizan","Zaid","Arif","Shahid",
+"Prakash","Gaurav","Harsh","Tarun","Kunal","Dev","Krishna","Shubham","Abhishek","Manish"
+];
+
+// 🔥 LIVE TRANSACTIONS
 function startLiveTx(){
 setInterval(()=>{
-let names=["Rahul","Aman","Vikas","Rohit","Ali","John"];
 let name=names[Math.floor(Math.random()*names.length)];
-let amt=[1000,500,2000][Math.floor(Math.random()*3)];
+let amt=[1000,500,2000,1500][Math.floor(Math.random()*4)];
 
 let div=document.createElement("div");
 div.className="tx";
-div.innerText=name+" deposited ₹"+amt;
+div.innerText="🟢 "+name+" deposited ₹"+amt;
 
 liveTx.prepend(div);
 
-// limit list
-if(liveTx.children.length>10){
+if(liveTx.children.length>12){
 liveTx.removeChild(liveTx.lastChild);
 }
+},1500);
+}
 
-},2000);
+// 💬 SUPPORT
+function openSupport(){
+supportBox.style.display="flex";
+}
+
+function closeSupport(){
+supportBox.style.display="none";
+}
+
+function openWhatsApp(){
+window.open("https://wa.me/919999999999?text=INRPay Support");
+}
+
+function showMessage(){
+supportMsg.innerText="Please wait 30 minutes to 1 hour. Our customer representative will contact you.";
 }
 
 // INIT
