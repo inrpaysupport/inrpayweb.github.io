@@ -1,104 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INRPay</title>
+<meta name="viewport" content="width=device-width">
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- AUTH -->
-<div id="authBox" class="auth">
+<!-- LOGIN -->
+<div id="auth">
 <h2>INRPay</h2>
-<input id="username" placeholder="Username">
+
+<input id="name" placeholder="Name (register)">
+<input id="number" placeholder="Mobile Number">
 <input id="password" type="password" placeholder="Password">
+
 <button onclick="register()">Create Account</button>
 <button onclick="login()">Login</button>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
+<div id="dash" style="display:none;">
 
-<div class="header">
+<div class="top">
 <h3>Welcome 👋</h3>
-<h1 id="userNameShow"></h1>
+<h2 id="username"></h2>
+<button onclick="logout()">Logout</button>
 </div>
 
 <div class="card">
 <p>Wallet Balance</p>
 <h1 id="balance">₹0</h1>
-<div class="btns">
-<button class="withdraw">Withdraw</button>
-</div>
-</div>
 
-<div class="grid">
-<div onclick="openPopup()">Security Deposit</div>
-<div onclick="openSupport()">Support</div>
-<div onclick="logout()">Logout</div>
+<button onclick="deposit()">Deposit ₹1000</button>
 </div>
 
-<!-- GRAPH -->
-<canvas id="chart" width="320" height="150"></canvas>
-
-<!-- LIVE TX -->
-<h3 style="padding:10px;">Live Transactions</h3>
-<div id="liveTx" class="live"></div>
+<div class="stats">
+<div>₹0<br>Rewards</div>
+<div>0<br>Referrals</div>
+<div>0<br>Pending</div>
+</div>
 
 </div>
 
-<!-- DEPOSIT POPUP -->
-<div id="popup" class="popup">
-<div class="popup-box">
-
-<h3>Security Deposit</h3>
-<p><b>Amount: ₹1000</b></p>
-
-<p>
-UPI: <b id="upiText">yourupi@okaxis</b>
-<button onclick="copyUPI()">Copy</button>
-</p>
-
-<input type="text" id="utr" placeholder="Enter UTR">
-
-<button onclick="submitDeposit()">Submit</button>
-<button onclick="closePopup()">Close</button>
-
-</div>
-</div>
-
-<!-- SUPPORT POPUP -->
-<div id="supportBox" class="popup">
-<div class="popup-box">
-
-<h3>Support</h3>
-
-<button onclick="openWhatsApp()">WhatsApp Support</button>
-<button onclick="showMessage()">Contact Customer Representative</button>
-
-<p id="supportMsg" style="margin-top:10px;color:red;"></p>
-
-<button onclick="closeSupport()">Close</button>
-
-</div>
-</div>
-
-<!-- LOADER -->
-<div id="loader" class="loader" style="display:none;">
-<div class="spinner"></div>
-<p>Processing Payment...</p>
-</div>
-
-<!-- SUCCESS -->
-<div id="success" class="success" style="display:none;">
-<div class="success-box">
-<h2>✅ Payment Successful</h2>
-<p>₹1000 Added</p>
-<button onclick="closeSuccess()">OK</button>
-</div>
-</div>
-
-<script src="script.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
