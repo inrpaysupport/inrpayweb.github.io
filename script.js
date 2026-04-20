@@ -21,12 +21,11 @@ let name = document.getElementById("name").value;
 let number = document.getElementById("number").value;
 let password = document.getElementById("password").value;
 
-if(!name || !number || !password){
-alert("Fill all fields");
-return;
-}
+alert("Inputs OK"); // step 1
 
 let ref = doc(db,"users",number);
+
+alert("Doc created"); // step 2
 
 await setDoc(ref,{
 name,
@@ -35,10 +34,12 @@ password,
 balance:0
 });
 
-alert("Account created");
+alert("Data saved"); // step 3
 
 }catch(e){
 alert("ERROR: " + e.message);
+}
+
 }
 
 // 🔐 LOGIN
