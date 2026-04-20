@@ -13,7 +13,9 @@ const db = getFirestore(app);
 // 🔐 REGISTER
 window.register = async function(){
 
-alert("Clicked"); // 🔥 debug (mobile ke liye)
+alert("Clicked");
+
+try{
 
 let name = document.getElementById("name").value;
 let number = document.getElementById("number").value;
@@ -25,12 +27,6 @@ return;
 }
 
 let ref = doc(db,"users",number);
-let snap = await getDoc(ref);
-
-if(snap.exists()){
-alert("User exists");
-return;
-}
 
 await setDoc(ref,{
 name,
@@ -39,7 +35,10 @@ password,
 balance:0
 });
 
-alert("Account created successfully");
+alert("Account created");
+
+}catch(e){
+alert("ERROR: " + e.message);
 }
 
 // 🔐 LOGIN
