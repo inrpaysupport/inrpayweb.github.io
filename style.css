@@ -5,46 +5,65 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
+/* LOGIN */
 #auth{
 padding:20px;
 text-align:center;
 }
 
-input{
+/* INPUT */
+input, select{
 display:block;
 margin:10px auto;
-padding:10px;
-width:80%;
+padding:12px;
+width:85%;
 border-radius:10px;
 border:none;
+outline:none;
 }
 
+/* BUTTON */
 button{
 padding:10px;
 margin:5px;
 border:none;
 border-radius:10px;
+cursor:pointer;
+background:#ffffff;
+color:#333;
+transition:0.2s;
 }
 
+button:hover{
+background:#ddd;
+}
+
+/* TOP BAR */
 .topbar{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:20px;
 }
 
+/* CARD */
 .card{
 margin:15px;
 padding:20px;
 border-radius:20px;
 background:linear-gradient(135deg,#7b2ff7,#f107a3);
+text-align:center;
 }
 
+/* STATS */
 .stats{
 display:flex;
 justify-content:space-around;
 margin:10px;
+text-align:center;
 }
 
+/* SERVICES */
 .services{
 display:grid;
 grid-template-columns:repeat(3,1fr);
@@ -57,9 +76,15 @@ background:rgba(255,255,255,0.1);
 padding:20px;
 border-radius:15px;
 text-align:center;
+cursor:pointer;
+transition:0.2s;
 }
 
-/* popup */
+.services div:hover{
+background:rgba(255,255,255,0.2);
+}
+
+/* POPUP */
 .popup{
 display:none;
 position:fixed;
@@ -70,12 +95,36 @@ height:100%;
 background:rgba(0,0,0,0.7);
 justify-content:center;
 align-items:center;
+z-index:999;
 }
 
+/* POPUP BOX */
 .popup-box{
 background:white;
 color:black;
 padding:20px;
 border-radius:15px;
 text-align:center;
+width:90%;
+max-width:350px;
+animation:fadeIn 0.3s ease;
+}
+
+/* ANIMATION */
+@keyframes fadeIn{
+from{
+transform:scale(0.8);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+/* MOBILE FIX */
+@media (max-width:500px){
+.services{
+grid-template-columns:repeat(2,1fr);
+}
 }
