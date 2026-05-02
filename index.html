@@ -13,6 +13,7 @@
 <input id="name" placeholder="Name">
 <input id="number" placeholder="Mobile Number">
 <input id="password" type="password" placeholder="Password">
+
 <button onclick="register()">Create Account</button>
 <button onclick="login()">Login</button>
 </div>
@@ -25,16 +26,12 @@
 </div>
 
 <div class="card">
-<p>Wallet Balance</p>
 <h1 id="balance">₹0</h1>
 </div>
-
-<h3>SERVICES</h3>
 
 <div class="services">
 <div onclick="openBank()">Bank</div>
 <div onclick="deposit()">Deposit</div>
-<div onclick="openReward()">Reward</div>
 <div onclick="openSupport()">Support</div>
 </div>
 
@@ -43,8 +40,8 @@
 <!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-<h3>Bank Accounts</h3>
 
+<h3>Bank Accounts</h3>
 <div id="bankList"></div>
 
 <button onclick="showAddBank()">+ Add</button>
@@ -58,6 +55,7 @@
 </div>
 
 <button onclick="closeBank()">Close</button>
+
 </div>
 </div>
 
@@ -72,11 +70,10 @@
 <p>UPI: <b id="upiText"></b></p>
 
 <input id="utr" placeholder="Enter UTR">
-
 <button onclick="submitDeposit()">Submit</button>
 
 <hr>
-<h4>Deposit History</h4>
+<h4>History</h4>
 <div id="depositList"></div>
 
 <button onclick="closeDeposit()">Close</button>
@@ -88,7 +85,7 @@
 <div id="supportBox" class="popup">
 <div class="popup-box">
 <h3>Support</h3>
-<button onclick="autoReply()">Contact Support</button>
+<button onclick="autoReply()">Contact</button>
 <p id="supportMsg"></p>
 <button onclick="closeSupport()">Close</button>
 </div>
@@ -103,5 +100,6 @@
 </div>
 
 <script type="module" src="script.js"></script>
+
 </body>
 </html>
