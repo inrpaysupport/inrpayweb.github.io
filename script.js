@@ -2,16 +2,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyBh...",
-  authDomain: "inrpay-44413.firebaseapp.com",
-  projectId: "inrpay-44413"
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_ID"
 });
 
 const db = getFirestore(app);
 
 // MESSAGE
 function showMsg(t){
-msgText.innerText = t;
+msgText.innerText=t;
 msgBox.style.display="flex";
 }
 window.closeMsg=()=>msgBox.style.display="none";
@@ -29,21 +29,18 @@ showMsg("Account Created");
 // LOGIN
 window.login=async()=>{
 let snap=await getDoc(doc(db,"users",number.value));
-
 if(!snap.exists()) return showMsg("User not found");
 
-let user=snap.data();
-
-if(user.password!==password.value) return showMsg("Wrong password");
+let u=snap.data();
+if(u.password!==password.value) return showMsg("Wrong password");
 
 auth.style.display="none";
 dashboard.style.display="block";
 
-username.innerText=user.name;
-balance.innerText="₹"+user.balance;
+username.innerText=u.name;
+balance.innerText="₹"+u.balance;
 
 localStorage.setItem("user",number.value);
-
 listenDeposits();
 }
 
@@ -53,16 +50,12 @@ let u=localStorage.getItem("user");
 if(!u) return;
 
 let snap=await getDoc(doc(db,"users",u));
-
 if(snap.exists()){
-let user=snap.data();
-
+let d=snap.data();
 auth.style.display="none";
 dashboard.style.display="block";
-
-username.innerText=user.name;
-balance.innerText="₹"+user.balance;
-
+username.innerText=d.name;
+balance.innerText="₹"+d.balance;
 listenDeposits();
 }
 }
@@ -73,7 +66,6 @@ window.logout=()=>{localStorage.clear();location.reload();}
 // BANK
 window.openBank=()=>{bankBox.style.display="flex";loadBanks();}
 window.closeBank=()=>bankBox.style.display="none";
-
 window.showAddBank=()=>bankForm.style.display="block";
 
 window.saveBank=async()=>{
@@ -98,9 +90,8 @@ bankList.innerHTML="";
 
 snap.forEach(d=>{
 let data=d.data();
-
 if(data.user===user){
-bankList.innerHTML+=`<p>${data.bank} - ${data.account}</p>`;
+bankList.innerHTML+=`<div>${data.bank} - ${data.account}</div>`;
 }
 });
 }
@@ -108,7 +99,6 @@ bankList.innerHTML+=`<p>${data.bank} - ${data.account}</p>`;
 // DEPOSIT
 window.deposit=async()=>{
 let snap=await getDoc(doc(db,"settings","payment"));
-
 if(snap.exists()){
 let d=snap.data();
 upiText.innerText=d.upi;
@@ -116,6 +106,7 @@ qrImg.src=d.qr;
 }
 
 depositBox.style.display="flex";
+loadDeposits();
 }
 
 window.closeDeposit=()=>depositBox.style.display="none";
@@ -128,11 +119,31 @@ let user=localStorage.getItem("user");
 await setDoc(doc(db,"deposits",Date.now()+""),{
 user,
 utr:utr.value,
-status:"Pending"
+status:"Pending",
+time:new Date().toLocaleString()
 });
 
-showMsg("Deposit submitted\nWait 24 hours");
-closeDeposit();
+showMsg("Submitted - wait 24h");
+loadDeposits();
+}
+
+async function loadDeposits(){
+let user=localStorage.getItem("user");
+
+let snap=await getDocs(collection(db,"deposits"));
+depositList.innerHTML="";
+
+snap.forEach(d=>{
+let data=d.data();
+
+if(data.user===user){
+depositList.innerHTML+=`
+<div>
+UTR: ${data.utr}<br>
+Status: ${data.status}
+</div>`;
+}
+});
 }
 
 // REALTIME
@@ -142,9 +153,8 @@ let user=localStorage.getItem("user");
 onSnapshot(collection(db,"deposits"),snap=>{
 snap.forEach(d=>{
 let data=d.data();
-
 if(data.user===user && data.status==="approved"){
-showMsg("Deposit Success ✅");
+showMsg("Deposit Success");
 updateBalance();
 }
 });
@@ -153,19 +163,14 @@ updateBalance();
 
 async function updateBalance(){
 let user=localStorage.getItem("user");
-
 let snap=await getDoc(doc(db,"users",user));
 balance.innerText="₹"+snap.data().balance;
 }
 
-// HISTORY
-window.openHistory=()=>showMsg("No history");
-
-// REWARD
-window.openReward=()=>showMsg("No rewards");
-
 // SUPPORT
 window.openSupport=()=>supportBox.style.display="flex";
 window.closeSupport=()=>supportBox.style.display="none";
-
 window.autoReply=()=>supportMsg.innerText="Wait 30-60 min";
+
+// REWARD
+window.openReward=()=>showMsg("No rewards");
