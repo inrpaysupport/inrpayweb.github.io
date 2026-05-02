@@ -3,15 +3,10 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>INRPay</title>
-<link rel="stylesheet" href="style.css?v=50">
+<link rel="stylesheet" href="style.css?v=100">
 </head>
 
 <body>
-
-<!-- SPLASH -->
-<div id="splash">
-<h1 class="logo">INRPAY</h1>
-</div>
 
 <!-- AUTH -->
 <div id="auth">
@@ -39,51 +34,35 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 <h2 id="usernameHome"></h2>
 
-<div class="card mainCard">
+<div class="card">
 <h1 id="balance">₹0</h1>
-
-<div class="row">
-<div>Deposit<br>0</div>
-<div>Earnings<br>0</div>
-</div>
-
-<p class="green">Cashed Out: ₹0</p>
 </div>
 
 <div class="services">
-<div onclick="deposit()">💳 Deposit</div>
-<div onclick="openBank()">🏦 Bank</div>
+<div onclick="deposit()">Deposit</div>
+<div onclick="openBank()">Bank</div>
 </div>
 
 </div>
 
 <!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
-<h2>Earnings</h2>
+<h3>Earnings</h3>
 <div id="earningList"></div>
 <button onclick="openWithdraw()">Withdraw</button>
 </div>
 
 <!-- SETTINGS -->
 <div id="settingsPage" class="page" style="display:none;">
-<h2>Settings</h2>
-
-<div class="card">
 <p id="username2"></p>
 <p id="usernumber"></p>
-</div>
-
-<input id="newPass" placeholder="New Password">
-<input id="confirmPass" placeholder="Confirm Password">
-<button onclick="changePassword()">Update</button>
-
 <button onclick="logout()">Logout</button>
 </div>
 
 <!-- NAV -->
 <div class="bottomNav">
 <div onclick="showPage('homePage')">🏠</div>
-<div class="centerBtn" onclick="showPage('earnPage')">💰</div>
+<div onclick="showPage('earnPage')">💰</div>
 <div onclick="showPage('settingsPage')">⚙️</div>
 </div>
 
@@ -92,11 +71,8 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
-<h3>Deposit ₹1000</h3>
-
-<input id="utr" placeholder="Enter UTR">
+<input id="utr" placeholder="UTR">
 <button onclick="submitDeposit()">Submit</button>
-
 <div id="depositList"></div>
 <button onclick="closeDeposit()">Close</button>
 </div>
@@ -105,14 +81,10 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-<h3>Bank</h3>
-
-<div id="bankList"></div>
-
-<input id="accNumber" placeholder="Account">
 <input id="bankName" placeholder="Bank">
-
+<input id="accNumber" placeholder="Account">
 <button onclick="saveBank()">Add</button>
+<div id="bankList"></div>
 <button onclick="closeBank()">Close</button>
 </div>
 </div>
@@ -134,15 +106,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </div>
 </div>
 
-<!-- MESSAGE -->
-<div id="msgBox" class="popup">
-<div class="popup-box">
-<p id="msgText"></p>
-<button onclick="closeMsg()">OK</button>
-</div>
-</div>
-
-<script type="module" src="script.js?v=50"></script>
+<script type="module" src="script.js?v=100"></script>
 
 </body>
 </html>
