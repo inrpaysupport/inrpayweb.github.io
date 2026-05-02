@@ -7,9 +7,9 @@
 <style>
 body{
 font-family:Arial;
-padding:20px;
 background:#111;
 color:white;
+padding:20px;
 }
 
 input{
@@ -24,10 +24,22 @@ padding:10px;
 margin:5px 0;
 }
 </style>
-
 </head>
 
 <body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+<h2>Admin Login</h2>
+
+<input id="adminUser" placeholder="Username">
+<input id="adminPass" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+</div>
+
+<!-- PANEL -->
+<div id="panel" style="display:none;">
 
 <h2>Admin Panel</h2>
 
@@ -43,10 +55,14 @@ margin:5px 0;
 <h3>Deposit Requests</h3>
 <div id="list"></div>
 
+<button onclick="logout()">Logout</button>
+
+</div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
@@ -56,7 +72,53 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-// SAVE UPI + QR
+// 🔐 LOGIN
+window.login = async function(){
+
+let user = document.getElementById("adminUser").value;
+let pass = document.getElementById("adminPass").value;
+
+let snap = await getDocs(collection(db,"admins"));
+
+let found = false;
+
+snap.forEach(docu=>{
+let d = docu.data();
+
+if(d.username === user && d.password === pass){
+found = true;
+}
+});
+
+if(!found){
+alert("Wrong credentials");
+return;
+}
+
+localStorage.setItem("admin","true");
+
+loginBox.style.display="none";
+panel.style.display="block";
+
+loadDeposits();
+}
+
+// AUTO LOGIN
+window.onload = function(){
+if(localStorage.getItem("admin")){
+loginBox.style.display="none";
+panel.style.display="block";
+loadDeposits();
+}
+}
+
+// LOGOUT
+window.logout = function(){
+localStorage.removeItem("admin");
+location.reload();
+}
+
+// SAVE SETTINGS
 window.saveSettings = async function(){
 
 let upi = document.getElementById("upi").value;
@@ -74,13 +136,14 @@ async function loadDeposits(){
 
 let snap = await getDocs(collection(db,"deposits"));
 
-list.innerHTML = "";
+list.innerHTML="";
 
 snap.forEach(d=>{
 
 let data = d.data();
 
 let div = document.createElement("div");
+
 div.innerHTML = `
 <p>User: ${data.user}</p>
 <p>UTR: ${data.utr}</p>
@@ -92,17 +155,15 @@ div.innerHTML = `
 list.appendChild(div);
 
 });
-
 }
 
+// APPROVE
 window.approve = async function(id,user){
 
-// update deposit status
 await updateDoc(doc(db,"deposits",id),{
 status:"approved"
 });
 
-// add balance
 let userRef = doc(db,"users",user);
 let snap = await getDoc(userRef);
 let u = snap.data();
@@ -115,8 +176,6 @@ alert("Approved");
 
 loadDeposits();
 }
-
-loadDeposits();
 
 </script>
 
