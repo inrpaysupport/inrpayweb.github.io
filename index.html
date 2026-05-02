@@ -8,19 +8,15 @@
 
 <body>
 
-<!-- LOGIN -->
 <div id="auth">
 <h2>INRPay</h2>
-
 <input id="name" placeholder="Name">
 <input id="number" placeholder="Mobile Number">
 <input id="password" type="password" placeholder="Password">
-
 <button onclick="register()">Create Account</button>
 <button onclick="login()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" style="display:none;">
 
 <div class="topbar">
@@ -38,60 +34,51 @@
 <div class="services">
 <div onclick="openBank()">Bank</div>
 <div onclick="deposit()">Deposit</div>
-<div onclick="openHistory()">History</div>
 <div onclick="openReward()">Reward</div>
 <div onclick="openSupport()">Support</div>
 </div>
 
 </div>
 
-<!-- BANK POPUP -->
+<!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-
 <h3>Bank Accounts</h3>
 
 <div id="bankList"></div>
 
-<button onclick="showAddBank()">+ Add Account</button>
+<button onclick="showAddBank()">+ Add</button>
 
 <div id="bankForm" style="display:none;">
-
 <input id="accName" placeholder="Name">
 <input id="bankName" placeholder="Bank">
-<input id="accNumber" placeholder="Account No">
+<input id="accNumber" placeholder="Account">
 <input id="ifsc" placeholder="IFSC">
-<input id="bankMobile" placeholder="Mobile">
-
-<select id="accType">
-<option>Saving</option>
-<option>Current</option>
-</select>
-
 <button onclick="saveBank()">Save</button>
-
 </div>
 
 <button onclick="closeBank()">Close</button>
-
 </div>
 </div>
 
-<!-- DEPOSIT POPUP -->
+<!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
 
 <h3>Security Deposit</h3>
-
-<p style="font-size:20px;color:red;">₹1000</p>
+<p style="color:red;font-size:20px;">₹1000</p>
 
 <img id="qrImg" width="150">
-
 <p>UPI: <b id="upiText"></b></p>
 
 <input id="utr" placeholder="Enter UTR">
 
 <button onclick="submitDeposit()">Submit</button>
+
+<hr>
+<h4>Deposit History</h4>
+<div id="depositList"></div>
+
 <button onclick="closeDeposit()">Close</button>
 
 </div>
@@ -100,30 +87,21 @@
 <!-- SUPPORT -->
 <div id="supportBox" class="popup">
 <div class="popup-box">
-
 <h3>Support</h3>
-
 <button onclick="autoReply()">Contact Support</button>
-
 <p id="supportMsg"></p>
-
 <button onclick="closeSupport()">Close</button>
-
 </div>
 </div>
 
 <!-- MESSAGE -->
 <div id="msgBox" class="popup">
 <div class="popup-box">
-
 <p id="msgText"></p>
-
 <button onclick="closeMsg()">OK</button>
-
 </div>
 </div>
 
 <script type="module" src="script.js"></script>
-
 </body>
 </html>
