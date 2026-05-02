@@ -9,43 +9,84 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-// ================= MESSAGE =================
+// ===== DOM =====
+const authEl = document.getElementById("auth");
+const appEl = document.getElementById("app");
+
+const authTitle = document.getElementById("authTitle");
+const nameInput = document.getElementById("name");
+const numberInput = document.getElementById("number");
+const passwordInput = document.getElementById("password");
+
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+const toggleText = document.getElementById("toggleText");
+
+const usernameHome = document.getElementById("usernameHome");
+const username2 = document.getElementById("username2");
+const usernumber = document.getElementById("usernumber");
+const balance = document.getElementById("balance");
+
+const msgBox = document.getElementById("msgBox");
+const msgText = document.getElementById("msgText");
+
+const depositBox = document.getElementById("depositBox");
+const depositList = document.getElementById("depositList");
+const utrInput = document.getElementById("utr");
+const upiText = document.getElementById("upiText");
+const qrImg = document.getElementById("qrImg");
+
+const bankBox = document.getElementById("bankBox");
+const bankList = document.getElementById("bankList");
+const bankNameInput = document.getElementById("bankName");
+const accNumberInput = document.getElementById("accNumber");
+
+const newPass = document.getElementById("newPass");
+const confirmPass = document.getElementById("confirmPass");
+
+// ===== MESSAGE =====
 function showMsg(t){
 msgText.innerText=t;
 msgBox.style.display="flex";
 }
 window.closeMsg=()=>msgBox.style.display="none";
 
-// ================= TOGGLE =================
+// ===== TOGGLE =====
 window.showRegister=()=>{
 authTitle.innerText="Create Account";
-name.style.display="block";
-loginBtn.style.display="none";
+nameInput.style.display="block";
 registerBtn.style.display="block";
+loginBtn.style.display="none";
 
-toggleText.innerHTML=`Already have an account? 
+toggleText.innerHTML=`
+Already have an account?
 <span onclick="showLogin()" style="color:yellow;">Sign In</span>`;
 }
 
 window.showLogin=()=>{
 authTitle.innerText="Sign In";
-name.style.display="none";
-loginBtn.style.display="block";
+nameInput.style.display="none";
 registerBtn.style.display="none";
+loginBtn.style.display="block";
 
-toggleText.innerHTML=`Don't have an account? 
+toggleText.innerHTML=`
+Don't have an account?
 <span onclick="showRegister()" style="color:yellow;">Sign Up</span>`;
 }
 
-// ================= REGISTER =================
+// ===== REGISTER =====
 window.register=async()=>{
-if(!name.value || !number.value || !password.value){
+let name=nameInput.value.trim();
+let number=numberInput.value.trim();
+let password=passwordInput.value.trim();
+
+if(!name || !number || !password){
 return showMsg("Fill all fields");
 }
 
-await setDoc(doc(db,"users",number.value),{
-name:name.value,
-password:password.value,
+await setDoc(doc(db,"users",number),{
+name,
+password,
 balance:0
 });
 
@@ -53,49 +94,47 @@ showMsg("Account Created ✅");
 showLogin();
 }
 
-// ================= LOGIN =================
+// ===== LOGIN =====
 window.login=async()=>{
-if(!number.value || !password.value){
+let number=numberInput.value.trim();
+let password=passwordInput.value.trim();
+
+if(!number || !password){
 return showMsg("Enter details");
 }
 
-let snap=await getDoc(doc(db,"users",number.value));
+let snap=await getDoc(doc(db,"users",number));
 
 if(!snap.exists()) return showMsg("User not found");
 
 let user=snap.data();
 
-if(user.password!==password.value){
+if(user.password!==password){
 return showMsg("Wrong password");
 }
 
-// 🔥 UI SWITCH
-auth.style.display="none";
-app.style.display="block";
+// UI
+authEl.style.display="none";
+appEl.style.display="block";
 
-// 🔥 USER DATA SET
+// DATA
 username2.innerText=user.name;
-usernumber.innerText=number.value;
+usernumber.innerText=number;
 balance.innerText="₹"+user.balance;
 
-// 🔥 HOME NAME FIX
-if(typeof usernameHome !== "undefined"){
-usernameHome.innerText=user.name;
-}
+if(usernameHome) usernameHome.innerText=user.name;
 
-localStorage.setItem("user",number.value);
+localStorage.setItem("user",number);
 
 loadDeposits();
 loadBanks();
 loadPayment();
 }
 
-// ================= AUTO LOGIN =================
+// ===== AUTO LOGIN =====
 window.onload=async()=>{
-
 let u=localStorage.getItem("user");
 
-// 🔥 अगर login नहीं है → signup दिखाओ
 if(!u){
 showRegister();
 return;
@@ -110,36 +149,33 @@ return;
 
 let user=snap.data();
 
-auth.style.display="none";
-app.style.display="block";
+authEl.style.display="none";
+appEl.style.display="block";
 
 username2.innerText=user.name;
 usernumber.innerText=u;
 balance.innerText="₹"+user.balance;
 
-// 🔥 HOME NAME FIX
-if(typeof usernameHome !== "undefined"){
-usernameHome.innerText=user.name;
-}
+if(usernameHome) usernameHome.innerText=user.name;
 
 loadDeposits();
 loadBanks();
 loadPayment();
 }
 
-// ================= NAV =================
+// ===== NAV =====
 window.showPage=(id)=>{
 document.querySelectorAll(".page").forEach(p=>p.style.display="none");
 document.getElementById(id).style.display="block";
 }
 
-// ================= LOGOUT =================
+// ===== LOGOUT =====
 window.logout=()=>{
 localStorage.clear();
 location.reload();
 }
 
-// ================= DEPOSIT =================
+// ===== DEPOSIT =====
 window.deposit=()=>{
 depositBox.style.display="flex";
 loadDeposits();
@@ -148,21 +184,21 @@ loadDeposits();
 window.closeDeposit=()=>depositBox.style.display="none";
 
 window.submitDeposit=async()=>{
-if(!utr.value) return showMsg("Enter UTR");
+if(!utrInput.value) return showMsg("Enter UTR");
 
 await setDoc(doc(db,"deposits",Date.now()+""),{
 user:localStorage.getItem("user"),
-utr:utr.value,
+utr:utrInput.value,
 status:"Pending",
 time:new Date().toLocaleString()
 });
 
 showMsg("Deposit Submitted");
-utr.value="";
+utrInput.value="";
 loadDeposits();
 }
 
-// ================= LOAD DEPOSITS =================
+// ===== LOAD DEPOSITS =====
 async function loadDeposits(){
 let user=localStorage.getItem("user");
 let snap=await getDocs(collection(db,"deposits"));
@@ -183,7 +219,7 @@ ${data.time||""}
 });
 }
 
-// ================= LOAD PAYMENT =================
+// ===== PAYMENT =====
 async function loadPayment(){
 let snap=await getDoc(doc(db,"settings","payment"));
 
@@ -194,7 +230,7 @@ qrImg.src=d.qr||"";
 }
 }
 
-// ================= BANK =================
+// ===== BANK =====
 window.openBank=()=>{
 bankBox.style.display="flex";
 loadBanks();
@@ -203,23 +239,23 @@ loadBanks();
 window.closeBank=()=>bankBox.style.display="none";
 
 window.saveBank=async()=>{
-if(!bankName.value || !accNumber.value){
+if(!bankNameInput.value || !accNumberInput.value){
 return showMsg("Fill bank details");
 }
 
 await setDoc(doc(db,"bank",Date.now()+""),{
 user:localStorage.getItem("user"),
-bank:bankName.value,
-account:accNumber.value
+bank:bankNameInput.value,
+account:accNumberInput.value
 });
 
 showMsg("Bank Added");
-bankName.value="";
-accNumber.value="";
+bankNameInput.value="";
+accNumberInput.value="";
 loadBanks();
 }
 
-// ================= LOAD BANK =================
+// ===== LOAD BANK =====
 async function loadBanks(){
 let user=localStorage.getItem("user");
 let snap=await getDocs(collection(db,"bank"));
@@ -238,7 +274,7 @@ ${data.bank}<br>${data.account}
 });
 }
 
-// ================= PASSWORD =================
+// ===== PASSWORD =====
 window.changePassword=async()=>{
 if(!newPass.value || !confirmPass.value){
 return showMsg("Fill password");
