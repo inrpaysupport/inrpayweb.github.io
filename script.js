@@ -23,17 +23,17 @@ name.style.display="block";
 loginBtn.style.display="none";
 registerBtn.style.display="block";
 
-toggleText.innerHTML=`Already have account? 
+toggleText.innerHTML=`Already have an account? 
 <span onclick="showLogin()" style="color:yellow;">Sign In</span>`;
 }
 
 window.showLogin=()=>{
-authTitle.innerText="Login";
+authTitle.innerText="Sign In";
 name.style.display="none";
 loginBtn.style.display="block";
 registerBtn.style.display="none";
 
-toggleText.innerHTML=`Don't have account? 
+toggleText.innerHTML=`Don't have an account? 
 <span onclick="showRegister()" style="color:yellow;">Sign Up</span>`;
 }
 
@@ -69,12 +69,19 @@ if(user.password!==password.value){
 return showMsg("Wrong password");
 }
 
+// 🔥 UI SWITCH
 auth.style.display="none";
 app.style.display="block";
 
+// 🔥 USER DATA SET
 username2.innerText=user.name;
 usernumber.innerText=number.value;
 balance.innerText="₹"+user.balance;
+
+// 🔥 HOME NAME FIX
+if(typeof usernameHome !== "undefined"){
+usernameHome.innerText=user.name;
+}
 
 localStorage.setItem("user",number.value);
 
@@ -85,11 +92,21 @@ loadPayment();
 
 // ================= AUTO LOGIN =================
 window.onload=async()=>{
+
 let u=localStorage.getItem("user");
-if(!u) return;
+
+// 🔥 अगर login नहीं है → signup दिखाओ
+if(!u){
+showRegister();
+return;
+}
 
 let snap=await getDoc(doc(db,"users",u));
-if(!snap.exists()) return;
+
+if(!snap.exists()){
+showRegister();
+return;
+}
 
 let user=snap.data();
 
@@ -99,6 +116,11 @@ app.style.display="block";
 username2.innerText=user.name;
 usernumber.innerText=u;
 balance.innerText="₹"+user.balance;
+
+// 🔥 HOME NAME FIX
+if(typeof usernameHome !== "undefined"){
+usernameHome.innerText=user.name;
+}
 
 loadDeposits();
 loadBanks();
