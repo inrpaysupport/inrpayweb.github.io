@@ -3,18 +3,18 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>INRPay</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 
 <body>
 
 <!-- 🔥 SPLASH -->
 <div id="splash">
-<h1 class="logo">INRPAY</h1>
+<h1>INRPAY</h1>
 </div>
 
 <!-- AUTH -->
-<div id="auth" style="display:none;">
+<div id="auth">
 
 <h2 id="authTitle">Create Account</h2>
 
@@ -26,14 +26,13 @@
 <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
 
 <p id="toggleText">
-Already have an account? 
-<span onclick="showLogin()">Sign In</span>
+Already have account? <span onclick="showLogin()">Sign In</span>
 </p>
 
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none;">
+<div id="app">
 
 <!-- HOME -->
 <div id="homePage" class="page">
@@ -44,34 +43,22 @@ Already have an account?
 <h1 id="balance">₹0</h1>
 
 <div class="row">
-<div>Deposit<br><span id="depositTotal">0</span></div>
-<div>Earnings<br><span id="earnings">0</span></div>
+<div>Deposit<br>0</div>
+<div>Earnings<br>0</div>
 </div>
 
 <p class="success">Cashed Out: ₹0</p>
 </div>
 
-<div class="actionBtns">
-<button onclick="deposit()">Deposit</button>
-<button onclick="openBank()">Bank</button>
-</div>
-
-</div>
-
-<!-- EARN -->
-<div id="earnPage" class="page" style="display:none;">
-<h2>Earnings</h2>
-
-<div class="card premium">
-<h1 id="earnings2">₹0</h1>
-<button>Withdraw</button>
+<div class="services">
+<div onclick="deposit()">Security Deposit</div>
+<div onclick="openBank()">Bank Account</div>
 </div>
 
 </div>
 
 <!-- SETTINGS -->
 <div id="settingsPage" class="page" style="display:none;">
-
 <h2>Settings</h2>
 
 <div class="card">
@@ -80,7 +67,6 @@ Already have an account?
 </div>
 
 <div class="card">
-<h3>Password</h3>
 <input id="newPass" placeholder="New Password">
 <input id="confirmPass" placeholder="Confirm Password">
 <button onclick="changePassword()">Update</button>
@@ -90,16 +76,15 @@ Already have an account?
 
 </div>
 
-<!-- 🔥 BOTTOM NAV -->
+<!-- NAV -->
 <div class="bottomNav">
 <button onclick="showPage('homePage')">🏠</button>
-<button onclick="showPage('earnPage')">📊</button>
 <button onclick="showPage('settingsPage')">⚙️</button>
 </div>
 
 </div>
 
-<!-- POPUPS -->
+<!-- 🔥 DEPOSIT POPUP -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
 
@@ -118,10 +103,12 @@ Already have an account?
 </div>
 </div>
 
+<!-- 🔥 BANK POPUP -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
 
 <h3>Bank Accounts</h3>
+
 <div id="bankList"></div>
 
 <input id="accNumber" placeholder="Account">
@@ -141,7 +128,7 @@ Already have an account?
 </div>
 </div>
 
-<script type="module" src="script.js"></script>
+<script type="module" src="script.js?v=9"></script>
 
 </body>
 </html>
