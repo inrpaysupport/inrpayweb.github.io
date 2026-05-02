@@ -1,53 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width">
-<title>Admin</title>
-
-<style>
-body{background:#111;color:white;font-family:Arial;padding:20px;}
-.card{background:#222;padding:10px;margin:10px;border-radius:10px;}
-button{padding:8px;margin-top:5px;width:100%;}
-</style>
-</head>
-
 <body>
 
 <h2>Admin Panel</h2>
-
-<input id="upi" placeholder="UPI">
-<input id="qr" placeholder="QR URL">
-
-<button onclick="save()">Save Payment</button>
-
-<h3>Deposits</h3>
 <div id="list"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, getDocs, collection, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-    apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
-  authDomain:"inrpay-44413.firebaseapp.com",
-  projectId:"inrpay-44413"
+apiKey:"AIzaSyBh...",
+authDomain:"inrpay-44413.firebaseapp.com",
+projectId:"inrpay-44413"
 });
 
-const db = getFirestore(app);
+const db=getFirestore(app);
 
-// SAVE QR
-window.save=async()=>{
-await setDoc(doc(db,"settings","payment"),{
-upi:upi.value,
-qr:qr.value
-});
-alert("Saved");
-}
-
-// LOAD
 async function load(){
-let snap=await getDocs(collection(db,"deposits"));
+let snap=await getDocs(collection(db,"withdraw"));
 
 list.innerHTML="";
 
@@ -55,31 +27,17 @@ snap.forEach(d=>{
 let data=d.data();
 
 list.innerHTML+=`
-<div class="card">
-User: ${data.user}<br>
-UTR: ${data.utr}<br>
-Status: ${data.status}
-<button onclick="approve('${d.id}','${data.user}')">Approve</button>
-<button onclick="reject('${d.id}')">Reject</button>
+<div>
+${data.name} | ₹${data.amount} | ${data.status}
+<button onclick="approve('${d.id}')">Approve</button>
 </div>`;
 });
 }
 
-window.approve=async(id,user)=>{
-await updateDoc(doc(db,"deposits",id),{status:"approved"});
-
-let ref=doc(db,"users",user);
-let snap=await getDoc(ref);
-
-await updateDoc(ref,{
-balance:snap.data().balance+1000
+window.approve=async(id)=>{
+await updateDoc(doc(db,"withdraw",id),{
+status:"Done"
 });
-
-load();
-}
-
-window.reject=async(id)=>{
-await updateDoc(doc(db,"deposits",id),{status:"rejected"});
 load();
 }
 
