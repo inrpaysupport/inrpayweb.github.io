@@ -2,75 +2,26 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width">
-<title>INRPay Admin</title>
+<title>Admin</title>
 
 <style>
-body{
-font-family:Arial;
-background:#111;
-color:white;
-padding:20px;
-}
-
-input{
-display:block;
-margin:10px 0;
-padding:10px;
-width:100%;
-border-radius:8px;
-border:none;
-}
-
-button{
-padding:10px;
-margin:5px 0;
-width:100%;
-border:none;
-border-radius:8px;
-cursor:pointer;
-}
-
-.card{
-background:#222;
-padding:15px;
-margin-top:10px;
-border-radius:10px;
-}
+body{background:#111;color:white;font-family:Arial;padding:20px;}
+.card{background:#222;padding:10px;margin:10px;border-radius:10px;}
+button{padding:8px;margin-top:5px;width:100%;}
 </style>
 </head>
 
 <body>
 
-<!-- 🔐 LOGIN -->
-<div id="loginBox">
-<h2>Admin Login</h2>
-
-<input id="adminUser" placeholder="Username">
-<input id="adminPass" type="password" placeholder="Password">
-
-<button onclick="login()">Login</button>
-</div>
-
-<!-- 🛠 PANEL -->
-<div id="panel" style="display:none;">
-
 <h2>Admin Panel</h2>
 
-<h3>Payment Settings</h3>
+<input id="upi" placeholder="UPI">
+<input id="qr" placeholder="QR URL">
 
-<input id="upi" placeholder="UPI ID">
-<input type="file" id="qrFile">
+<button onclick="save()">Save Payment</button>
 
-<button onclick="saveSettings()">Save Settings</button>
-
-<hr>
-
-<h3>Deposit Requests</h3>
+<h3>Deposits</h3>
 <div id="list"></div>
-
-<button onclick="logout()">Logout</button>
-
-</div>
 
 <script type="module">
 
@@ -78,136 +29,61 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
-  authDomain: "inrpay-44413.firebaseapp.com",
-  projectId: "inrpay-44413"
+    apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+  authDomain:"inrpay-44413.firebaseapp.com",
+  projectId:"inrpay-44413"
 });
 
 const db = getFirestore(app);
 
-// 🔐 ADMIN LOGIN
-window.login = async function(){
-
-let user = document.getElementById("adminUser").value;
-let pass = document.getElementById("adminPass").value;
-
-let snap = await getDocs(collection(db,"admins"));
-
-let ok = false;
-
-snap.forEach(d=>{
-let data = d.data();
-if(data.username === user && data.password === pass){
-ok = true;
-}
-});
-
-if(!ok){
-alert("Wrong login");
-return;
-}
-
-localStorage.setItem("admin","true");
-
-loginBox.style.display="none";
-panel.style.display="block";
-
-loadDeposits();
-}
-
-// 🔄 AUTO LOGIN
-window.onload = function(){
-if(localStorage.getItem("admin")){
-loginBox.style.display="none";
-panel.style.display="block";
-loadDeposits();
-}
-}
-
-// 🚪 LOGOUT
-window.logout = function(){
-localStorage.removeItem("admin");
-location.reload();
-}
-
-// 💳 SAVE UPI + QR (Cloudinary)
-window.saveSettings = async function(){
-
-let upi = document.getElementById("upi").value;
-let file = document.getElementById("qrFile").files[0];
-
-let qrUrl = "";
-
-// 🔥 Upload to Cloudinary
-if(file){
-
-let formData = new FormData();
-formData.append("file", file);
-formData.append("upload_preset", "inrpay_upload");
-
-let res = await fetch("https://api.cloudinary.com/v1_1/dxxwlovdf/image/upload",{
-method:"POST",
-body:formData
-});
-
-let data = await res.json();
-qrUrl = data.secure_url;
-}
-
-// 🔥 Save in Firebase
+// SAVE QR
+window.save=async()=>{
 await setDoc(doc(db,"settings","payment"),{
-upi: upi,
-qr: qrUrl
+upi:upi.value,
+qr:qr.value
 });
-
-alert("Saved Successfully");
+alert("Saved");
 }
 
-// 📊 LOAD DEPOSITS
-async function loadDeposits(){
+// LOAD
+async function load(){
+let snap=await getDocs(collection(db,"deposits"));
 
-let snap = await getDocs(collection(db,"deposits"));
-
-list.innerHTML = "";
+list.innerHTML="";
 
 snap.forEach(d=>{
+let data=d.data();
 
-let data = d.data();
-
-let div = document.createElement("div");
-div.className = "card";
-
-div.innerHTML = `
-<p><b>User:</b> ${data.user}</p>
-<p><b>UTR:</b> ${data.utr}</p>
-<p><b>Status:</b> ${data.status}</p>
+list.innerHTML+=`
+<div class="card">
+User: ${data.user}<br>
+UTR: ${data.utr}<br>
+Status: ${data.status}
 <button onclick="approve('${d.id}','${data.user}')">Approve</button>
-`;
-
-list.appendChild(div);
-
+<button onclick="reject('${d.id}')">Reject</button>
+</div>`;
 });
 }
 
-// ✅ APPROVE
-window.approve = async function(id,user){
+window.approve=async(id,user)=>{
+await updateDoc(doc(db,"deposits",id),{status:"approved"});
 
-await updateDoc(doc(db,"deposits",id),{
-status:"approved"
-});
-
-let ref = doc(db,"users",user);
-let snap = await getDoc(ref);
-let u = snap.data();
+let ref=doc(db,"users",user);
+let snap=await getDoc(ref);
 
 await updateDoc(ref,{
-balance: u.balance + 1000
+balance:snap.data().balance+1000
 });
 
-alert("Approved +1000");
-
-loadDeposits();
+load();
 }
+
+window.reject=async(id)=>{
+await updateDoc(doc(db,"deposits",id),{status:"rejected"});
+load();
+}
+
+load();
 
 </script>
 
