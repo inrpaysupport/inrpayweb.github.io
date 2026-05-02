@@ -297,4 +297,4 @@ showMsg("Password Updated");
 setTimeout(()=>{
 document.getElementById("splash").style.display="none";
 document.getElementById("auth").style.display="flex";
-},2000);
+},2500);
