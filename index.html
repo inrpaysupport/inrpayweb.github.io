@@ -3,7 +3,9 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>INRPay</title>
+
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
@@ -29,18 +31,14 @@
 <h2 id="username"></h2>
 </div>
 
-<div class="top-right">
-<span onclick="logout()">🚪</span>
+<div>
+<button onclick="logout()">Logout</button>
 </div>
 </div>
 
 <div class="card">
 <p>Wallet Balance</p>
 <h1 id="balance">₹0</h1>
-
-<div class="btns">
-<button class="withdraw">Withdraw</button>
-</div>
 </div>
 
 <div class="stats">
@@ -62,9 +60,28 @@
 
 </div>
 
+<!-- DEPOSIT POPUP -->
+<div id="depositBox" class="popup">
+<div class="popup-box">
+
+<h3>Security Deposit</h3>
+
+<img id="qrImg" width="150">
+
+<p>UPI ID: <b id="upiText"></b></p>
+
+<input id="utr" placeholder="Enter UTR Number">
+
+<button onclick="submitDeposit()">Submit</button>
+<button onclick="closeDeposit()">Close</button>
+
+</div>
+</div>
+
 <!-- SUPPORT POPUP -->
 <div id="supportBox" class="popup">
 <div class="popup-box">
+
 <h3>Support</h3>
 
 <button onclick="autoReply()">Contact Customer Representative</button>
@@ -72,6 +89,7 @@
 <p id="supportMsg"></p>
 
 <button onclick="closeSupport()">Close</button>
+
 </div>
 </div>
 
