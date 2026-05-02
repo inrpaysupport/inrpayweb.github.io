@@ -2,201 +2,270 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
-authDomain: "inrpay-44413.firebaseapp.com",
-projectId: "inrpay-44413"
+  apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+  authDomain: "inrpay-44413.firebaseapp.com",
+  projectId: "inrpay-44413"
 });
 
 const db = getFirestore(app);
 
-// SPLASH
+// ===== DOM =====
+const splash = document.getElementById("splash");
+const auth = document.getElementById("auth");
+const appDiv = document.getElementById("app");
+
+const nameInput = document.getElementById("name");
+const numberInput = document.getElementById("number");
+const passwordInput = document.getElementById("password");
+
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+const authTitle = document.getElementById("authTitle");
+const toggleText = document.getElementById("toggleText");
+
+const usernameHome = document.getElementById("usernameHome");
+const username2 = document.getElementById("username2");
+const usernumber = document.getElementById("usernumber");
+const balance = document.getElementById("balance");
+
+const depositBox = document.getElementById("depositBox");
+const depositList = document.getElementById("depositList");
+const utrInput = document.getElementById("utr");
+
+const bankBox = document.getElementById("bankBox");
+const bankList = document.getElementById("bankList");
+const bankNameInput = document.getElementById("bankName");
+const accNumberInput = document.getElementById("accNumber");
+
+const withdrawBox = document.getElementById("withdrawBox");
+const withdrawList = document.getElementById("withdrawList");
+
+const earningList = document.getElementById("earningList");
+
+const msgBox = document.getElementById("msgBox");
+const msgText = document.getElementById("msgText");
+
+// ===== SPLASH =====
 setTimeout(()=>{
-splash.style.display="none";
-auth.style.display="flex";
+  splash.style.display="none";
+  auth.style.display="flex";
+  showRegister();
 },2000);
 
-// MESSAGE
+// ===== MESSAGE =====
 function showMsg(t){
-msgText.innerText=t;
-msgBox.style.display="flex";
+  msgText.innerText=t;
+  msgBox.style.display="flex";
 }
 window.closeMsg=()=>msgBox.style.display="none";
 
-// TOGGLE
-window.showLogin=()=>{
-authTitle.innerText="Login";
-name.style.display="none";
-loginBtn.style.display="block";
-registerBtn.style.display="none";
-toggleText.innerHTML=`Don't have account? <span onclick="showRegister()">Sign Up</span>`;
+// ===== TOGGLE =====
+window.showLogin = ()=>{
+  authTitle.innerText="Sign In";
+  nameInput.style.display="none";
+  loginBtn.style.display="block";
+  registerBtn.style.display="none";
+
+  toggleText.innerHTML=`Don't have account? 
+  <span onclick="showRegister()">Sign Up</span>`;
 }
 
-window.showRegister=()=>{
-authTitle.innerText="Create Account";
-name.style.display="block";
-loginBtn.style.display="none";
-registerBtn.style.display="block";
-toggleText.innerHTML=`Already have account? <span onclick="showLogin()">Sign In</span>`;
+window.showRegister = ()=>{
+  authTitle.innerText="Create Account";
+  nameInput.style.display="block";
+  loginBtn.style.display="none";
+  registerBtn.style.display="block";
+
+  toggleText.innerHTML=`Already have account? 
+  <span onclick="showLogin()">Sign In</span>`;
 }
 
-// REGISTER
-window.register=async()=>{
-if(!name.value || !number.value || !password.value){
-return showMsg("Fill all fields");
+// ===== REGISTER =====
+window.register = async ()=>{
+  let name = nameInput.value.trim();
+  let number = numberInput.value.trim();
+  let password = passwordInput.value.trim();
+
+  if(!name || !number || !password){
+    return showMsg("Fill all fields");
+  }
+
+  await setDoc(doc(db,"users",number),{
+    name,
+    password,
+    balance:0
+  });
+
+  showMsg("Account Created ✅");
+  showLogin();
 }
 
-await setDoc(doc(db,"users",number.value),{
-name:name.value,
-password:password.value,
-balance:0
-});
+// ===== LOGIN =====
+window.login = async ()=>{
+  let number = numberInput.value.trim();
+  let password = passwordInput.value.trim();
 
-showMsg("Account Created");
-showLogin();
+  if(!number || !password){
+    return showMsg("Enter details");
+  }
+
+  let snap = await getDoc(doc(db,"users",number));
+
+  if(!snap.exists()) return showMsg("User not found");
+
+  let user = snap.data();
+
+  if(user.password !== password){
+    return showMsg("Wrong password");
+  }
+
+  auth.style.display="none";
+  appDiv.style.display="block";
+
+  document.querySelector(".bottomNav").style.display="flex";
+
+  usernameHome.innerText=user.name;
+  username2.innerText=user.name;
+  usernumber.innerText=number;
+  balance.innerText="₹"+user.balance;
+
+  localStorage.setItem("user",number);
+
+  loadEarnings();
+  loadDeposits();
+  loadBanks();
 }
 
-// LOGIN
-window.login=async()=>{
-let snap=await getDoc(doc(db,"users",number.value));
-
-if(!snap.exists()) return showMsg("User not found");
-
-let user=snap.data();
-
-if(user.password!==password.value) return showMsg("Wrong password");
-
-auth.style.display="none";
-app.style.display="block";
-
-document.querySelector(".bottomNav").style.display="flex";
-
-usernameHome.innerText=user.name;
-username2.innerText=user.name;
-usernumber.innerText=number.value;
-balance.innerText="₹"+user.balance;
-
-localStorage.setItem("user",number.value);
-
-loadEarnings();
-loadDeposits();
-loadBanks();
+// ===== NAV =====
+window.showPage = (id)=>{
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById(id).style.display="block";
 }
 
-// NAV
-window.showPage=(id)=>{
-document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-document.getElementById(id).style.display="block";
+// ===== LOGOUT =====
+window.logout = ()=>{
+  localStorage.clear();
+  location.reload();
 }
 
-// LOGOUT
-window.logout=()=>{
-localStorage.clear();
-location.reload();
+// ===== DEPOSIT =====
+window.deposit = ()=> depositBox.style.display="flex";
+window.closeDeposit = ()=> depositBox.style.display="none";
+
+window.submitDeposit = async ()=>{
+  if(!utrInput.value) return showMsg("Enter UTR");
+
+  await setDoc(doc(db,"deposits",Date.now()+""),{
+    user:localStorage.getItem("user"),
+    utr:utrInput.value,
+    status:"pending",
+    time:new Date().toLocaleString()
+  });
+
+  utrInput.value="";
+  showMsg("Deposit Submitted");
+  loadDeposits();
 }
 
-// DEPOSIT
-window.deposit=()=>{depositBox.style.display="flex";}
-window.closeDeposit=()=>depositBox.style.display="none";
-
-window.submitDeposit=async()=>{
-await setDoc(doc(db,"deposits",Date.now()+""),{
-user:localStorage.getItem("user"),
-utr:utr.value,
-status:"pending",
-time:new Date().toLocaleString()
-});
-loadDeposits();
-}
-
-// LOAD DEPOSITS
+// ===== LOAD DEPOSITS =====
 async function loadDeposits(){
-let user=localStorage.getItem("user");
-let snap=await getDocs(collection(db,"deposits"));
+  let user=localStorage.getItem("user");
+  let snap=await getDocs(collection(db,"deposits"));
 
-depositList.innerHTML="";
+  depositList.innerHTML="";
 
-snap.forEach(d=>{
-let data=d.data();
-if(data.user===user){
-depositList.innerHTML+=`<div>${data.utr} - ${data.status}</div>`;
-}
-});
-}
-
-// BANK
-window.openBank=()=>{bankBox.style.display="flex";loadBanks();}
-window.closeBank=()=>bankBox.style.display="none";
-
-window.saveBank=async()=>{
-await setDoc(doc(db,"bank",Date.now()+""),{
-user:localStorage.getItem("user"),
-bank:bankName.value,
-account:accNumber.value
-});
-loadBanks();
+  snap.forEach(d=>{
+    let data=d.data();
+    if(data.user===user){
+      depositList.innerHTML+=`<div>${data.utr} - ${data.status}</div>`;
+    }
+  });
 }
 
-// LOAD BANK
+// ===== BANK =====
+window.openBank = ()=>{
+  bankBox.style.display="flex";
+  loadBanks();
+}
+window.closeBank = ()=> bankBox.style.display="none";
+
+window.saveBank = async ()=>{
+  if(!bankNameInput.value || !accNumberInput.value){
+    return showMsg("Fill bank details");
+  }
+
+  await setDoc(doc(db,"bank",Date.now()+""),{
+    user:localStorage.getItem("user"),
+    bank:bankNameInput.value,
+    account:accNumberInput.value
+  });
+
+  bankNameInput.value="";
+  accNumberInput.value="";
+  showMsg("Bank Added");
+  loadBanks();
+}
+
+// ===== LOAD BANK =====
 async function loadBanks(){
-let user=localStorage.getItem("user");
-let snap=await getDocs(collection(db,"bank"));
+  let user=localStorage.getItem("user");
+  let snap=await getDocs(collection(db,"bank"));
 
-bankList.innerHTML="";
+  bankList.innerHTML="";
 
-snap.forEach(d=>{
-let data=d.data();
-if(data.user===user){
-bankList.innerHTML+=`<div>${data.bank} - ${data.account}</div>`;
+  snap.forEach(d=>{
+    let data=d.data();
+    if(data.user===user){
+      bankList.innerHTML+=`<div>${data.bank} - ${data.account}</div>`;
+    }
+  });
 }
-});
-}
 
-// EARNINGS
+// ===== EARNINGS =====
 function loadEarnings(){
-earningList.innerHTML="";
-for(let i=1;i<=30;i++){
-earningList.innerHTML+=`<div>Day ${i} - ₹${Math.floor(Math.random()*100)}</div>`;
-}
-}
-
-// WITHDRAW
-window.openWithdraw=()=>{
-withdrawBox.style.display="flex";
-loadWithdraw();
+  earningList.innerHTML="";
+  for(let i=1;i<=30;i++){
+    earningList.innerHTML+=`<div>Day ${i} - ₹${Math.floor(Math.random()*100)}</div>`;
+  }
 }
 
-window.closeWithdraw=()=>withdrawBox.style.display="none";
+// ===== WITHDRAW =====
+window.openWithdraw = ()=>{
+  withdrawBox.style.display="flex";
+  loadWithdraw();
+}
+window.closeWithdraw = ()=> withdrawBox.style.display="none";
 
-window.submitWithdraw=async()=>{
-await setDoc(doc(db,"withdraw",Date.now()+""),{
-user:localStorage.getItem("user"),
-name:wName.value,
-account:wAcc.value,
-ifsc:wIfsc.value,
-time:new Date().toLocaleString()
-});
-loadWithdraw();
+window.submitWithdraw = async ()=>{
+  await setDoc(doc(db,"withdraw",Date.now()+""),{
+    user:localStorage.getItem("user"),
+    time:new Date().toLocaleString()
+  });
+
+  showMsg("Withdraw Request Sent");
+  loadWithdraw();
 }
 
-// LOAD WITHDRAW
+// ===== LOAD WITHDRAW =====
 async function loadWithdraw(){
-let user=localStorage.getItem("user");
-let snap=await getDocs(collection(db,"withdraw"));
+  let user=localStorage.getItem("user");
+  let snap=await getDocs(collection(db,"withdraw"));
 
-withdrawList.innerHTML="";
+  withdrawList.innerHTML="";
 
-snap.forEach(d=>{
-let data=d.data();
-if(data.user===user){
-withdrawList.innerHTML+=`<div>${data.time}</div>`;
+  snap.forEach(d=>{
+    let data=d.data();
+    if(data.user===user){
+      withdrawList.innerHTML+=`<div>${data.time}</div>`;
+    }
+  });
 }
-});
-}
 
-// PASSWORD
-window.changePassword=async()=>{
-await updateDoc(doc(db,"users",localStorage.getItem("user")),{
-password:newPass.value
-});
-showMsg("Updated");
+// ===== PASSWORD =====
+window.changePassword = async ()=>{
+  await updateDoc(doc(db,"users",localStorage.getItem("user")),{
+    password:document.getElementById("newPass").value
+  });
+
+  showMsg("Password Updated");
 }
