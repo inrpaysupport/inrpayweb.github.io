@@ -11,18 +11,18 @@
 <!-- AUTH -->
 <div id="auth">
 
-<h2 id="authTitle">Login</h2>
+<h2 id="authTitle">Create Account</h2>
 
-<input id="name" placeholder="Name" style="display:none;">
+<input id="name" placeholder="Name">
 <input id="number" placeholder="Mobile Number">
 <input id="password" type="password" placeholder="Password">
 
-<button id="loginBtn" onclick="login()">Login</button>
-<button id="registerBtn" onclick="register()" style="display:none;">Create Account</button>
+<button id="registerBtn" onclick="register()">Sign Up</button>
+<button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
 
 <p id="toggleText">
-Don't have an account? 
-<span onclick="showRegister()" style="color:yellow;">Sign Up</span>
+Already have an account? 
+<span onclick="showLogin()" style="color:yellow;">Sign In</span>
 </p>
 
 </div>
@@ -33,7 +33,7 @@ Don't have an account?
 <!-- ===== HOME ===== -->
 <div id="homePage" class="page">
 
-<h2>INRPay</h2>
+<h2 id="usernameHome"></h2>
 
 <div class="card">
 <p>Wallet Balance</p>
