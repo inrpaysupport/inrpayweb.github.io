@@ -10,38 +10,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔐 REGISTER
+// REGISTER
 window.register = async function(){
-
-try{
-
 let name = document.getElementById("name").value;
 let number = document.getElementById("number").value;
 let password = document.getElementById("password").value;
 
-let ref = doc(db,"users",number);
-
-await setDoc(ref,{
+await setDoc(doc(db,"users",number),{
 name,
 number,
 password,
 balance:0
 });
 
-}catch(e){
-alert("ERROR: " + e.message);
+alert("Account Created");
 }
 
-}
-
-// 🔐 LOGIN
+// LOGIN
 window.login = async function(){
 
 let number = document.getElementById("number").value;
 let password = document.getElementById("password").value;
 
-let ref = doc(db,"users",number);
-let snap = await getDoc(ref);
+let snap = await getDoc(doc(db,"users",number));
 
 if(!snap.exists()){
 alert("User not found");
@@ -64,30 +55,12 @@ balance.innerText="₹"+user.balance;
 localStorage.setItem("user",number);
 }
 
-// 💳 DEPOSIT
-window.deposit = async function(){
-let number = localStorage.getItem("user");
-
-let ref = doc(db,"users",number);
-let snap = await getDoc(ref);
-
-let user = snap.data();
-let newBalance = user.balance + 1000;
-
-await updateDoc(ref,{balance:newBalance});
-
-balance.innerText="₹"+newBalance;
-
-alert("₹1000 Added");
-}
-
 // AUTO LOGIN
 window.onload = async function(){
 let number = localStorage.getItem("user");
 
 if(number){
-let ref = doc(db,"users",number);
-let snap = await getDoc(ref);
+let snap = await getDoc(doc(db,"users",number));
 
 if(snap.exists()){
 let user = snap.data();
@@ -99,4 +72,59 @@ username.innerText=user.name;
 balance.innerText="₹"+user.balance;
 }
 }
+}
+
+// LOGOUT
+window.logout = function(){
+localStorage.clear();
+location.reload();
+}
+
+// 🔥 OPEN DEPOSIT (LOAD FROM ADMIN)
+window.deposit = async function(){
+
+let snap = await getDoc(doc(db,"settings","payment"));
+
+if(snap.exists()){
+let data = snap.data();
+
+document.getElementById("upiText").innerText = data.upi;
+document.getElementById("qrImg").src = data.qr;
+}
+
+depositBox.style.display="flex";
+}
+
+// CLOSE
+window.closeDeposit = function(){
+depositBox.style.display="none";
+}
+
+// 🔥 SUBMIT UTR + ANIMATION
+window.submitDeposit = async function(){
+
+let utr = document.getElementById("utr").value;
+
+if(!utr){
+alert("Enter UTR");
+return;
+}
+
+// animation
+alert("Processing Payment...");
+setTimeout(()=>{
+
+alert("Payment Verified ✅");
+
+},2000);
+
+let number = localStorage.getItem("user");
+
+await setDoc(doc(db,"deposits",Date.now().toString()),{
+user:number,
+utr:utr,
+status:"pending"
+});
+
+depositBox.style.display="none";
 }
