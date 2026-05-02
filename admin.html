@@ -3,21 +3,50 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>Admin Panel</title>
+
+<style>
+body{
+font-family:Arial;
+padding:20px;
+background:#111;
+color:white;
+}
+
+input{
+display:block;
+margin:10px 0;
+padding:10px;
+width:100%;
+}
+
+button{
+padding:10px;
+margin:5px 0;
+}
+</style>
+
 </head>
 
 <body>
 
 <h2>Admin Panel</h2>
 
-<input id="upi" placeholder="Enter UPI ID">
+<h3>Payment Settings</h3>
+
+<input id="upi" placeholder="UPI ID">
 <input id="qr" placeholder="QR Image URL">
 
-<button onclick="save()">Save</button>
+<button onclick="saveSettings()">Save Settings</button>
+
+<hr>
+
+<h3>Deposit Requests</h3>
+<div id="list"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
@@ -27,18 +56,67 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-window.save = async function(){
+// SAVE UPI + QR
+window.saveSettings = async function(){
 
 let upi = document.getElementById("upi").value;
 let qr = document.getElementById("qr").value;
 
 await setDoc(doc(db,"settings","payment"),{
-upi,
-qr
+upi, qr
 });
 
-alert("Saved successfully");
+alert("Saved");
 }
+
+// LOAD DEPOSITS
+async function loadDeposits(){
+
+let snap = await getDocs(collection(db,"deposits"));
+
+list.innerHTML = "";
+
+snap.forEach(d=>{
+
+let data = d.data();
+
+let div = document.createElement("div");
+div.innerHTML = `
+<p>User: ${data.user}</p>
+<p>UTR: ${data.utr}</p>
+<p>Status: ${data.status}</p>
+<button onclick="approve('${d.id}','${data.user}')">Approve</button>
+<hr>
+`;
+
+list.appendChild(div);
+
+});
+
+}
+
+window.approve = async function(id,user){
+
+// update deposit status
+await updateDoc(doc(db,"deposits",id),{
+status:"approved"
+});
+
+// add balance
+let userRef = doc(db,"users",user);
+let snap = await getDoc(userRef);
+let u = snap.data();
+
+await updateDoc(userRef,{
+balance: u.balance + 1000
+});
+
+alert("Approved");
+
+loadDeposits();
+}
+
+loadDeposits();
 
 </script>
 
