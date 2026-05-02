@@ -1,3 +1,152 @@
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#2b0a4a,#6a11cb);
+color:white;
+}
+
+/* SPLASH */
+#splash{
+position:fixed;
+width:100%;
+height:100%;
+background:#1a0033;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:999;
+animation:fadeOut 2s forwards 2s;
+}
+
+.logo{
+font-size:35px;
+font-weight:bold;
+animation:zoom 2s infinite alternate;
+}
+
+@keyframes zoom{
+from{transform:scale(1);}
+to{transform:scale(1.2);}
+}
+
+@keyframes fadeOut{
+to{opacity:0;visibility:hidden;}
+}
+
+/* AUTH */
+#auth{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+}
+
+/* INPUT */
+input{
+width:80%;
+padding:12px;
+margin:8px;
+border-radius:12px;
+border:none;
+outline:none;
+background:#ffffff20;
+color:white;
+}
+
+input::placeholder{
+color:#ddd;
+}
+
+/* BUTTON */
+button{
+padding:12px;
+border:none;
+border-radius:12px;
+margin:6px;
+background:linear-gradient(135deg,#7b2ff7,#f107a3);
+color:white;
+font-weight:bold;
+transition:0.2s;
+width:80%;
+}
+
+button:active{
+transform:scale(0.95);
+}
+
+/* CARD */
+.card{
+margin:15px;
+padding:20px;
+border-radius:20px;
+background:#ffffff20;
+backdrop-filter:blur(10px);
+}
+
+/* MAIN CARD */
+.mainCard{
+background:linear-gradient(135deg,#7b2ff7,#f107a3);
+text-align:center;
+}
+
+/* ROW */
+.row{
+display:flex;
+justify-content:space-around;
+margin-top:10px;
+}
+
+/* GREEN */
+.green{
+color:lightgreen;
+}
+
+/* SERVICES */
+.services{
+display:flex;
+justify-content:space-around;
+margin:20px;
+}
+
+.services div{
+background:#ffffff20;
+padding:15px;
+border-radius:15px;
+width:40%;
+text-align:center;
+transition:0.2s;
+}
+
+.services div:active{
+transform:scale(0.95);
+}
+
+/* POPUP */
+.popup{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#00000080;
+justify-content:center;
+align-items:center;
+z-index:1000;
+}
+
+.popup-box{
+background:white;
+color:black;
+padding:20px;
+border-radius:15px;
+width:90%;
+max-height:80vh;
+overflow:hidden;
+}
+
 /* SCROLL AREA */
 .scrollArea{
 max-height:300px;
@@ -13,4 +162,60 @@ width:4px;
 .scrollArea::-webkit-scrollbar-thumb{
 background:#999;
 border-radius:10px;
+}
+
+/* LIST CARD */
+.listItem{
+background:white;
+color:black;
+margin:5px;
+padding:10px;
+border-radius:10px;
+display:flex;
+justify-content:space-between;
+}
+
+/* NAV */
+.bottomNav{
+position:fixed;
+bottom:0;
+width:100%;
+display:flex;
+justify-content:space-around;
+background:#111;
+padding:10px;
+border-top:1px solid #333;
+}
+
+.bottomNav div{
+color:white;
+font-size:20px;
+}
+
+/* SETTINGS */
+#settingsPage{
+text-align:center;
+}
+
+/* LOGOUT */
+.logout{
+background:red;
+width:90%;
+margin:20px;
+}
+
+/* MESSAGE POPUP */
+#msgBox .popup-box{
+text-align:center;
+}
+
+/* SMALL TEXT */
+p span{
+color:yellow;
+cursor:pointer;
+}
+
+/* MOBILE SAFE SPACE */
+.page{
+padding-bottom:70px;
 }
