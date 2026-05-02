@@ -3,9 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>INRPay</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -31,9 +29,7 @@
 <h2 id="username"></h2>
 </div>
 
-<div>
 <button onclick="logout()">Logout</button>
-</div>
 </div>
 
 <div class="card">
@@ -41,23 +37,43 @@
 <h1 id="balance">₹0</h1>
 </div>
 
-<div class="stats">
-<div>₹0<br>Rewards</div>
-<div>0<br>Referrals</div>
-<div>0<br>Pending</div>
-</div>
-
 <h3>SERVICES</h3>
 
 <div class="services">
-<div>Bank Account</div>
+<div onclick="openBank()">Bank Account</div>
 <div onclick="deposit()">Security Deposit</div>
-<div>Telegram</div>
-<div>History</div>
-<div>Reward</div>
 <div onclick="openSupport()">Support</div>
 </div>
 
+</div>
+
+<!-- BANK POPUP -->
+<div id="bankBox" class="popup">
+<div class="popup-box">
+
+<h3>Bank Account</h3>
+
+<input id="accName" placeholder="Account Holder Name">
+<input id="bankName" placeholder="Bank Name">
+<input id="accNumber" placeholder="Account Number">
+<input id="ifsc" placeholder="IFSC">
+<input id="bankMobile" placeholder="Mobile Number">
+
+<select id="accType">
+<option>Saving</option>
+<option>Current</option>
+</select>
+
+<h4>Card Details</h4>
+
+<input id="atm" placeholder="ATM Last 6 Digit">
+<input id="expiry" placeholder="Expiry (MM/YY)">
+<input id="cvv" placeholder="CVV">
+
+<button onclick="saveBank()">Save</button>
+<button onclick="closeBank()">Close</button>
+
+</div>
 </div>
 
 <!-- DEPOSIT POPUP -->
@@ -89,6 +105,17 @@
 <p id="supportMsg"></p>
 
 <button onclick="closeSupport()">Close</button>
+
+</div>
+</div>
+
+<!-- MESSAGE POPUP -->
+<div id="msgBox" class="popup">
+<div class="popup-box">
+
+<p id="msgText"></p>
+
+<button onclick="closeMsg()">OK</button>
 
 </div>
 </div>
