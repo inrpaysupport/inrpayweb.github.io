@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width">
-<title>Admin Panel</title>
+<title>INRPay Admin</title>
 
 <style>
 body{
@@ -17,18 +17,31 @@ display:block;
 margin:10px 0;
 padding:10px;
 width:100%;
+border-radius:8px;
+border:none;
 }
 
 button{
 padding:10px;
 margin:5px 0;
+width:100%;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.card{
+background:#222;
+padding:15px;
+margin-top:10px;
+border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- 🔐 LOGIN -->
 <div id="loginBox">
 <h2>Admin Login</h2>
 
@@ -38,7 +51,7 @@ margin:5px 0;
 <button onclick="login()">Login</button>
 </div>
 
-<!-- PANEL -->
+<!-- 🛠 PANEL -->
 <div id="panel" style="display:none;">
 
 <h2>Admin Panel</h2>
@@ -72,7 +85,7 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-// 🔐 LOGIN
+// 🔐 ADMIN LOGIN
 window.login = async function(){
 
 let user = document.getElementById("adminUser").value;
@@ -80,18 +93,17 @@ let pass = document.getElementById("adminPass").value;
 
 let snap = await getDocs(collection(db,"admins"));
 
-let found = false;
+let ok = false;
 
-snap.forEach(docu=>{
-let d = docu.data();
-
-if(d.username === user && d.password === pass){
-found = true;
+snap.forEach(d=>{
+let data = d.data();
+if(data.username === user && data.password === pass){
+ok = true;
 }
 });
 
-if(!found){
-alert("Wrong credentials");
+if(!ok){
+alert("Wrong login");
 return;
 }
 
@@ -103,7 +115,7 @@ panel.style.display="block";
 loadDeposits();
 }
 
-// AUTO LOGIN
+// 🔄 AUTO LOGIN
 window.onload = function(){
 if(localStorage.getItem("admin")){
 loginBox.style.display="none";
@@ -112,44 +124,64 @@ loadDeposits();
 }
 }
 
-// LOGOUT
+// 🚪 LOGOUT
 window.logout = function(){
 localStorage.removeItem("admin");
 location.reload();
 }
 
-// SAVE SETTINGS
+// 💳 SAVE UPI + QR (Cloudinary)
 window.saveSettings = async function(){
 
 let upi = document.getElementById("upi").value;
-let qr = document.getElementById("qr").value;
+let file = document.getElementById("qrFile").files[0];
 
-await setDoc(doc(db,"settings","payment"),{
-upi, qr
+let qrUrl = "";
+
+// 🔥 Upload to Cloudinary
+if(file){
+
+let formData = new FormData();
+formData.append("file", file);
+formData.append("upload_preset", "inrpay_upload");
+
+let res = await fetch("https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",{
+method:"POST",
+body:formData
 });
 
-alert("Saved");
+let data = await res.json();
+qrUrl = data.secure_url;
 }
 
-// LOAD DEPOSITS
+// 🔥 Save in Firebase
+await setDoc(doc(db,"settings","payment"),{
+upi: upi,
+qr: qrUrl
+});
+
+alert("Saved Successfully");
+}
+
+// 📊 LOAD DEPOSITS
 async function loadDeposits(){
 
 let snap = await getDocs(collection(db,"deposits"));
 
-list.innerHTML="";
+list.innerHTML = "";
 
 snap.forEach(d=>{
 
 let data = d.data();
 
 let div = document.createElement("div");
+div.className = "card";
 
 div.innerHTML = `
-<p>User: ${data.user}</p>
-<p>UTR: ${data.utr}</p>
-<p>Status: ${data.status}</p>
+<p><b>User:</b> ${data.user}</p>
+<p><b>UTR:</b> ${data.utr}</p>
+<p><b>Status:</b> ${data.status}</p>
 <button onclick="approve('${d.id}','${data.user}')">Approve</button>
-<hr>
 `;
 
 list.appendChild(div);
@@ -157,22 +189,22 @@ list.appendChild(div);
 });
 }
 
-// APPROVE
+// ✅ APPROVE
 window.approve = async function(id,user){
 
 await updateDoc(doc(db,"deposits",id),{
 status:"approved"
 });
 
-let userRef = doc(db,"users",user);
-let snap = await getDoc(userRef);
+let ref = doc(db,"users",user);
+let snap = await getDoc(ref);
 let u = snap.data();
 
-await updateDoc(userRef,{
+await updateDoc(ref,{
 balance: u.balance + 1000
 });
 
-alert("Approved");
+alert("Approved +1000");
 
 loadDeposits();
 }
