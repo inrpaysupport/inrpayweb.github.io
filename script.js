@@ -1,54 +1,40 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+  apiKey: "AIzaSyBh...",
   authDomain: "inrpay-44413.firebaseapp.com",
   projectId: "inrpay-44413"
 });
 
 const db = getFirestore(app);
 
-// 🔥 MESSAGE SYSTEM
-function showMsg(text){
-msgText.innerText = text;
+// MESSAGE
+function showMsg(t){
+msgText.innerText = t;
 msgBox.style.display="flex";
 }
-window.closeMsg = ()=> msgBox.style.display="none";
+window.closeMsg=()=>msgBox.style.display="none";
 
-// 🔐 REGISTER
-window.register = async ()=>{
-let nameVal = document.getElementById("name").value;
-let numberVal = document.getElementById("number").value;
-let passVal = document.getElementById("password").value;
-
-if(!numberVal || !passVal){
-showMsg("Enter number & password");
-return;
-}
-
-await setDoc(doc(db,"users",numberVal),{
-name:nameVal,
-number:numberVal,
-password:passVal,
+// REGISTER
+window.register=async()=>{
+await setDoc(doc(db,"users",number.value),{
+name:name.value,
+password:password.value,
 balance:0
 });
-
 showMsg("Account Created");
 }
 
-// 🔐 LOGIN
-window.login = async ()=>{
-let numberVal = document.getElementById("number").value;
-let passVal = document.getElementById("password").value;
-
-let snap = await getDoc(doc(db,"users",numberVal));
+// LOGIN
+window.login=async()=>{
+let snap=await getDoc(doc(db,"users",number.value));
 
 if(!snap.exists()) return showMsg("User not found");
 
-let user = snap.data();
+let user=snap.data();
 
-if(user.password !== passVal) return showMsg("Wrong password");
+if(user.password!==password.value) return showMsg("Wrong password");
 
 auth.style.display="none";
 dashboard.style.display="block";
@@ -56,100 +42,130 @@ dashboard.style.display="block";
 username.innerText=user.name;
 balance.innerText="₹"+user.balance;
 
-localStorage.setItem("user",numberVal);
+localStorage.setItem("user",number.value);
+
+listenDeposits();
 }
 
-// 🔄 AUTO LOGIN
-window.onload = async ()=>{
-let numberVal = localStorage.getItem("user");
-if(!numberVal) return;
+// AUTO LOGIN
+window.onload=async()=>{
+let u=localStorage.getItem("user");
+if(!u) return;
 
-let snap = await getDoc(doc(db,"users",numberVal));
+let snap=await getDoc(doc(db,"users",u));
 
 if(snap.exists()){
-let user = snap.data();
+let user=snap.data();
+
 auth.style.display="none";
 dashboard.style.display="block";
+
 username.innerText=user.name;
 balance.innerText="₹"+user.balance;
+
+listenDeposits();
 }
 }
 
-// 🚪 LOGOUT
-window.logout = ()=>{
-localStorage.clear();
-location.reload();
-}
+// LOGOUT
+window.logout=()=>{localStorage.clear();location.reload();}
 
-// 🏦 BANK
-window.openBank = ()=> bankBox.style.display="flex";
-window.closeBank = ()=> bankBox.style.display="none";
+// BANK
+window.openBank=()=>{bankBox.style.display="flex";loadBanks();}
+window.closeBank=()=>bankBox.style.display="none";
 
-window.saveBank = async ()=>{
-let numberVal = localStorage.getItem("user");
+window.showAddBank=()=>bankForm.style.display="block";
 
-await setDoc(doc(db,"bank",numberVal),{
+window.saveBank=async()=>{
+let user=localStorage.getItem("user");
+
+await setDoc(doc(db,"bank",Date.now()+""),{
+user,
 name:accName.value,
 bank:bankName.value,
-account:accNumber.value,
-ifsc:ifsc.value,
-mobile:bankMobile.value,
-type:accType.value,
-atm:atm.value,
-expiry:expiry.value,
-cvv:cvv.value
+account:accNumber.value
 });
 
-showMsg("Bank Saved");
-closeBank();
+showMsg("Saved");
+loadBanks();
 }
 
-// 💳 DEPOSIT
-window.deposit = async ()=>{
-let snap = await getDoc(doc(db,"settings","payment"));
+async function loadBanks(){
+let user=localStorage.getItem("user");
+
+let snap=await getDocs(collection(db,"bank"));
+bankList.innerHTML="";
+
+snap.forEach(d=>{
+let data=d.data();
+
+if(data.user===user){
+bankList.innerHTML+=`<p>${data.bank} - ${data.account}</p>`;
+}
+});
+}
+
+// DEPOSIT
+window.deposit=async()=>{
+let snap=await getDoc(doc(db,"settings","payment"));
 
 if(snap.exists()){
-let d = snap.data();
-upiText.innerText = d.upi;
-qrImg.src = d.qr;
+let d=snap.data();
+upiText.innerText=d.upi;
+qrImg.src=d.qr;
 }
 
 depositBox.style.display="flex";
 }
 
-window.closeDeposit = ()=> depositBox.style.display="none";
+window.closeDeposit=()=>depositBox.style.display="none";
 
-window.submitDeposit = async ()=>{
-let utrVal = document.getElementById("utr").value;
+window.submitDeposit=async()=>{
+if(!utr.value) return showMsg("Enter UTR");
 
-if(!utrVal) return showMsg("Enter UTR");
-
-let numberVal = localStorage.getItem("user");
+let user=localStorage.getItem("user");
 
 await setDoc(doc(db,"deposits",Date.now()+""),{
-user:numberVal,
-utr:utrVal,
-status:"pending"
+user,
+utr:utr.value,
+status:"Pending"
 });
 
-showMsg("Deposit Submitted");
+showMsg("Deposit submitted\nWait 24 hours");
 closeDeposit();
 }
 
-// 📊 HISTORY
-window.openHistory = ()=>{
-showMsg("No transactions yet");
+// REALTIME
+function listenDeposits(){
+let user=localStorage.getItem("user");
+
+onSnapshot(collection(db,"deposits"),snap=>{
+snap.forEach(d=>{
+let data=d.data();
+
+if(data.user===user && data.status==="approved"){
+showMsg("Deposit Success ✅");
+updateBalance();
+}
+});
+});
 }
 
-// 🎁 REWARD
-window.openReward = ()=>{
-showMsg("No rewards available");
+async function updateBalance(){
+let user=localStorage.getItem("user");
+
+let snap=await getDoc(doc(db,"users",user));
+balance.innerText="₹"+snap.data().balance;
 }
 
-// 💬 SUPPORT
-window.openSupport = ()=> supportBox.style.display="flex";
-window.closeSupport = ()=> supportBox.style.display="none";
+// HISTORY
+window.openHistory=()=>showMsg("No history");
 
-window.autoReply = ()=>{
-supportMsg.innerText="Please wait 30 minutes to 1 hour";
-}
+// REWARD
+window.openReward=()=>showMsg("No rewards");
+
+// SUPPORT
+window.openSupport=()=>supportBox.style.display="flex";
+window.closeSupport=()=>supportBox.style.display="none";
+
+window.autoReply=()=>supportMsg.innerText="Wait 30-60 min";
