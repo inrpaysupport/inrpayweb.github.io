@@ -2,9 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID"
+    apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+  authDomain: "inrpay-44413.firebaseapp.com",
+  projectId: "inrpay-44413"
 });
 
 const db = getFirestore(app);
@@ -31,14 +31,14 @@ window.login=async()=>{
 let snap=await getDoc(doc(db,"users",number.value));
 if(!snap.exists()) return showMsg("User not found");
 
-let u=snap.data();
-if(u.password!==password.value) return showMsg("Wrong password");
+let user=snap.data();
+if(user.password!==password.value) return showMsg("Wrong password");
 
 auth.style.display="none";
 dashboard.style.display="block";
 
-username.innerText=u.name;
-balance.innerText="₹"+u.balance;
+username.innerText=user.name;
+balance.innerText="₹"+user.balance;
 
 localStorage.setItem("user",number.value);
 listenDeposits();
@@ -51,11 +51,14 @@ if(!u) return;
 
 let snap=await getDoc(doc(db,"users",u));
 if(snap.exists()){
-let d=snap.data();
+let user=snap.data();
+
 auth.style.display="none";
 dashboard.style.display="block";
-username.innerText=d.name;
-balance.innerText="₹"+d.balance;
+
+username.innerText=user.name;
+balance.innerText="₹"+user.balance;
+
 listenDeposits();
 }
 }
@@ -73,7 +76,6 @@ let user=localStorage.getItem("user");
 
 await setDoc(doc(db,"bank",Date.now()+""),{
 user,
-name:accName.value,
 bank:bankName.value,
 account:accNumber.value
 });
@@ -84,14 +86,14 @@ loadBanks();
 
 async function loadBanks(){
 let user=localStorage.getItem("user");
-
 let snap=await getDocs(collection(db,"bank"));
+
 bankList.innerHTML="";
 
 snap.forEach(d=>{
 let data=d.data();
 if(data.user===user){
-bankList.innerHTML+=`<div>${data.bank} - ${data.account}</div>`;
+bankList.innerHTML+=`<p>${data.bank} - ${data.account}</p>`;
 }
 });
 }
@@ -99,6 +101,7 @@ bankList.innerHTML+=`<div>${data.bank} - ${data.account}</div>`;
 // DEPOSIT
 window.deposit=async()=>{
 let snap=await getDoc(doc(db,"settings","payment"));
+
 if(snap.exists()){
 let d=snap.data();
 upiText.innerText=d.upi;
@@ -127,10 +130,11 @@ showMsg("Submitted - wait 24h");
 loadDeposits();
 }
 
+// LOAD HISTORY
 async function loadDeposits(){
 let user=localStorage.getItem("user");
-
 let snap=await getDocs(collection(db,"deposits"));
+
 depositList.innerHTML="";
 
 snap.forEach(d=>{
@@ -153,8 +157,9 @@ let user=localStorage.getItem("user");
 onSnapshot(collection(db,"deposits"),snap=>{
 snap.forEach(d=>{
 let data=d.data();
+
 if(data.user===user && data.status==="approved"){
-showMsg("Deposit Success");
+showMsg("Deposit Success ✅");
 updateBalance();
 }
 });
@@ -171,6 +176,3 @@ balance.innerText="₹"+snap.data().balance;
 window.openSupport=()=>supportBox.style.display="flex";
 window.closeSupport=()=>supportBox.style.display="none";
 window.autoReply=()=>supportMsg.innerText="Wait 30-60 min";
-
-// REWARD
-window.openReward=()=>showMsg("No rewards");
