@@ -1,20 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { 
-getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection, onSnapshot 
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-import { 
-getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword 
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+    apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
   authDomain: "inrpay-44413.firebaseapp.com",
   projectId: "inrpay-44413"
 });
 
 const db = getFirestore(app);
-const auth = getAuth(app);
 
 // ================= MESSAGE =================
 function showMsg(t){
@@ -23,79 +16,80 @@ msgBox.style.display="flex";
 }
 window.closeMsg=()=>msgBox.style.display="none";
 
+// ================= TOGGLE =================
+window.showRegister=()=>{
+authTitle.innerText="Create Account";
+name.style.display="block";
+loginBtn.style.display="none";
+registerBtn.style.display="block";
+
+toggleText.innerHTML=`Already have account? 
+<span onclick="showLogin()" style="color:yellow;">Sign In</span>`;
+}
+
+window.showLogin=()=>{
+authTitle.innerText="Login";
+name.style.display="none";
+loginBtn.style.display="block";
+registerBtn.style.display="none";
+
+toggleText.innerHTML=`Don't have account? 
+<span onclick="showRegister()" style="color:yellow;">Sign Up</span>`;
+}
+
 // ================= REGISTER =================
-window.register = async ()=>{
-
-let email = number.value + "@app.com";
-
-let res = await createUserWithEmailAndPassword(auth,email,password.value);
-
-await setDoc(doc(db,"users",res.user.uid),{
+window.register=async()=>{
+await setDoc(doc(db,"users",number.value),{
 name:name.value,
+password:password.value,
 balance:0
 });
 
 showMsg("Account Created ✅");
+showLogin();
 }
 
 // ================= LOGIN =================
-window.login = async ()=>{
+window.login=async()=>{
+let snap=await getDoc(doc(db,"users",number.value));
 
-let email = number.value + "@app.com";
+if(!snap.exists()) return showMsg("User not found");
 
-try{
-let res = await signInWithEmailAndPassword(auth,email,password.value);
+let user=snap.data();
 
-localStorage.setItem("uid",res.user.uid);
+if(user.password!==password.value){
+return showMsg("Wrong password");
+}
 
-authBox.style.display="none";
+auth.style.display="none";
 app.style.display="block";
 
-loadUser(res.user.uid);
-listenDeposits(res.user.uid);
-
-}catch(e){
-showMsg("Login Failed");
-}
-}
-
-// ================= LOAD USER =================
-async function loadUser(uid){
-
-let snap = await getDoc(doc(db,"users",uid));
-
-let user = snap.data();
-
-username.innerText=user.name;
+username2.innerText=user.name;
+usernumber.innerText=number.value;
 balance.innerText="₹"+user.balance;
+
+localStorage.setItem("user",number.value);
 }
 
-// ================= AUTO LOGIN =================
-window.onload = async ()=>{
-
-let uid = localStorage.getItem("uid");
-if(!uid) return;
-
-authBox.style.display="none";
-app.style.display="block";
-
-loadUser(uid);
-listenDeposits(uid);
+// ================= NAV =================
+window.showPage=(id)=>{
+document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+document.getElementById(id).style.display="block";
 }
 
 // ================= LOGOUT =================
-window.logout = ()=>{
+window.logout=()=>{
 localStorage.clear();
 location.reload();
 }
 
 // ================= DEPOSIT =================
-window.submitDeposit = async ()=>{
+window.deposit=()=>depositBox.style.display="flex";
+window.closeDeposit=()=>depositBox.style.display="none";
 
-let uid = localStorage.getItem("uid");
-
+window.submitDeposit=async()=>{
 await setDoc(doc(db,"deposits",Date.now()+""),{
-user:uid,
+user:localStorage.getItem("user"),
 utr:utr.value,
 status:"Pending"
 });
@@ -103,22 +97,40 @@ status:"Pending"
 showMsg("Deposit Submitted");
 }
 
-// ================= REALTIME =================
-function listenDeposits(uid){
+// ================= BANK =================
+window.openBank=()=>{bankBox.style.display="flex";loadBanks();}
+window.closeBank=()=>bankBox.style.display="none";
 
-onSnapshot(collection(db,"deposits"),snap=>{
+window.saveBank=async()=>{
+await setDoc(doc(db,"bank",Date.now()+""),{
+user:localStorage.getItem("user"),
+bank:bankName.value,
+account:accNumber.value
+});
 
-snap.forEach(async d=>{
+showMsg("Bank Added");
+loadBanks();
+}
+
+async function loadBanks(){
+let user=localStorage.getItem("user");
+let snap=await getDocs(collection(db,"bank"));
+
+bankList.innerHTML="";
+
+snap.forEach(d=>{
 let data=d.data();
-
-if(data.user===uid && data.status==="approved"){
-showMsg("Deposit Approved");
-
-let userRef = doc(db,"users",uid);
-let snap = await getDoc(userRef);
-
-balance.innerText="₹"+snap.data().balance;
+if(data.user===user){
+bankList.innerHTML+=`<div>${data.bank} - ${data.account}</div>`;
 }
 });
+}
+
+// ================= PASSWORD =================
+window.changePassword=async()=>{
+let ref=doc(db,"users",localStorage.getItem("user"));
+await updateDoc(ref,{
+password:newPass.value
 });
+showMsg("Password Updated");
 }
