@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>INRPay</title>
-<link rel="stylesheet" href="style.css?v=100">
+<link rel="stylesheet" href="style.css?v=200">
 </head>
 
 <body>
@@ -23,6 +23,9 @@
 <p id="toggleText">
 Already have account? <span onclick="showLogin()">Sign In</span>
 </p>
+
+<!-- 🔥 Forgot Password -->
+<p onclick="openForgot()" style="color:yellow;">Forgot Password?</p>
 
 </div>
 
@@ -48,7 +51,11 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
 <h3>Earnings</h3>
+
+<div class="scrollArea">
 <div id="earningList"></div>
+</div>
+
 <button onclick="openWithdraw()">Withdraw</button>
 </div>
 
@@ -56,6 +63,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div id="settingsPage" class="page" style="display:none;">
 <p id="username2"></p>
 <p id="usernumber"></p>
+<p id="userid"></p> <!-- 🔥 USER ID -->
 <button onclick="logout()">Logout</button>
 </div>
 
@@ -97,16 +105,41 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <input id="wAcc" placeholder="Account">
 <input id="wIfsc" placeholder="IFSC">
 
-<button onclick="submitWithdraw()">Withdraw</button>
-
+<div class="scrollArea">
 <div id="withdrawList"></div>
+</div>
 
+<button onclick="submitWithdraw()">Withdraw</button>
 <button onclick="closeWithdraw()">Close</button>
 
 </div>
 </div>
 
-<script type="module" src="script.js?v=100"></script>
+<!-- 🔥 FORGOT PASSWORD -->
+<div id="forgotBox" class="popup">
+<div class="popup-box">
+
+<input id="fNumber" placeholder="Mobile Number">
+<input id="fOtp" placeholder="OTP">
+<input id="fNewPass" placeholder="New Password">
+
+<button onclick="sendOtp()">Send OTP</button>
+<button onclick="resetPass()">Reset Password</button>
+
+<button onclick="closeForgot()">Close</button>
+
+</div>
+</div>
+
+<!-- 🔥 MESSAGE POPUP (NO ALERT) -->
+<div id="msgBox" class="popup">
+<div class="popup-box">
+<p id="msgText"></p>
+<button onclick="closeMsg()">OK</button>
+</div>
+</div>
+
+<script type="module" src="script.js?v=200"></script>
 
 </body>
 </html>
