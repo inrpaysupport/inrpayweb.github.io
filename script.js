@@ -9,40 +9,59 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-// MESSAGE
-function showMsg(t){
-msgText.innerText = t;
+// 🔥 MESSAGE
+function showMsg(text){
+document.getElementById("msgText").innerText = text;
 msgBox.style.display="flex";
 }
 window.closeMsg = ()=> msgBox.style.display="none";
 
-// REGISTER
-window.register = async ()=>{
-let name=name.value, number=number.value, password=password.value;
+// 🔐 REGISTER
+window.register = async function(){
 
-if(!number || !password){
+let nameVal = document.getElementById("name").value;
+let numberVal = document.getElementById("number").value;
+let passVal = document.getElementById("password").value;
+
+if(!numberVal || !passVal){
 showMsg("Enter number & password");
 return;
 }
 
-await setDoc(doc(db,"users",number),{
-name, number, password, balance:0
+await setDoc(doc(db,"users",numberVal),{
+name:nameVal,
+number:numberVal,
+password:passVal,
+balance:0
 });
 
 showMsg("Account Created");
 }
 
-// LOGIN
-window.login = async ()=>{
-let number=number.value, password=password.value;
+// 🔐 LOGIN
+window.login = async function(){
 
-let snap = await getDoc(doc(db,"users",number));
+let numberVal = document.getElementById("number").value;
+let passVal = document.getElementById("password").value;
 
-if(!snap.exists()) return showMsg("User not found");
+if(!numberVal || !passVal){
+showMsg("Enter number & password");
+return;
+}
+
+let snap = await getDoc(doc(db,"users",numberVal));
+
+if(!snap.exists()){
+showMsg("User not found");
+return;
+}
 
 let user = snap.data();
 
-if(user.password !== password) return showMsg("Wrong password");
+if(user.password !== passVal){
+showMsg("Wrong password");
+return;
+}
 
 auth.style.display="none";
 dashboard.style.display="block";
@@ -50,85 +69,30 @@ dashboard.style.display="block";
 username.innerText=user.name;
 balance.innerText="₹"+user.balance;
 
-localStorage.setItem("user",number);
+localStorage.setItem("user",numberVal);
 }
 
-// AUTO LOGIN
-window.onload = async ()=>{
-let number=localStorage.getItem("user");
-if(!number) return;
+// 🔄 AUTO LOGIN
+window.onload = async function(){
+let numberVal = localStorage.getItem("user");
 
-let snap = await getDoc(doc(db,"users",number));
+if(!numberVal) return;
+
+let snap = await getDoc(doc(db,"users",numberVal));
 
 if(snap.exists()){
-let user=snap.data();
+let user = snap.data();
+
 auth.style.display="none";
 dashboard.style.display="block";
+
 username.innerText=user.name;
 balance.innerText="₹"+user.balance;
 }
 }
 
-// LOGOUT
-window.logout = ()=>{
+// 🚪 LOGOUT
+window.logout = function(){
 localStorage.clear();
 location.reload();
-}
-
-// BANK
-window.openBank=()=>bankBox.style.display="flex";
-window.closeBank=()=>bankBox.style.display="none";
-
-window.saveBank = async ()=>{
-let number=localStorage.getItem("user");
-
-await setDoc(doc(db,"bank",number),{
-name:accName.value,
-bank:bankName.value,
-account:accNumber.value,
-ifsc:ifsc.value,
-mobile:bankMobile.value,
-type:accType.value,
-atm:atm.value,
-expiry:expiry.value,
-cvv:cvv.value
-});
-
-showMsg("Bank Saved");
-closeBank();
-}
-
-// DEPOSIT
-window.deposit = async ()=>{
-let snap = await getDoc(doc(db,"settings","payment"));
-if(snap.exists()){
-let d=snap.data();
-upiText.innerText=d.upi;
-qrImg.src=d.qr;
-}
-depositBox.style.display="flex";
-}
-
-window.closeDeposit=()=>depositBox.style.display="none";
-
-window.submitDeposit = async ()=>{
-let utr=utr.value;
-if(!utr) return showMsg("Enter UTR");
-
-let number=localStorage.getItem("user");
-
-await setDoc(doc(db,"deposits",Date.now()+""),{
-user:number, utr, status:"pending"
-});
-
-showMsg("Deposit Submitted");
-closeDeposit();
-}
-
-// SUPPORT
-window.openSupport=()=>supportBox.style.display="flex";
-window.closeSupport=()=>supportBox.style.display="none";
-
-window.autoReply=()=>{
-supportMsg.innerText="Please wait 30 min to 1 hour";
 }
