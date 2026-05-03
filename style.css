@@ -5,51 +5,31 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-/* AUTH */
 #auth{
 height:100vh;
 display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
-text-align:center;
 }
 
-/* INPUT */
 input{
 width:80%;
 padding:12px;
 margin:8px;
 border-radius:12px;
 border:none;
-outline:none;
 }
 
-/* BUTTON (FIXED) */
 button{
 padding:12px;
 border:none;
 border-radius:12px;
 margin:6px;
-background:linear-gradient(135deg,#7b2ff7,#f107a3);
+background:#7b2ff7;
 color:white;
 }
 
-/* ONLY FORM BUTTON WIDTH */
-#auth button,
-.popup-box button{
-width:80%;
-}
-
-/* CARD */
-.card{
-margin:15px;
-padding:20px;
-border-radius:20px;
-background:#ffffff20;
-}
-
-/* SERVICES (FIXED) */
 .services{
 display:flex;
 justify-content:space-around;
@@ -62,10 +42,15 @@ padding:15px;
 border-radius:15px;
 width:40%;
 text-align:center;
-display:block;
 }
 
-/* POPUP (FIXED) */
+.card{
+margin:15px;
+padding:20px;
+border-radius:20px;
+background:#ffffff20;
+}
+
 .popup{
 display:none;
 position:fixed;
@@ -76,7 +61,6 @@ height:100%;
 background:#00000080;
 justify-content:center;
 align-items:center;
-z-index:1000;
 }
 
 .popup-box{
@@ -89,7 +73,11 @@ max-height:80vh;
 overflow-y:auto;
 }
 
-/* NAV (FIXED) */
+.scrollArea{
+max-height:300px;
+overflow-y:auto;
+}
+
 .bottomNav{
 position:fixed;
 bottom:0;
@@ -98,10 +86,4 @@ display:flex;
 justify-content:space-around;
 background:#111;
 padding:10px;
-z-index:999;
-}
-
-/* PAGE SPACE */
-.page{
-padding-bottom:70px;
 }
