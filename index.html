@@ -35,7 +35,6 @@ Forgot Password?
 
 <!-- HOME -->
 <div id="homePage" class="page">
-
 <h2 id="usernameHome"></h2>
 
 <div class="card">
@@ -63,26 +62,22 @@ Forgot Password?
 </div>
 
 <button onclick="openWithdraw()">Withdraw</button>
-
 </div>
 
 <!-- SETTINGS -->
 <div id="settingsPage" class="page" style="display:none;">
-
 <p id="username2"></p>
 <p id="usernumber"></p>
-<p id="userid"></p>
 
 <h3>Change Password</h3>
 
 <input id="oldPass" placeholder="Old Password">
 <input id="newPass" placeholder="New Password">
-<input id="confirmPass" placeholder="Re-enter Password">
+<input id="confirmPass" placeholder="Confirm Password">
 
 <button onclick="changePassword()">Update Password</button>
 
 <button onclick="logout()">Logout</button>
-
 </div>
 
 <!-- NAV -->
@@ -97,30 +92,21 @@ Forgot Password?
 <!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
-
 <input id="utr" placeholder="Enter UTR">
 <button onclick="submitDeposit()">Submit</button>
-
 <div id="depositList"></div>
-
 <button onclick="closeDeposit()">Close</button>
-
 </div>
 </div>
 
 <!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-
 <input id="bankName" placeholder="Bank">
 <input id="accNumber" placeholder="Account">
-
 <button onclick="saveBank()">Add</button>
-
 <div id="bankList"></div>
-
 <button onclick="closeBank()">Close</button>
-
 </div>
 </div>
 
@@ -151,7 +137,7 @@ Forgot Password?
 <input id="fNewPass" placeholder="New Password">
 
 <button onclick="sendOtp()">Send OTP</button>
-<button onclick="resetPass()">Reset</button>
+<button onclick="resetPass()">Reset Password</button>
 
 <button onclick="closeForgot()">Close</button>
 
