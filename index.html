@@ -3,12 +3,12 @@
 <head>
 <meta name="viewport" content="width=device-width">
 <title>INRPay</title>
-<link rel="stylesheet" href="style.css?v=200">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ================= AUTH ================= -->
+<!-- AUTH -->
 <div id="auth">
 
 <h2 id="authTitle">Create Account</h2>
@@ -21,16 +21,19 @@
 <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
 
 <p id="toggleText">
-Already have account? 
-<span onclick="showLogin()">Sign In</span>
+Already have account? <span onclick="showLogin()">Sign In</span>
+</p>
+
+<p id="forgotText" onclick="openForgot()" style="display:none;color:yellow;">
+Forgot Password?
 </p>
 
 </div>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <div id="app" style="display:none;">
 
-<!-- ===== HOME ===== -->
+<!-- HOME -->
 <div id="homePage" class="page">
 
 <h2 id="usernameHome"></h2>
@@ -40,15 +43,19 @@ Already have account?
 </div>
 
 <div class="services">
-<div onclick="deposit()">Deposit</div>
-<div onclick="openBank()">Bank</div>
+<div onclick="deposit()">Security Deposit</div>
+<div onclick="openBank()">Add Bank</div>
+</div>
+
+<div class="card">
+<h3>Transactions</h3>
+<p id="txStatus">Active</p>
 </div>
 
 </div>
 
-<!-- ===== EARN ===== -->
+<!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
-
 <h3>Earnings</h3>
 
 <div class="scrollArea">
@@ -59,18 +66,26 @@ Already have account?
 
 </div>
 
-<!-- ===== SETTINGS ===== -->
+<!-- SETTINGS -->
 <div id="settingsPage" class="page" style="display:none;">
 
 <p id="username2"></p>
 <p id="usernumber"></p>
-<p id="userid"></p> <!-- 🔥 future ready -->
+<p id="userid"></p>
+
+<h3>Change Password</h3>
+
+<input id="oldPass" placeholder="Old Password">
+<input id="newPass" placeholder="New Password">
+<input id="confirmPass" placeholder="Re-enter Password">
+
+<button onclick="changePassword()">Update Password</button>
 
 <button onclick="logout()">Logout</button>
 
 </div>
 
-<!-- ===== NAV ===== -->
+<!-- NAV -->
 <div class="bottomNav">
 <div onclick="showPage('homePage')">🏠</div>
 <div onclick="showPage('earnPage')">💰</div>
@@ -78,8 +93,6 @@ Already have account?
 </div>
 
 </div>
-
-<!-- ================= POPUPS ================= -->
 
 <!-- DEPOSIT -->
 <div id="depositBox" class="popup">
@@ -99,8 +112,8 @@ Already have account?
 <div id="bankBox" class="popup">
 <div class="popup-box">
 
-<input id="bankName" placeholder="Bank Name">
-<input id="accNumber" placeholder="Account Number">
+<input id="bankName" placeholder="Bank">
+<input id="accNumber" placeholder="Account">
 
 <button onclick="saveBank()">Add</button>
 
@@ -115,9 +128,9 @@ Already have account?
 <div id="withdrawBox" class="popup">
 <div class="popup-box">
 
-<input id="wName" placeholder="Account Holder Name">
-<input id="wAcc" placeholder="Account Number">
-<input id="wIfsc" placeholder="IFSC Code">
+<input id="wName" placeholder="Name">
+<input id="wAcc" placeholder="Account">
+<input id="wIfsc" placeholder="IFSC">
 
 <div class="scrollArea">
 <div id="withdrawList"></div>
@@ -129,8 +142,31 @@ Already have account?
 </div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
-<script type="module" src="script.js?v=200"></script>
+<!-- FORGOT -->
+<div id="forgotBox" class="popup">
+<div class="popup-box">
+
+<input id="fNumber" placeholder="Mobile">
+<input id="fOtp" placeholder="OTP">
+<input id="fNewPass" placeholder="New Password">
+
+<button onclick="sendOtp()">Send OTP</button>
+<button onclick="resetPass()">Reset</button>
+
+<button onclick="closeForgot()">Close</button>
+
+</div>
+</div>
+
+<!-- MESSAGE -->
+<div id="msgBox" class="popup">
+<div class="popup-box">
+<p id="msgText"></p>
+<button onclick="closeMsg()">OK</button>
+</div>
+</div>
+
+<script type="module" src="script.js"></script>
 
 </body>
 </html>
