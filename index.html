@@ -8,7 +8,7 @@
 
 <body>
 
-<!-- AUTH -->
+<!-- ================= AUTH ================= -->
 <div id="auth">
 
 <h2 id="authTitle">Create Account</h2>
@@ -21,18 +21,16 @@
 <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
 
 <p id="toggleText">
-Already have account? <span onclick="showLogin()">Sign In</span>
+Already have account? 
+<span onclick="showLogin()">Sign In</span>
 </p>
-
-<!-- 🔥 Forgot Password -->
-<p onclick="openForgot()" style="color:yellow;">Forgot Password?</p>
 
 </div>
 
-<!-- APP -->
+<!-- ================= APP ================= -->
 <div id="app" style="display:none;">
 
-<!-- HOME -->
+<!-- ===== HOME ===== -->
 <div id="homePage" class="page">
 
 <h2 id="usernameHome"></h2>
@@ -48,8 +46,9 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 </div>
 
-<!-- EARN -->
+<!-- ===== EARN ===== -->
 <div id="earnPage" class="page" style="display:none;">
+
 <h3>Earnings</h3>
 
 <div class="scrollArea">
@@ -57,17 +56,21 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </div>
 
 <button onclick="openWithdraw()">Withdraw</button>
+
 </div>
 
-<!-- SETTINGS -->
+<!-- ===== SETTINGS ===== -->
 <div id="settingsPage" class="page" style="display:none;">
+
 <p id="username2"></p>
 <p id="usernumber"></p>
-<p id="userid"></p> <!-- 🔥 USER ID -->
+<p id="userid"></p> <!-- 🔥 future ready -->
+
 <button onclick="logout()">Logout</button>
+
 </div>
 
-<!-- NAV -->
+<!-- ===== NAV ===== -->
 <div class="bottomNav">
 <div onclick="showPage('homePage')">🏠</div>
 <div onclick="showPage('earnPage')">💰</div>
@@ -76,24 +79,35 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 </div>
 
+<!-- ================= POPUPS ================= -->
+
 <!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
-<input id="utr" placeholder="UTR">
+
+<input id="utr" placeholder="Enter UTR">
 <button onclick="submitDeposit()">Submit</button>
+
 <div id="depositList"></div>
+
 <button onclick="closeDeposit()">Close</button>
+
 </div>
 </div>
 
 <!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-<input id="bankName" placeholder="Bank">
-<input id="accNumber" placeholder="Account">
+
+<input id="bankName" placeholder="Bank Name">
+<input id="accNumber" placeholder="Account Number">
+
 <button onclick="saveBank()">Add</button>
+
 <div id="bankList"></div>
+
 <button onclick="closeBank()">Close</button>
+
 </div>
 </div>
 
@@ -101,9 +115,9 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div id="withdrawBox" class="popup">
 <div class="popup-box">
 
-<input id="wName" placeholder="Name">
-<input id="wAcc" placeholder="Account">
-<input id="wIfsc" placeholder="IFSC">
+<input id="wName" placeholder="Account Holder Name">
+<input id="wAcc" placeholder="Account Number">
+<input id="wIfsc" placeholder="IFSC Code">
 
 <div class="scrollArea">
 <div id="withdrawList"></div>
@@ -115,30 +129,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </div>
 </div>
 
-<!-- 🔥 FORGOT PASSWORD -->
-<div id="forgotBox" class="popup">
-<div class="popup-box">
-
-<input id="fNumber" placeholder="Mobile Number">
-<input id="fOtp" placeholder="OTP">
-<input id="fNewPass" placeholder="New Password">
-
-<button onclick="sendOtp()">Send OTP</button>
-<button onclick="resetPass()">Reset Password</button>
-
-<button onclick="closeForgot()">Close</button>
-
-</div>
-</div>
-
-<!-- 🔥 MESSAGE POPUP (NO ALERT) -->
-<div id="msgBox" class="popup">
-<div class="popup-box">
-<p id="msgText"></p>
-<button onclick="closeMsg()">OK</button>
-</div>
-</div>
-
+<!-- ================= SCRIPT ================= -->
 <script type="module" src="script.js?v=200"></script>
 
 </body>
