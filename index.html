@@ -19,10 +19,10 @@
 
 <input id="number" placeholder="Mobile Number" maxlength="10" inputmode="numeric">
 
-<div style="position:relative;width:80%;">
-<input id="password" type="password" placeholder="Password" style="width:100%;">
-<span onclick="togglePass()" 
-style="position:absolute;right:10px;top:12px;cursor:pointer;">👁</span>
+<!-- PASSWORD FIX -->
+<div class="passwordBox">
+  <input id="password" type="password" placeholder="Password">
+  <span onclick="togglePass()" class="eyeIcon">👁</span>
 </div>
 
 <button id="registerBtn" onclick="register()">Sign Up</button>
@@ -53,7 +53,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div onclick="openBank()">Add Bank Account</div>
 </div>
 
-<!-- ACCOUNT BIND -->
 <div class="card">
 <div class="txRow">
 <div>Account Bind</div>
@@ -64,11 +63,10 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </div>
 </div>
 
-<!-- TRANSACTION -->
 <div class="card">
 <div class="txRow">
 <div>Transactions</div>
-<div id="txData">No data</div>
+<div>No data</div>
 </div>
 </div>
 
