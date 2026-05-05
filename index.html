@@ -10,6 +10,7 @@
 
 <!-- AUTH -->
 <div id="auth">
+
 <h1 class="appLogo">INRPAY</h1>
 <h2 id="authTitle">Create Account</h2>
 
@@ -29,6 +30,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </p>
 
 <p id="forgotText" style="display:none;">Forgot Password?</p>
+
 </div>
 
 <!-- APP -->
@@ -72,7 +74,12 @@ Security deposit amount will be refunded to your bank account within 24–48 hou
 
 <!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
-<h3>Earnings</h3>
+<h3 style="text-align:center;">Earnings</h3>
+
+<p style="text-align:center;">
+Total Balance: ₹<span id="earnBalance">0</span>
+</p>
+
 <button onclick="openWithdraw()">Withdraw</button>
 </div>
 
@@ -90,6 +97,7 @@ Security deposit amount will be refunded to your bank account within 24–48 hou
 <button onclick="logout()">Logout</button>
 </div>
 
+<!-- NAV -->
 <div class="bottomNav">
 <div onclick="showPage('homePage')">🏠</div>
 <div onclick="showPage('earnPage')">💰</div>
