@@ -24,14 +24,13 @@
 Already have account? <span onclick="showLogin()">Sign In</span>
 </p>
 
-<p id="forgotText" onclick="openForgot()" style="display:none;">Forgot Password?</p>
+<p id="forgotText" style="display:none;">Forgot Password?</p>
 
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none;">
 
-<!-- HOME -->
 <div id="homePage" class="page">
 
 <h2 id="usernameHome"></h2>
@@ -45,14 +44,17 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div onclick="openBank()">Add Bank</div>
 </div>
 
+<!-- TRANSACTION -->
 <div class="card">
 <div class="txRow">
-<div class="txTitle">Account Bind</div>
+
+<div class="txLeft">Account Bind</div>
 
 <div class="txRight">
-<span class="dot red"></span>
-<span id="txStatus">Deactivate</span>
+<div class="dot red"></div>
+<div id="txStatus">Deactivate</div>
 </div>
+
 </div>
 </div>
 
@@ -61,11 +63,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
 <h3>Earnings</h3>
-
-<div class="scrollArea">
-<div id="earningList"></div>
-</div>
-
+<div id="earningList" class="scrollArea"></div>
 <button onclick="openWithdraw()">Withdraw</button>
 </div>
 
@@ -78,7 +76,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <input id="newPass" placeholder="New Password">
 <input id="confirmPass" placeholder="Confirm Password">
 
-<button onclick="changePassword()">Change Password</button>
+<button onclick="changePassword()">Update Password</button>
 <button onclick="logout()">Logout</button>
 </div>
 
@@ -96,7 +94,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div class="popup-box">
 <input id="utr" placeholder="UTR">
 <button onclick="submitDeposit()">Submit</button>
-<div id="depositList"></div>
 <button onclick="closeDeposit()">Close</button>
 </div>
 </div>
@@ -106,8 +103,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div class="popup-box">
 <input id="bankName" placeholder="Bank">
 <input id="accNumber" placeholder="Account">
-<button onclick="saveBank()">Add</button>
-<div id="bankList"></div>
+<button onclick="saveBank()">Save</button>
 <button onclick="closeBank()">Close</button>
 </div>
 </div>
@@ -116,14 +112,9 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div id="withdrawBox" class="popup">
 <div class="popup-box withdrawUI">
 
-<h2 class="center">Withdraw</h2>
+<h3>Withdraw</h3>
 
 <div class="withdrawCard">
-<div class="row space">
-<h3>Settlement Account</h3>
-<span onclick="editAccount()">✏️</span>
-</div>
-
 <p>Account Name</p>
 <h4 id="accNameShow">---</h4>
 
@@ -134,17 +125,8 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <h4 id="ifscShow">---</h4>
 </div>
 
-<div class="profitBox">
-Profit Withdrawable ₹<span id="profit">0</span>
-</div>
-
-<div class="withdrawForm">
-<input id="wAmount" placeholder="Withdrawal Amount (₹)">
-<p class="min">Minimum ₹200</p>
-<button onclick="submitWithdraw()">Submit Withdrawal</button>
-</div>
-
-<p class="viewHistory" onclick="loadWithdraw()">View Withdrawal Records</p>
+<input id="wAmount" placeholder="Amount ₹">
+<button onclick="submitWithdraw()">Withdraw</button>
 
 <div id="withdrawList" class="scrollArea"></div>
 
