@@ -6,11 +6,17 @@
 
 <h3>Deposit Settings</h3>
 
+<!-- EXISTING INPUTS (unchanged) -->
 <input id="qrLink" placeholder="QR Image URL (Cloudinary link)">
 <input id="upiId" placeholder="UPI ID">
 <input id="depositAmount" placeholder="Deposit Amount">
 
 <button onclick="saveDepositSettings()">Save</button>
+
+<!-- ✅ NEW QR UPLOAD (ADDED) -->
+<br><br>
+<input type="file" id="qrFile">
+<button onclick="uploadQR()">Upload QR</button>
 
 <hr>
 
@@ -29,6 +35,7 @@ projectId:"inrpay-44413"
 
 const db=getFirestore(app);
 
+/* ✅ SAVE SETTINGS (unchanged) */
 window.saveDepositSettings = async ()=>{
 await setDoc(doc(db,"settings","deposit"),{
 qr:document.getElementById("qrLink").value,
@@ -38,6 +45,31 @@ amount:document.getElementById("depositAmount").value
 alert("Saved");
 };
 
+/* ✅ NEW: QR UPLOAD FUNCTION */
+window.uploadQR = async ()=>{
+
+let file = document.getElementById("qrFile").files[0];
+
+if(!file) return alert("Select file");
+
+let formData = new FormData();
+formData.append("file", file);
+formData.append("upload_preset", "qr_upload"); // preset name
+
+let res = await fetch("https://api.cloudinary.com/v1_1/dxxwlovdf/image/upload",{
+method:"POST",
+body:formData
+});
+
+let data = await res.json();
+
+// auto fill QR URL
+document.getElementById("qrLink").value = data.secure_url;
+
+alert("QR Uploaded Successfully");
+};
+
+/* ✅ WITHDRAW LIST (unchanged) */
 async function load(){
 let snap=await getDocs(collection(db,"withdraw"));
 
@@ -54,6 +86,7 @@ ${data.user} | ₹${data.amount} | ${data.status || "Pending"}
 });
 }
 
+/* ✅ APPROVE BUTTON */
 window.approve=async(id)=>{
 await updateDoc(doc(db,"withdraw",id),{
 status:"Done"
