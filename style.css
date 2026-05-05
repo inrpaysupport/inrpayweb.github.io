@@ -5,7 +5,6 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-/* AUTH CENTER */
 #auth{
 height:100vh;
 display:flex;
@@ -19,23 +18,24 @@ font-size:28px;
 margin-bottom:20px;
 }
 
-/* INPUT */
+/* INPUT SAME SIZE */
 input{
 width:80%;
 padding:12px;
-margin:8px;
+margin:8px auto;
+display:block;
 border-radius:12px;
 border:none;
+box-sizing:border-box;
 }
 
-/* PASSWORD BOX FIX */
+/* PASSWORD FIX */
 .passwordBox{
 position:relative;
 width:80%;
 margin:8px auto;
 }
 
-/* 🔥 SAME SIZE AS NORMAL INPUT */
 .passwordBox input{
 width:100%;
 padding:12px;
@@ -45,23 +45,12 @@ border:none;
 box-sizing:border-box;
 }
 
-/* NORMAL INPUT भी same width */
-input{
-width:80%;
-padding:12px;
-margin:8px;
-border-radius:12px;
-border:none;
-box-sizing:border-box; /* 🔥 important */
-}
-
 .eyeIcon{
 position:absolute;
 right:12px;
 top:50%;
 transform:translateY(-50%);
 cursor:pointer;
-font-size:16px;
 }
 
 /* BUTTON */
@@ -95,7 +84,6 @@ width:40%;
 text-align:center;
 }
 
-/* TRANSACTION */
 .txRow{
 display:flex;
 justify-content:space-between;
@@ -139,7 +127,6 @@ border-radius:15px;
 width:90%;
 }
 
-/* NAV */
 .bottomNav{
 position:fixed;
 bottom:0;
@@ -150,7 +137,6 @@ background:#111;
 padding:10px;
 }
 
-/* SCROLL */
 .scrollArea{
 max-height:200px;
 overflow-y:auto;
