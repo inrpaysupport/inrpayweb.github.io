@@ -5,35 +5,10 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-/* AUTH */
-#auth{
-height:100vh;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-text-align:center;
-}
-
-/* INPUT */
-input{
-width:80%;
-padding:12px;
-margin:8px;
-border-radius:12px;
-border:none;
+/* REMOVE BLUE TOUCH */
+*{
+-webkit-tap-highlight-color: transparent;
 outline:none;
-}
-
-/* BUTTON */
-button{
-padding:12px;
-border:none;
-border-radius:12px;
-margin:6px;
-background:#7b2ff7;
-color:white;
-cursor:pointer;
 }
 
 /* CARD */
@@ -60,43 +35,71 @@ text-align:center;
 cursor:pointer;
 }
 
-/* POPUP FIX */
+/* TRANSACTION */
+.txRow{
+display:flex;
+justify-content:space-between;
+}
+
+.txRight{
+display:flex;
+gap:6px;
+}
+
+.dot{
+width:8px;
+height:8px;
+border-radius:50%;
+background:red;
+}
+
+/* POPUP */
 .popup{
 display:none;
 position:fixed;
-top:0;
-left:0;
 width:100%;
 height:100%;
 background:#00000080;
 justify-content:center;
 align-items:center;
-z-index:1000;
 }
 
-/* ACTIVE POPUP */
 .popup.active{
 display:flex;
 }
 
-/* POPUP BOX */
-.popup-box{
-background:white;
+/* WITHDRAW */
+.withdrawUI{
+background:#f5f5f5;
 color:black;
-padding:20px;
-border-radius:15px;
+padding:15px;
+border-radius:20px;
 width:90%;
-max-height:80vh;
-overflow-y:auto;
 }
 
-/* SCROLL */
-.scrollArea{
-max-height:300px;
-overflow-y:auto;
+.withdrawCard{
+background:white;
+padding:15px;
+border-radius:15px;
 }
 
-/* NAV FIX */
+.withdrawForm input{
+width:100%;
+padding:12px;
+border-radius:10px;
+margin-bottom:10px;
+}
+
+.withdrawForm button{
+width:100%;
+padding:12px;
+background:#b084f5;
+border:none;
+border-radius:20px;
+color:white;
+}
+
+/* NAV */
 .bottomNav{
 position:fixed;
 bottom:0;
@@ -105,39 +108,13 @@ display:flex;
 justify-content:space-around;
 background:#111;
 padding:10px;
-z-index:2000; /* 🔥 FIX */
 }
 
-/* NAV ITEMS */
-.bottomNav div{
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-/* PAGE SPACE */
-.page{
-padding-bottom:70px;
-}
-
-/* LIST ITEMS */
+/* LIST */
 .listItem{
 background:white;
 color:black;
 margin:5px;
 padding:10px;
 border-radius:10px;
-display:flex;
-justify-content:space-between;
-}
-
-/* MESSAGE POPUP */
-#msgBox .popup-box{
-text-align:center;
-}
-
-/* SMALL TEXT */
-p span{
-color:yellow;
-cursor:pointer;
 }
