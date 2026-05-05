@@ -66,59 +66,14 @@ get("usernumber").innerText=get("number").value;
 localStorage.setItem("user",get("number").value);
 
 loadUser();
-loadDeposits();
-loadBank();
 };
 
 async function loadUser(){
 let snap=await getDoc(doc(db,"users",localStorage.getItem("user")));
 if(snap.exists()){
-get("walletBalance").innerText=snap.data().balance||0;
-}
-}
-
-window.deposit=()=>get("depositBox").classList.add("active");
-window.closeDeposit=()=>get("depositBox").classList.remove("active");
-
-window.submitDeposit=async()=>{
-await setDoc(doc(db,"deposits",Date.now()+""),{
-user:localStorage.getItem("user"),
-utr:get("utr").value,
-status:"Pending"
-});
-showMsg("Deposit Submitted");
-loadDeposits();
-};
-
-async function loadDeposits(){
-let snap=await getDocs(collection(db,"deposits"));
-depositList.innerHTML="";
-snap.forEach(d=>{
-let data=d.data();
-if(data.user===localStorage.getItem("user")){
-depositList.innerHTML+=`<div>${data.utr}</div>`;
-}
-});
-}
-
-window.openBank=()=>get("bankBox").classList.add("active");
-window.closeBank=()=>get("bankBox").classList.remove("active");
-
-window.saveBank=async()=>{
-await setDoc(doc(db,"bank",localStorage.getItem("user")),{
-name:get("bankName").value,
-account:get("bankAcc").value,
-ifsc:get("bankIfsc").value
-});
-showMsg("Bank Saved");
-loadBank();
-};
-
-async function loadBank(){
-let snap=await getDoc(doc(db,"bank",localStorage.getItem("user")));
-if(snap.exists()){
-let d=snap.data();
-bankList.innerHTML=`<div>${d.name}<br>${d.account}</div>`;
+let bal=snap.data().balance||0;
+get("walletBalance").innerText=bal;
+get("earnBalance").innerText=bal;
 }
 }
 
