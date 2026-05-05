@@ -97,6 +97,29 @@ amount:amt
 showMsg("Withdraw Submitted");
 };
 
+window.deposit=()=>get("depositBox").classList.add("active");
+window.closeDeposit=()=>get("depositBox").classList.remove("active");
+
+window.submitDeposit=async()=>{
+await setDoc(doc(db,"deposits",Date.now()+""),{
+user:localStorage.getItem("user"),
+utr:get("utr").value
+});
+showMsg("Deposit Submitted");
+};
+
+window.openBank=()=>get("bankBox").classList.add("active");
+window.closeBank=()=>get("bankBox").classList.remove("active");
+
+window.saveBank=async()=>{
+await setDoc(doc(db,"bank",localStorage.getItem("user")),{
+name:get("bankName").value,
+account:get("bankAcc").value,
+ifsc:get("bankIfsc").value
+});
+showMsg("Bank Saved");
+};
+
 window.changePassword=async()=>{
 let snap=await getDoc(doc(db,"users",localStorage.getItem("user")));
 let user=snap.data();
