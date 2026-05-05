@@ -81,9 +81,17 @@ window.register = async ()=>{
 
 // ===== LOGIN =====
 window.login = async ()=>{
+try{
+
+  if(!number.value || !password.value){
+    return showMsg("Enter details");
+  }
+
   let snap = await getDoc(doc(db,"users",number.value));
 
-  if(!snap.exists()) return showMsg("User not found");
+  if(!snap.exists()){
+    return showMsg("User not found");
+  }
 
   let user = snap.data();
 
@@ -91,18 +99,37 @@ window.login = async ()=>{
     return showMsg("Wrong password");
   }
 
-  auth.style.display = "none";
-  app.style.display = "block";
+  // 🔥 SAFE UI SWITCH
+  if(document.getElementById("auth")){
+    auth.style.display = "none";
+  }
+  if(document.getElementById("app")){
+    app.style.display = "block";
+  }
 
-  usernameHome.innerText = user.name;
-  username2.innerText = user.name;
-  usernumber.innerText = number.value;
-  userid.innerText = "UID: " + user.uid;
+  // 🔥 SAFE DATA SET
+  if(document.getElementById("usernameHome")){
+    usernameHome.innerText = user.name || "";
+  }
+  if(document.getElementById("username2")){
+    username2.innerText = user.name || "";
+  }
+  if(document.getElementById("usernumber")){
+    usernumber.innerText = number.value;
+  }
+  if(document.getElementById("userid")){
+    userid.innerText = "UID: " + (user.uid || "---");
+  }
 
-  localStorage.setItem("user", number.value);
+  localStorage.setItem("user",number.value);
 
   loadWithdraw();
   loadAccount();
+
+}catch(e){
+  console.log("LOGIN ERROR:", e);
+  showMsg("Login error");
+}
 };
 
 // ===== NAV =====
