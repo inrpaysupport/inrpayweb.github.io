@@ -4,15 +4,10 @@
 
 <h2>Admin Panel</h2>
 
-<h3>Deposit Settings</h3>
-
+<!-- ✅ FIX 5 -->
 <input id="qr" placeholder="Cloudinary QR URL">
 <input id="upi" placeholder="UPI ID">
 <input id="amount" placeholder="Deposit Amount">
-
-<!-- 🔥 NEW NOTICE FIELD -->
-<h3>Top Notice</h3>
-<input id="notice" placeholder="Enter running notice text">
 
 <button onclick="save()">Save</button>
 
@@ -32,18 +27,16 @@ projectId:"inrpay-44413"
 
 const db=getFirestore(app);
 
-/* ✅ SAVE SETTINGS (UPDATED) */
+// ✅ SAVE SETTINGS
 window.save=async()=>{
 await setDoc(doc(db,"settings","main"),{
 qr:document.getElementById("qr").value,
 upi:document.getElementById("upi").value,
-amount:document.getElementById("amount").value,
-notice:document.getElementById("notice").value   // 🔥 NEW
+amount:document.getElementById("amount").value
 });
 alert("Updated");
 };
 
-/* ===== LOAD WITHDRAW ===== */
 async function load(){
 let snap=await getDocs(collection(db,"withdraw"));
 list.innerHTML="";
@@ -57,7 +50,6 @@ ${data.user} | ₹${data.amount}
 });
 }
 
-/* ===== APPROVE ===== */
 window.approve=async(id)=>{
 await updateDoc(doc(db,"withdraw",id),{status:"Done"});
 load();
