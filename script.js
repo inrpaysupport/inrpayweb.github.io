@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-// ✅ REAL FIREBASE CONFIG डालो
+// ✅ FIREBASE CONFIG (तुम्हारा वाला)
 const app = initializeApp({
   apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
   authDomain: "inrpay-44413.firebaseapp.com",
@@ -10,171 +10,192 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
+// ===== SAFE DOM GET =====
+const get = (id) => document.getElementById(id);
+
 // ===== MESSAGE =====
 function showMsg(t){
-  msgText.innerText=t;
-  msgBox.classList.add("active");
+  get("msgText").innerText = t;
+  get("msgBox").classList.add("active");
 }
-window.closeMsg=()=>msgBox.classList.remove("active");
+window.closeMsg = () => get("msgBox").classList.remove("active");
 
 // ===== DEFAULT =====
-window.onload=()=>showRegister();
+window.onload = () => showRegister();
 
 // ===== TOGGLE =====
-window.showLogin=()=>{
-authTitle.innerText="Sign In";
-document.getElementById("name").style.display="none";
-loginBtn.style.display="block";
-registerBtn.style.display="none";
-forgotText.style.display="block";
+window.showLogin = () => {
+  get("authTitle").innerText = "Sign In";
+  get("name").style.display = "none";
+  get("loginBtn").style.display = "block";
+  get("registerBtn").style.display = "none";
+  get("forgotText").style.display = "block";
 };
 
-window.showRegister=()=>{
-authTitle.innerText="Create Account";
-document.getElementById("name").style.display="block";
-loginBtn.style.display="none";
-registerBtn.style.display="block";
-forgotText.style.display="none";
+window.showRegister = () => {
+  get("authTitle").innerText = "Create Account";
+  get("name").style.display = "block";
+  get("loginBtn").style.display = "none";
+  get("registerBtn").style.display = "block";
+  get("forgotText").style.display = "none";
 };
 
 // ===== REGISTER =====
-window.register=async()=>{
-if(!name.value || !number.value || !password.value){
-return showMsg("Fill all fields");
-}
+window.register = async () => {
+  try{
+    const name = get("name").value.trim();
+    const number = get("number").value.trim();
+    const password = get("password").value.trim();
 
-let uid=Math.floor(100000+Math.random()*900000);
+    if(!name || !number || !password){
+      return showMsg("Fill all fields");
+    }
 
-await setDoc(doc(db,"users",number.value),{
-name:name.value,
-password:password.value,
-uid:uid
-});
+    let uid = Math.floor(100000 + Math.random()*900000);
 
-showMsg("Account Created");
-showLogin();
+    await setDoc(doc(db,"users",number),{
+      name, password, uid
+    });
+
+    showMsg("Account Created");
+    showLogin();
+
+  }catch(e){
+    console.log(e);
+    showMsg("Register error");
+  }
 };
 
 // ===== LOGIN =====
-window.login=async()=>{
-try{
+window.login = async () => {
+  try{
+    const number = get("number").value.trim();
+    const password = get("password").value.trim();
 
-if(!number.value || !password.value){
-return showMsg("Enter details");
-}
+    if(!number || !password){
+      return showMsg("Enter details");
+    }
 
-let ref = doc(db,"users",number.value);
-let snap = await getDoc(ref);
+    const snap = await getDoc(doc(db,"users",number));
 
-if(!snap.exists()){
-return showMsg("User not found");
-}
+    if(!snap.exists()){
+      return showMsg("User not found");
+    }
 
-let user = snap.data();
+    const user = snap.data();
 
-if(user.password !== password.value){
-return showMsg("Wrong password");
-}
+    if(user.password !== password){
+      return showMsg("Wrong password");
+    }
 
-// ✅ UI SHOW
-auth.style.display="none";
-app.style.display="block";
+    // ✅ SHOW APP
+    get("auth").style.display = "none";
+    get("app").style.display = "block";
 
-// ✅ DATA SET
-usernameHome.innerText=user.name;
-username2.innerText=user.name;
-usernumber.innerText=number.value;
-userid.innerText="UID: "+(user.uid || "------");
+    // ✅ SET DATA (safe)
+    if(get("usernameHome")) get("usernameHome").innerText = user.name || "";
+    if(get("username2")) get("username2").innerText = user.name || "";
+    if(get("usernumber")) get("usernumber").innerText = number;
+    if(get("userid")) get("userid").innerText = "UID: " + (user.uid || "---");
 
-localStorage.setItem("user",number.value);
+    localStorage.setItem("user",number);
 
-// LOAD DATA
-loadWithdraw();
-loadAccount();
+    loadWithdraw();
+    loadAccount();
 
-}catch(e){
-console.log(e);
-showMsg("Login error");
-}
+  }catch(e){
+    console.log("LOGIN ERROR:", e);
+    showMsg("Login error");
+  }
 };
 
 // ===== NAV =====
-window.showPage=(id)=>{
-document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-document.getElementById(id).style.display="block";
+window.showPage = (id)=>{
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  const el = document.getElementById(id);
+  if(el) el.style.display="block";
 };
 
 // ===== WITHDRAW =====
-window.openWithdraw=()=>{
-withdrawBox.classList.add("active");
-loadWithdraw();
-loadAccount();
+window.openWithdraw = ()=>{
+  get("withdrawBox").classList.add("active");
+  loadWithdraw();
+  loadAccount();
 };
 
-window.closeWithdraw=()=>withdrawBox.classList.remove("active");
+window.closeWithdraw = ()=>{
+  get("withdrawBox").classList.remove("active");
+};
 
 // ===== ACCOUNT SAVE =====
-window.saveAccount=async()=>{
-await setDoc(doc(db,"bank",localStorage.getItem("user")),{
-name:accNameInput.value,
-account:accNumberInput.value,
-ifsc:ifscInput.value
-});
-showMsg("Saved");
+window.saveAccount = async ()=>{
+  try{
+    await setDoc(doc(db,"bank",localStorage.getItem("user")),{
+      name:get("accNameInput").value,
+      account:get("accNumberInput").value,
+      ifsc:get("ifscInput").value
+    });
+    showMsg("Saved");
+  }catch(e){
+    console.log(e);
+  }
 };
 
 // ===== LOAD ACCOUNT =====
 async function loadAccount(){
-let snap = await getDoc(doc(db,"bank",localStorage.getItem("user")));
-if(snap.exists()){
-let d=snap.data();
-accNameInput.value=d.name||"";
-accNumberInput.value=d.account||"";
-ifscInput.value=d.ifsc||"";
-}
+  try{
+    let snap = await getDoc(doc(db,"bank",localStorage.getItem("user")));
+    if(snap.exists()){
+      let d = snap.data();
+      if(get("accNameInput")) get("accNameInput").value = d.name || "";
+      if(get("accNumberInput")) get("accNumberInput").value = d.account || "";
+      if(get("ifscInput")) get("ifscInput").value = d.ifsc || "";
+    }
+  }catch(e){}
 }
 
 // ===== WITHDRAW =====
-window.submitWithdraw=async()=>{
-let amt=Number(wAmount.value);
+window.submitWithdraw = async ()=>{
+  try{
+    let amt = Number(get("wAmount").value);
 
-if(amt<200){
-return showMsg("Minimum ₹200");
-}
+    if(amt < 200){
+      return showMsg("Minimum ₹200");
+    }
 
-await setDoc(doc(db,"withdraw",Date.now()+""),{
-user:localStorage.getItem("user"),
-amount:amt,
-status:"Process"
-});
+    await setDoc(doc(db,"withdraw",Date.now()+""),{
+      user:localStorage.getItem("user"),
+      amount:amt,
+      status:"Process"
+    });
 
-showMsg("Submitted");
-loadWithdraw();
+    showMsg("Submitted");
+    loadWithdraw();
+
+  }catch(e){
+    console.log(e);
+  }
 };
 
 // ===== LOAD WITHDRAW =====
 async function loadWithdraw(){
-let snap=await getDocs(collection(db,"withdraw"));
-withdrawList.innerHTML="";
-snap.forEach(d=>{
-let data=d.data();
-if(data.user===localStorage.getItem("user")){
-withdrawList.innerHTML+=`
-<div>${data.amount} - ${data.status}</div>`;
-}
-});
-}
+  try{
+    let snap = await getDocs(collection(db,"withdraw"));
+    get("withdrawList").innerHTML="";
 
-// ===== PASSWORD =====
-window.changePassword=async()=>{
-await updateDoc(doc(db,"users",localStorage.getItem("user")),{
-password:newPass.value
-});
-showMsg("Updated");
-};
+    snap.forEach(d=>{
+      let data=d.data();
+      if(data.user===localStorage.getItem("user")){
+        get("withdrawList").innerHTML+=`
+        <div>${data.amount} - ${data.status}</div>`;
+      }
+    });
+
+  }catch(e){}
+}
 
 // ===== LOGOUT =====
-window.logout=()=>{
-localStorage.clear();
-location.reload();
+window.logout = ()=>{
+  localStorage.clear();
+  location.reload();
 };
