@@ -13,12 +13,6 @@ justify-content:center;
 align-items:center;
 }
 
-.appLogo{
-font-size:28px;
-margin-bottom:20px;
-}
-
-/* INPUT SAME SIZE */
 input{
 width:80%;
 padding:12px;
@@ -26,62 +20,43 @@ margin:8px auto;
 display:block;
 border-radius:12px;
 border:none;
-box-sizing:border-box;
 }
 
-/* PASSWORD FIX */
 .passwordBox{
 position:relative;
 width:80%;
-margin:8px auto;
 }
 
 .passwordBox input{
 width:100%;
-padding:12px;
 padding-right:40px;
-border-radius:12px;
-border:none;
-box-sizing:border-box;
 }
 
 .eyeIcon{
 position:absolute;
-right:12px;
+right:10px;
 top:50%;
 transform:translateY(-50%);
 cursor:pointer;
 }
 
-/* BUTTON */
 button{
 padding:12px;
-border:none;
-border-radius:12px;
 margin:6px;
+border:none;
+border-radius:10px;
 }
 
-/* CARD */
 .card{
-margin:15px;
-padding:20px;
-border-radius:20px;
+margin:10px;
+padding:15px;
 background:#ffffff20;
+border-radius:10px;
 }
 
-/* SERVICES */
 .services{
 display:flex;
 justify-content:space-around;
-margin:20px;
-}
-
-.services div{
-background:#ffffff20;
-padding:15px;
-border-radius:15px;
-width:40%;
-text-align:center;
 }
 
 .txRow{
@@ -91,18 +66,16 @@ justify-content:space-between;
 
 .txRight{
 display:flex;
-align-items:center;
 gap:5px;
 }
 
 .dot{
 width:8px;
 height:8px;
-border-radius:50%;
 background:red;
+border-radius:50%;
 }
 
-/* POPUP */
 .popup{
 display:none;
 position:fixed;
@@ -123,7 +96,7 @@ display:flex;
 background:white;
 color:black;
 padding:20px;
-border-radius:15px;
+border-radius:10px;
 width:90%;
 }
 
@@ -137,7 +110,15 @@ background:#111;
 padding:10px;
 }
 
-.scrollArea{
-max-height:200px;
-overflow-y:auto;
+.notice{
+background:black;
+padding:5px;
+font-size:13px;
+animation:scroll 10s linear infinite;
+white-space:nowrap;
+}
+
+@keyframes scroll{
+0%{transform:translateX(100%);}
+100%{transform:translateX(-100%);}
 }
