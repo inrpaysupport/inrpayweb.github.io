@@ -3,31 +3,26 @@ margin:0;
 font-family:Arial;
 background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
-padding-top:40px;
 }
 
-/* 🔥 NOTICE */
-.topNotice{
+/* 🔥 NOTICE BAR */
+.noticeBar{
 width:100%;
-overflow:hidden;
 background:black;
 color:white;
-padding:8px 0;
-position:fixed;
-top:0;
-z-index:999;
+overflow:hidden;
+white-space:nowrap;
 }
 
-.noticeText{
+#noticeText{
 display:inline-block;
-white-space:nowrap;
 padding-left:100%;
-animation:scrollText 12s linear infinite;
+animation:scrollText 10s linear infinite;
 }
 
 @keyframes scrollText{
-0%{transform:translateX(0);}
-100%{transform:translateX(-100%);}
+0%{ transform:translateX(0); }
+100%{ transform:translateX(-100%); }
 }
 
 #auth{
@@ -85,6 +80,7 @@ width:90%;
 display:flex;
 justify-content:space-between;
 align-items:center;
+width:100%;
 }
 
 .txRight{
