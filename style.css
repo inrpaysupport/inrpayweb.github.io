@@ -5,8 +5,6 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-*{-webkit-tap-highlight-color:transparent;}
-
 #auth{
 height:100vh;
 display:flex;
@@ -15,23 +13,29 @@ justify-content:center;
 align-items:center;
 }
 
-input,.passwordBox{
-width:85%;
-margin:8px auto;
-display:block;
-}
-
 input{
+width:80%;
 padding:12px;
-border-radius:12px;
+margin:6px;
+border-radius:10px;
 border:none;
 }
 
-.passwordBox{position:relative;}
-.eyeIcon{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;}
+.passwordBox{
+position:relative;
+width:80%;
+}
+
+.eyeIcon{
+position:absolute;
+right:10px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+}
 
 button{
-padding:12px;
+padding:10px;
 margin:6px;
 border:none;
 border-radius:10px;
@@ -49,35 +53,22 @@ margin:10px;
 padding:15px;
 background:#ffffff20;
 border-radius:10px;
+width:90%;
 }
 
-.account-bind-box{
-margin:10px;
-padding:15px;
-background:#ffffff20;
-border-radius:10px;
-}
-
-.account-bind-box div{
-padding:10px;
-margin:6px 0;
-background:#ffffff30;
-border-radius:8px;
-text-align:center;
-cursor:pointer;
-}
-
-/* 🔥 Account Bind Right Side */
+/* Account Bind Right Fix */
 .txRow{
 display:flex;
 justify-content:space-between;
 align-items:center;
+width:100%;
 }
 
 .txRight{
 display:flex;
 align-items:center;
-gap:5px;
+gap:6px;
+margin-left:auto;
 }
 
 .dot{
@@ -87,6 +78,24 @@ background:red;
 border-radius:50%;
 }
 
+/* Box */
+.account-bind-box{
+margin:10px;
+padding:10px;
+background:#ffffff20;
+border-radius:10px;
+}
+
+.account-bind-box div{
+padding:10px;
+margin:6px 0;
+background:#ffffff30;
+border-radius:8px;
+cursor:pointer;
+text-align:center;
+}
+
+/* Popup */
 .popup{
 display:none;
 position:fixed;
@@ -97,12 +106,10 @@ height:100%;
 background:#00000080;
 justify-content:center;
 align-items:center;
-pointer-events:none;
 }
 
 .popup.active{
 display:flex;
-pointer-events:auto;
 }
 
 .popup-box{
@@ -114,20 +121,7 @@ width:90%;
 }
 
 #qrImage{
-display:block;
-margin:10px auto;
 width:200px;
+display:block;
+margin:auto;
 }
-
-.bottomNav{
-position:fixed;
-bottom:0;
-width:100%;
-display:flex;
-justify-content:space-around;
-background:#111;
-padding:10px;
-z-index:9999;
-}
-
-.page{padding-bottom:80px;}
