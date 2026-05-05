@@ -5,6 +5,11 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
+* {
+-webkit-tap-highlight-color: transparent;
+}
+
+/* AUTH */
 #auth{
 height:100vh;
 display:flex;
@@ -13,75 +18,73 @@ justify-content:center;
 align-items:center;
 }
 
+.appLogo{
+font-size:28px;
+margin-bottom:20px;
+}
+
+/* INPUT */
+input, .passwordBox{
+width:85%;
+margin:8px auto;
+display:block;
+box-sizing:border-box;
+}
+
 input{
-width:80%;
 padding:12px;
-margin:6px;
-border-radius:10px;
+border-radius:12px;
 border:none;
 }
 
 .passwordBox{
 position:relative;
-width:80%;
+}
+
+.passwordBox input{
+width:100%;
+padding:12px;
+padding-right:40px;
 }
 
 .eyeIcon{
 position:absolute;
-right:10px;
+right:12px;
 top:50%;
 transform:translateY(-50%);
 cursor:pointer;
 }
 
+/* BUTTON */
 button{
-padding:10px;
+padding:12px;
 margin:6px;
 border:none;
 border-radius:10px;
 cursor:pointer;
 }
 
+/* LINK BUTTON */
 .linkBtn{
 background:none;
+border:none;
 color:white;
 text-decoration:underline;
+cursor:pointer;
 }
 
+/* CARD */
 .card{
 margin:10px;
 padding:15px;
 background:#ffffff20;
 border-radius:10px;
-width:90%;
 }
 
-/* Account Bind Right Fix */
-.txRow{
-display:flex;
-justify-content:space-between;
-align-items:center;
-width:100%;
-}
-
-.txRight{
-display:flex;
-align-items:center;
-gap:6px;
-margin-left:auto;
-}
-
-.dot{
-width:8px;
-height:8px;
-background:red;
-border-radius:50%;
-}
-
-/* Box */
+/* ACCOUNT BIND */
 .account-bind-box{
 margin:10px;
-padding:10px;
+padding:15px;
 background:#ffffff20;
 border-radius:10px;
 }
@@ -91,11 +94,11 @@ padding:10px;
 margin:6px 0;
 background:#ffffff30;
 border-radius:8px;
-cursor:pointer;
 text-align:center;
+cursor:pointer;
 }
 
-/* Popup */
+/* POPUP FIX */
 .popup{
 display:none;
 position:fixed;
@@ -106,10 +109,13 @@ height:100%;
 background:#00000080;
 justify-content:center;
 align-items:center;
+z-index:1000;
+pointer-events:none;
 }
 
 .popup.active{
 display:flex;
+pointer-events:auto;
 }
 
 .popup-box{
@@ -118,10 +124,54 @@ color:black;
 padding:20px;
 border-radius:10px;
 width:90%;
+max-width:400px;
 }
 
+/* QR */
 #qrImage{
-width:200px;
 display:block;
-margin:auto;
+margin:10px auto;
+width:200px;
+}
+
+/* NAV */
+.bottomNav{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+display:flex;
+justify-content:space-around;
+background:#111;
+padding:10px;
+z-index:9999;
+pointer-events:auto;
+}
+
+.bottomNav div{
+cursor:pointer;
+}
+
+/* PAGE FIX */
+.page{
+padding-bottom:80px;
+}
+
+/* NOTICE */
+.notice{
+width:100%;
+background:black;
+overflow:hidden;
+white-space:nowrap;
+}
+
+.notice span{
+display:inline-block;
+padding-left:100%;
+animation:moveText 10s linear infinite;
+}
+
+@keyframes moveText{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
 }
