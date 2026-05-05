@@ -4,22 +4,14 @@
 
 <h2>Admin Panel</h2>
 
-<h3>Deposit Settings</h3>
+<!-- ✅ FIX 5 -->
+<input id="qr" placeholder="Cloudinary QR URL">
+<input id="upi" placeholder="UPI ID">
+<input id="amount" placeholder="Deposit Amount">
 
-<!-- EXISTING INPUTS (unchanged) -->
-<input id="qrLink" placeholder="QR Image URL (Cloudinary link)">
-<input id="upiId" placeholder="UPI ID">
-<input id="depositAmount" placeholder="Deposit Amount">
-
-<button onclick="saveDepositSettings()">Save</button>
-
-<!-- ✅ NEW QR UPLOAD (ADDED) -->
-<br><br>
-<input type="file" id="qrFile">
-<button onclick="uploadQR()">Upload QR</button>
+<button onclick="save()">Save</button>
 
 <hr>
-
 <div id="list"></div>
 
 <script type="module">
@@ -28,71 +20,40 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getFirestore, getDocs, collection, updateDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+apiKey:"AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
 authDomain:"inrpay-44413.firebaseapp.com",
 projectId:"inrpay-44413"
 });
 
 const db=getFirestore(app);
 
-/* ✅ SAVE SETTINGS (unchanged) */
-window.saveDepositSettings = async ()=>{
-await setDoc(doc(db,"settings","deposit"),{
-qr:document.getElementById("qrLink").value,
-upi:document.getElementById("upiId").value,
-amount:document.getElementById("depositAmount").value
+// ✅ SAVE SETTINGS
+window.save=async()=>{
+await setDoc(doc(db,"settings","main"),{
+qr:document.getElementById("qr").value,
+upi:document.getElementById("upi").value,
+amount:document.getElementById("amount").value
 });
-alert("Saved");
+alert("Updated");
 };
 
-/* ✅ NEW: QR UPLOAD FUNCTION */
-window.uploadQR = async ()=>{
-
-let file = document.getElementById("qrFile").files[0];
-
-if(!file) return alert("Select file");
-
-let formData = new FormData();
-formData.append("file", file);
-formData.append("upload_preset", "qr_upload"); // preset name
-
-let res = await fetch("https://api.cloudinary.com/v1_1/dxxwlovdf/image/upload",{
-method:"POST",
-body:formData
-});
-
-let data = await res.json();
-
-// auto fill QR URL
-document.getElementById("qrLink").value = data.secure_url;
-
-alert("QR Uploaded Successfully");
-};
-
-/* ✅ WITHDRAW LIST (unchanged) */
 async function load(){
 let snap=await getDocs(collection(db,"withdraw"));
-
 list.innerHTML="";
-
 snap.forEach(d=>{
 let data=d.data();
-
 list.innerHTML+=`
 <div>
-${data.user} | ₹${data.amount} | ${data.status || "Pending"}
+${data.user} | ₹${data.amount}
 <button onclick="approve('${d.id}')">Approve</button>
 </div>`;
 });
 }
 
-/* ✅ APPROVE BUTTON */
 window.approve=async(id)=>{
-await updateDoc(doc(db,"withdraw",id),{
-status:"Done"
-});
+await updateDoc(doc(db,"withdraw",id),{status:"Done"});
 load();
-}
+};
 
 load();
 
