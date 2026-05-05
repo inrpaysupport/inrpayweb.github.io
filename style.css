@@ -5,11 +5,8 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-* {
--webkit-tap-highlight-color: transparent;
-}
+*{-webkit-tap-highlight-color:transparent;}
 
-/* AUTH */
 #auth{
 height:100vh;
 display:flex;
@@ -18,17 +15,10 @@ justify-content:center;
 align-items:center;
 }
 
-.appLogo{
-font-size:28px;
-margin-bottom:20px;
-}
-
-/* INPUT */
-input, .passwordBox{
+input,.passwordBox{
 width:85%;
 margin:8px auto;
 display:block;
-box-sizing:border-box;
 }
 
 input{
@@ -37,25 +27,9 @@ border-radius:12px;
 border:none;
 }
 
-.passwordBox{
-position:relative;
-}
+.passwordBox{position:relative;}
+.eyeIcon{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;}
 
-.passwordBox input{
-width:100%;
-padding:12px;
-padding-right:40px;
-}
-
-.eyeIcon{
-position:absolute;
-right:12px;
-top:50%;
-transform:translateY(-50%);
-cursor:pointer;
-}
-
-/* BUTTON */
 button{
 padding:12px;
 margin:6px;
@@ -64,16 +38,12 @@ border-radius:10px;
 cursor:pointer;
 }
 
-/* LINK BUTTON */
 .linkBtn{
 background:none;
-border:none;
 color:white;
 text-decoration:underline;
-cursor:pointer;
 }
 
-/* CARD */
 .card{
 margin:10px;
 padding:15px;
@@ -81,7 +51,6 @@ background:#ffffff20;
 border-radius:10px;
 }
 
-/* ACCOUNT BIND */
 .account-bind-box{
 margin:10px;
 padding:15px;
@@ -98,7 +67,26 @@ text-align:center;
 cursor:pointer;
 }
 
-/* POPUP FIX */
+/* 🔥 Account Bind Right Side */
+.txRow{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.txRight{
+display:flex;
+align-items:center;
+gap:5px;
+}
+
+.dot{
+width:8px;
+height:8px;
+background:red;
+border-radius:50%;
+}
+
 .popup{
 display:none;
 position:fixed;
@@ -109,7 +97,6 @@ height:100%;
 background:#00000080;
 justify-content:center;
 align-items:center;
-z-index:1000;
 pointer-events:none;
 }
 
@@ -124,54 +111,23 @@ color:black;
 padding:20px;
 border-radius:10px;
 width:90%;
-max-width:400px;
 }
 
-/* QR */
 #qrImage{
 display:block;
 margin:10px auto;
 width:200px;
 }
 
-/* NAV */
 .bottomNav{
 position:fixed;
 bottom:0;
-left:0;
 width:100%;
 display:flex;
 justify-content:space-around;
 background:#111;
 padding:10px;
 z-index:9999;
-pointer-events:auto;
 }
 
-.bottomNav div{
-cursor:pointer;
-}
-
-/* PAGE FIX */
-.page{
-padding-bottom:80px;
-}
-
-/* NOTICE */
-.notice{
-width:100%;
-background:black;
-overflow:hidden;
-white-space:nowrap;
-}
-
-.notice span{
-display:inline-block;
-padding-left:100%;
-animation:moveText 10s linear infinite;
-}
-
-@keyframes moveText{
-0%{transform:translateX(0);}
-100%{transform:translateX(-100%);}
-}
+.page{padding-bottom:80px;}
