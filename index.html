@@ -8,11 +8,6 @@
 
 <body>
 
-<!-- SPLASH -->
-<div id="splash">
-<h1 class="logo">INRPAY</h1>
-</div>
-
 <!-- AUTH -->
 <div id="auth">
 
@@ -21,8 +16,14 @@
 <h2 id="authTitle">Create Account</h2>
 
 <input id="name" placeholder="Name">
-<input id="number" placeholder="Mobile Number">
-<input id="password" type="password" placeholder="Password">
+
+<input id="number" placeholder="Mobile Number" maxlength="10" inputmode="numeric">
+
+<div style="position:relative;width:80%;">
+<input id="password" type="password" placeholder="Password" style="width:100%;">
+<span onclick="togglePass()" 
+style="position:absolute;right:10px;top:12px;cursor:pointer;">👁</span>
+</div>
 
 <button id="registerBtn" onclick="register()">Sign Up</button>
 <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
@@ -38,6 +39,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- APP -->
 <div id="app" style="display:none;">
 
+<!-- HOME -->
 <div id="homePage" class="page">
 
 <h2 id="usernameHome"></h2>
@@ -51,6 +53,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div onclick="openBank()">Add Bank Account</div>
 </div>
 
+<!-- ACCOUNT BIND -->
 <div class="card">
 <div class="txRow">
 <div>Account Bind</div>
@@ -58,6 +61,14 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div class="dot red"></div>
 <div>Deactivate</div>
 </div>
+</div>
+</div>
+
+<!-- TRANSACTION -->
+<div class="card">
+<div class="txRow">
+<div>Transactions</div>
+<div id="txData">No data</div>
 </div>
 </div>
 
@@ -101,10 +112,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 <div class="withdrawCard">
 
-<div style="display:flex;justify-content:space-between;">
 <h3>Settlement Account</h3>
-<span onclick="editAccount()">✏️</span>
-</div>
 
 <input id="accNameInput" placeholder="Account Name">
 <input id="accNumberInput" placeholder="Account Number">
