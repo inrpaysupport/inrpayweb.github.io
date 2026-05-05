@@ -4,11 +4,12 @@
 
 <h2>Admin Panel</h2>
 
-<input type="file" id="file">
+<input id="notice" placeholder="Top Notice Text">
+<input id="qr" placeholder="Cloudinary QR URL">
 <input id="upi" placeholder="UPI ID">
 <input id="amount" placeholder="Deposit Amount">
 
-<button onclick="upload()">Upload QR</button>
+<button onclick="save()">Save</button>
 
 <script type="module">
 
@@ -23,32 +24,14 @@ projectId:"inrpay-44413"
 
 const db=getFirestore(app);
 
-/* 🔥 Hidden Cloudinary config */
-const CLOUD_NAME="demo";   // <-- change once
-const PRESET="unsigned";  // <-- change once
-
-window.upload=async()=>{
-let file=document.getElementById("file").files[0];
-if(!file) return alert("Select file");
-
-let fd=new FormData();
-fd.append("file",file);
-fd.append("upload_preset",PRESET);
-
-let res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{
-method:"POST",
-body:fd
-});
-
-let data=await res.json();
-
+window.save=async()=>{
 await setDoc(doc(db,"settings","main"),{
-qr:data.secure_url,
+notice:document.getElementById("notice").value,
+qr:document.getElementById("qr").value,
 upi:document.getElementById("upi").value,
 amount:document.getElementById("amount").value
 });
-
-alert("Uploaded");
+alert("Updated");
 };
 
 </script>
