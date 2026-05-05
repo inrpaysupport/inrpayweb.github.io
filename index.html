@@ -8,8 +8,15 @@
 
 <body>
 
+<!-- SPLASH -->
+<div id="splash">
+<h1 class="logo">INRPAY</h1>
+</div>
+
 <!-- AUTH -->
 <div id="auth">
+
+<h1 class="appLogo">INRPAY</h1>
 
 <h2 id="authTitle">Create Account</h2>
 
@@ -31,7 +38,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- APP -->
 <div id="app" style="display:none;">
 
-<!-- HOME -->
 <div id="homePage" class="page">
 
 <h2 id="usernameHome"></h2>
@@ -50,7 +56,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div>Account Bind</div>
 <div class="txRight">
 <div class="dot red"></div>
-<div id="txStatus">Deactivate</div>
+<div>Deactivate</div>
 </div>
 </div>
 </div>
@@ -87,25 +93,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 </div>
 
-<!-- DEPOSIT -->
-<div id="depositBox" class="popup">
-<div class="popup-box">
-<input id="utr" placeholder="Enter UTR">
-<button onclick="submitDeposit()">Submit</button>
-<button onclick="closeDeposit()">Close</button>
-</div>
-</div>
-
-<!-- BANK -->
-<div id="bankBox" class="popup">
-<div class="popup-box">
-<input id="bankName" placeholder="Bank Name">
-<input id="accNumber" placeholder="Account Number">
-<button onclick="saveBank()">Save</button>
-<button onclick="closeBank()">Close</button>
-</div>
-</div>
-
 <!-- WITHDRAW -->
 <div id="withdrawBox" class="popup">
 <div class="popup-box">
@@ -113,24 +100,24 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <h2>Withdraw</h2>
 
 <div class="withdrawCard">
-<p>Account Name</p>
-<h4 id="accNameShow">---</h4>
 
-<p>Account Number</p>
-<h4 id="accNumberShow">---</h4>
-
-<p>IFSC</p>
-<h4 id="ifscShow">---</h4>
+<div style="display:flex;justify-content:space-between;">
+<h3>Settlement Account</h3>
+<span onclick="editAccount()">✏️</span>
 </div>
 
-<div class="profitBox">
-Profit Withdrawable ₹<span id="profit">0</span>
+<input id="accNameInput" placeholder="Account Name">
+<input id="accNumberInput" placeholder="Account Number">
+<input id="ifscInput" placeholder="IFSC Code">
+
+<button onclick="saveAccount()">Save</button>
+
 </div>
 
-<input id="wAmount" placeholder="Withdrawal Amount (₹)">
+<input id="wAmount" placeholder="Amount ₹">
 <p>Minimum ₹200</p>
 
-<button onclick="submitWithdraw()">Submit Withdrawal</button>
+<button onclick="submitWithdraw()">Withdraw</button>
 
 <div id="withdrawList" class="scrollArea"></div>
 
