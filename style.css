@@ -5,6 +5,7 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
+/* AUTH */
 #auth{
 height:100vh;
 display:flex;
@@ -18,7 +19,7 @@ font-size:28px;
 margin-bottom:20px;
 }
 
-/* SAME SIZE INPUT + PASSWORD */
+/* INPUT + PASSWORD */
 input, .passwordBox{
 width:85%;
 margin:8px auto;
@@ -56,6 +57,7 @@ padding:12px;
 margin:6px;
 border:none;
 border-radius:10px;
+cursor:pointer;
 }
 
 /* CARD */
@@ -69,20 +71,24 @@ border-radius:10px;
 /* SERVICES */
 .services{
 display:flex;
-justify-content:space-around;
+flex-direction:column;
+gap:10px;
 }
 
-/* TRANSACTION */
+/* TRANSACTION ROW */
 .txRow{
 display:flex;
 justify-content:space-between;
+align-items:center;
 }
 
 .txRight{
 display:flex;
 gap:5px;
+align-items:center;
 }
 
+/* STATUS DOT */
 .dot{
 width:8px;
 height:8px;
@@ -101,6 +107,7 @@ height:100%;
 background:#00000080;
 justify-content:center;
 align-items:center;
+z-index:1000;
 }
 
 .popup.active{
@@ -113,20 +120,32 @@ color:black;
 padding:20px;
 border-radius:10px;
 width:90%;
+max-width:400px;
 }
 
-/* NAV */
+/* NAVIGATION */
 .bottomNav{
 position:fixed;
 bottom:0;
+left:0;
 width:100%;
 display:flex;
 justify-content:space-around;
 background:#111;
 padding:10px;
+z-index:999; /* 🔥 clickable fix */
 }
 
-/* NOTICE */
+.bottomNav div{
+cursor:pointer;
+}
+
+/* PAGE FIX (nav overlap remove) */
+.page{
+padding-bottom:80px;
+}
+
+/* NOTICE BAR */
 .notice{
 width:100%;
 background:black;
@@ -143,4 +162,16 @@ animation:moveText 10s linear infinite;
 @keyframes moveText{
 0%{transform:translateX(0);}
 100%{transform:translateX(-100%);}
+}
+
+/* QR IMAGE CENTER */
+#qrImage{
+display:block;
+margin:10px auto;
+width:200px;
+}
+
+/* TEXT CENTER */
+.center{
+text-align:center;
 }
