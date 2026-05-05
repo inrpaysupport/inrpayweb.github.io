@@ -10,7 +10,6 @@
 
 <!-- AUTH -->
 <div id="auth">
-
 <h1 class="appLogo">INRPAY</h1>
 <h2 id="authTitle">Create Account</h2>
 
@@ -30,11 +29,14 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </p>
 
 <p id="forgotText" style="display:none;">Forgot Password?</p>
-
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none;">
+
+<div class="notice">
+Security deposit amount will be refunded to your bank account within 24–48 hours.
+</div>
 
 <div id="homePage" class="page">
 
@@ -71,12 +73,11 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
 <h3>Earnings</h3>
-<div id="earningList" class="scrollArea"></div>
 <button onclick="openWithdraw()">Withdraw</button>
 </div>
 
 <!-- SETTINGS -->
-<div id="settingsPage" class="page" style="display:none;">
+<div id="settingsPage" class="page" style="display:none;text-align:center;">
 <p id="username2"></p>
 <p id="usernumber"></p>
 <p id="userid"></p>
@@ -85,11 +86,10 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <input id="newPass" placeholder="New Password">
 <input id="confirmPass" placeholder="Confirm Password">
 
-<button onclick="changePassword()">Update Password</button>
+<button onclick="changePassword()">Change Password</button>
 <button onclick="logout()">Logout</button>
 </div>
 
-<!-- NAV -->
 <div class="bottomNav">
 <div onclick="showPage('homePage')">🏠</div>
 <div onclick="showPage('earnPage')">💰</div>
@@ -112,7 +112,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-<h3>Add Bank</h3>
 <input id="bankName" placeholder="Bank Name">
 <input id="bankAcc" placeholder="Account Number">
 <input id="bankIfsc" placeholder="IFSC Code">
@@ -125,7 +124,10 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- WITHDRAW -->
 <div id="withdrawBox" class="popup">
 <div class="popup-box">
+
 <h2>Withdraw</h2>
+
+<p>Available Balance: ₹<span id="walletBalance">0</span></p>
 
 <input id="wAmount" placeholder="Amount ₹">
 <button onclick="submitWithdraw()">Withdraw</button>
@@ -133,6 +135,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div id="withdrawList"></div>
 
 <button onclick="closeWithdraw()">Close</button>
+
 </div>
 </div>
 
