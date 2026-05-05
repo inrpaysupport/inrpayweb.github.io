@@ -111,3 +111,27 @@ password:newP
 
 alert("Changed");
 };
+
+// ✅ NAV FIX
+window.showPage=(id)=>{
+document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+document.getElementById(id).style.display="block";
+};
+
+// ✅ LOAD SETTINGS (QR / UPI / AMOUNT)
+async function loadSettings(){
+let snap=await getDoc(doc(db,"settings","main"));
+if(snap.exists()){
+let d=snap.data();
+
+document.getElementById("qrImage").src=d.qr || "";
+document.getElementById("upiText").innerText=d.upi || "upi@id";
+document.getElementById("amountText").innerText="₹"+(d.amount || 1000);
+}
+}
+
+// override deposit
+window.deposit=()=>{
+get("depositBox").classList.add("active");
+loadSettings();
+};
