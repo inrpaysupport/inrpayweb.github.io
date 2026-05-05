@@ -41,6 +41,8 @@ window.showRegister = ()=>{
   registerBtn.style.display = "block";
   loginBtn.style.display = "none";
 
+  document.getElementById("forgotText").style.display = "none"; // ❌ hide
+
   toggleText.innerHTML =
   `Already have account? <span onclick="showLogin()">Sign In</span>`;
 };
@@ -51,6 +53,8 @@ window.showLogin = ()=>{
   document.getElementById("name").style.display = "none";
   registerBtn.style.display = "none";
   loginBtn.style.display = "block";
+
+  document.getElementById("forgotText").style.display = "block"; // ✅ show
 
   toggleText.innerHTML =
   `Don't have account? <span onclick="showRegister()">Sign Up</span>`;
