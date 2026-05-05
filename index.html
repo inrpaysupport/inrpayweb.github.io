@@ -25,7 +25,8 @@
 <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
 
 <p id="toggleText">
-Already have account? <span onclick="showLogin()">Sign In</span>
+Already have account? 
+<button class="linkBtn" onclick="showLogin()">Sign In</button>
 </p>
 
 <p id="forgotText" style="display:none;">Forgot Password?</p>
@@ -47,7 +48,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <h1 id="balance">₹0</h1>
 </div>
 
-<!-- ✅ FIX 1 -->
+<!-- Account Bind -->
 <div class="account-bind-box">
 <div onclick="deposit()">Security Deposit</div>
 <div onclick="openBank()">Add Bank Account</div>
@@ -95,7 +96,7 @@ Total Balance: ₹<span id="earnBalance">0</span>
 <button onclick="logout()">Logout</button>
 </div>
 
-<!-- ✅ FIX 2 NAV -->
+<!-- NAV -->
 <div class="bottomNav">
 <div onclick="showPage('homePage')">🏠</div>
 <div onclick="showPage('earnPage')">💰</div>
@@ -104,13 +105,13 @@ Total Balance: ₹<span id="earnBalance">0</span>
 
 </div>
 
-<!-- ✅ FIX 4 Deposit -->
+<!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
 
 <h2 id="amountText">₹1000</h2>
 
-<img id="qrImage" width="200">
+<img id="qrImage">
 
 <p id="upiText">upi@id</p>
 
