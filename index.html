@@ -42,20 +42,16 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 <div class="services">
 <div onclick="deposit()">Security Deposit</div>
-<div onclick="openBank()">Add Bank</div>
+<div onclick="openBank()">Add Bank Account</div>
 </div>
 
-<!-- TRANSACTION -->
 <div class="card">
 <div class="txRow">
-
-<div class="txLeft">Account Bind</div>
-
+<div>Account Bind</div>
 <div class="txRight">
 <div class="dot red"></div>
 <div id="txStatus">Deactivate</div>
 </div>
-
 </div>
 </div>
 
@@ -64,9 +60,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <!-- EARN -->
 <div id="earnPage" class="page" style="display:none;">
 <h3>Earnings</h3>
-
 <div id="earningList" class="scrollArea"></div>
-
 <button onclick="openWithdraw()">Withdraw</button>
 </div>
 
@@ -74,6 +68,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div id="settingsPage" class="page" style="display:none;">
 <p id="username2"></p>
 <p id="usernumber"></p>
+<p id="userid"></p>
 
 <input id="oldPass" placeholder="Old Password">
 <input id="newPass" placeholder="New Password">
@@ -92,41 +87,30 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 </div>
 
-<!-- ===== DEPOSIT ===== -->
+<!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
-
 <input id="utr" placeholder="Enter UTR">
 <button onclick="submitDeposit()">Submit</button>
-
-<div id="depositList" class="scrollArea"></div>
-
 <button onclick="closeDeposit()">Close</button>
-
 </div>
 </div>
 
-<!-- ===== BANK ===== -->
+<!-- BANK -->
 <div id="bankBox" class="popup">
 <div class="popup-box">
-
-<input id="bankName" placeholder="Bank">
-<input id="accNumber" placeholder="Account">
-
+<input id="bankName" placeholder="Bank Name">
+<input id="accNumber" placeholder="Account Number">
 <button onclick="saveBank()">Save</button>
-
-<div id="bankList" class="scrollArea"></div>
-
 <button onclick="closeBank()">Close</button>
-
 </div>
 </div>
 
-<!-- ===== WITHDRAW ===== -->
+<!-- WITHDRAW -->
 <div id="withdrawBox" class="popup">
-<div class="popup-box withdrawUI">
+<div class="popup-box">
 
-<h3>Withdraw</h3>
+<h2>Withdraw</h2>
 
 <div class="withdrawCard">
 <p>Account Name</p>
@@ -139,9 +123,14 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <h4 id="ifscShow">---</h4>
 </div>
 
-<input id="wAmount" placeholder="Amount ₹">
+<div class="profitBox">
+Profit Withdrawable ₹<span id="profit">0</span>
+</div>
 
-<button onclick="submitWithdraw()">Withdraw</button>
+<input id="wAmount" placeholder="Withdrawal Amount (₹)">
+<p>Minimum ₹200</p>
+
+<button onclick="submitWithdraw()">Submit Withdrawal</button>
 
 <div id="withdrawList" class="scrollArea"></div>
 
@@ -150,7 +139,7 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </div>
 </div>
 
-<!-- ===== MESSAGE ===== -->
+<!-- MESSAGE -->
 <div id="msgBox" class="popup">
 <div class="popup-box">
 <p id="msgText"></p>
