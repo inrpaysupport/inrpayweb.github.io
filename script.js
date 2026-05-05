@@ -1,120 +1,157 @@
-body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#2b0a4a,#6a11cb);
-color:white;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+});
+
+const db = getFirestore(app);
+
+// MESSAGE
+function showMsg(t){
+msgText.innerText=t;
+msgBox.classList.add("active");
+}
+window.closeMsg=()=>msgBox.classList.remove("active");
+
+// TOGGLE
+window.showLogin=()=>{
+authTitle.innerText="Sign In";
+name.style.display="none";
+loginBtn.style.display="block";
+registerBtn.style.display="none";
+forgotText.style.display="block";
+
+toggleText.innerHTML=`Don't have account? <span onclick="showRegister()">Sign Up</span>`;
+};
+
+window.showRegister=()=>{
+authTitle.innerText="Create Account";
+name.style.display="block";
+loginBtn.style.display="none";
+registerBtn.style.display="block";
+forgotText.style.display="none";
+
+toggleText.innerHTML=`Already have account? <span onclick="showLogin()">Sign In</span>`;
+};
+
+// REGISTER
+window.register=async()=>{
+if(!name.value||!number.value||!password.value) return showMsg("Fill all fields");
+
+await setDoc(doc(db,"users",number.value),{
+name:name.value,
+password:password.value,
+balance:0
+});
+
+showMsg("Account Created");
+showLogin();
+};
+
+// LOGIN
+window.login=async()=>{
+let snap=await getDoc(doc(db,"users",number.value));
+if(!snap.exists()) return showMsg("User not found");
+
+let user=snap.data();
+
+if(user.password!==password.value) return showMsg("Wrong password");
+
+auth.style.display="none";
+app.style.display="block";
+
+usernameHome.innerText=user.name;
+username2.innerText=user.name;
+usernumber.innerText=number.value;
+
+localStorage.setItem("user",number.value);
+
+loadWithdraw();
+};
+
+// NAV
+window.showPage=(id)=>{
+document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+document.getElementById(id).style.display="block";
+};
+
+// POPUPS
+function openPopup(el){el.classList.add("active")}
+function closePopup(el){el.classList.remove("active")}
+
+// DEPOSIT
+window.deposit=()=>openPopup(depositBox);
+window.closeDeposit=()=>closePopup(depositBox);
+
+window.submitDeposit=async()=>{
+await setDoc(doc(db,"deposits",Date.now()+""),{
+user:localStorage.getItem("user"),
+utr:utr.value,
+status:"Pending"
+});
+showMsg("Submitted");
+};
+
+// BANK
+window.openBank=()=>openPopup(bankBox);
+window.closeBank=()=>closePopup(bankBox);
+
+window.saveBank=async()=>{
+await setDoc(doc(db,"bank",Date.now()+""),{
+user:localStorage.getItem("user"),
+bank:bankName.value,
+account:accNumber.value
+});
+showMsg("Bank Added");
+};
+
+// WITHDRAW
+window.openWithdraw=()=>openPopup(withdrawBox);
+window.closeWithdraw=()=>closePopup(withdrawBox);
+
+window.submitWithdraw=async()=>{
+let amt=Number(wAmount.value);
+if(amt<200) return showMsg("Minimum ₹200");
+
+await setDoc(doc(db,"withdraw",Date.now()+""),{
+user:localStorage.getItem("user"),
+amount:amt,
+status:"Process",
+date:new Date().toLocaleDateString()
+});
+
+showMsg("Withdraw Submitted");
+loadWithdraw();
+};
+
+// LOAD WITHDRAW
+async function loadWithdraw(){
+let snap=await getDocs(collection(db,"withdraw"));
+withdrawList.innerHTML="";
+
+snap.forEach(d=>{
+let data=d.data();
+if(data.user===localStorage.getItem("user")){
+withdrawList.innerHTML+=`
+<div class="listItem">
+${data.date} - ₹${data.amount} - ${data.status}
+</div>`;
+}
+});
 }
 
-/* REMOVE BLUE TOUCH */
-*{
--webkit-tap-highlight-color: transparent;
-outline:none;
-}
+// PASSWORD
+window.changePassword=async()=>{
+let ref=doc(db,"users",localStorage.getItem("user"));
+await updateDoc(ref,{password:newPass.value});
+showMsg("Updated");
+};
 
-/* CARD */
-.card{
-margin:15px;
-padding:20px;
-border-radius:20px;
-background:#ffffff20;
-}
-
-/* SERVICES */
-.services{
-display:flex;
-justify-content:space-around;
-margin:20px;
-}
-
-.services div{
-background:#ffffff20;
-padding:15px;
-border-radius:15px;
-width:40%;
-text-align:center;
-cursor:pointer;
-}
-
-/* TRANSACTION */
-.txRow{
-display:flex;
-justify-content:space-between;
-}
-
-.txRight{
-display:flex;
-gap:6px;
-}
-
-.dot{
-width:8px;
-height:8px;
-border-radius:50%;
-background:red;
-}
-
-/* POPUP */
-.popup{
-display:none;
-position:fixed;
-width:100%;
-height:100%;
-background:#00000080;
-justify-content:center;
-align-items:center;
-}
-
-.popup.active{
-display:flex;
-}
-
-/* WITHDRAW */
-.withdrawUI{
-background:#f5f5f5;
-color:black;
-padding:15px;
-border-radius:20px;
-width:90%;
-}
-
-.withdrawCard{
-background:white;
-padding:15px;
-border-radius:15px;
-}
-
-.withdrawForm input{
-width:100%;
-padding:12px;
-border-radius:10px;
-margin-bottom:10px;
-}
-
-.withdrawForm button{
-width:100%;
-padding:12px;
-background:#b084f5;
-border:none;
-border-radius:20px;
-color:white;
-}
-
-/* NAV */
-.bottomNav{
-position:fixed;
-bottom:0;
-width:100%;
-display:flex;
-justify-content:space-around;
-background:#111;
-padding:10px;
-}
-
-/* LIST */
-.listItem{
-background:white;
-color:black;
-margin:5px;
-padding:10px;
-border-radius:10px;
-}
+// LOGOUT
+window.logout=()=>{
+localStorage.clear();
+location.reload();
+};
