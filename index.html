@@ -8,6 +8,13 @@
 
 <body>
 
+<!-- 🔥 TOP NOTICE -->
+<div class="topNotice">
+  <div id="noticeText" class="noticeText">
+    Loading notice...
+  </div>
+</div>
+
 <!-- AUTH -->
 <div id="auth">
 <h1 class="appLogo">INRPAY</h1>
@@ -24,7 +31,7 @@
 <button id="registerBtn" onclick="register()">Sign Up</button>
 <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
 
-<p>
+<p id="authSwitchText">
 Already have account?
 <button id="switchAuth" class="linkBtn">Sign In</button>
 </p>
@@ -40,7 +47,6 @@ Already have account?
 <h1>₹<span id="earnBalance">0</span></h1>
 </div>
 
-<!-- Account Bind -->
 <div class="card">
 <div class="txRow">
 <div>Account Bind</div>
@@ -79,6 +85,5 @@ Already have account?
 </div>
 
 <script type="module" src="script.js"></script>
-
 </body>
 </html>
