@@ -10,6 +10,8 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
+const get = (id)=>document.getElementById(id);
+
 // ===== MESSAGE =====
 function showMsg(t){
   msgText.innerText = t;
