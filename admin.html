@@ -1,20 +1,96 @@
 <!DOCTYPE html>
 <html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
+<style>
+body{
+font-family:Arial;
+background:#121212;
+color:white;
+padding:20px;
+}
+
+h2,h3{
+margin-top:20px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:8px;
+background:#00c853;
+color:white;
+cursor:pointer;
+margin-top:10px;
+}
+
+.card{
+background:#1e1e1e;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+}
+
+.item{
+background:#2c2c2c;
+padding:10px;
+border-radius:8px;
+margin-top:8px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.approveBtn{
+background:#2962ff;
+}
+</style>
+
+</head>
+
 <body>
 
 <h2>Admin Panel</h2>
 
-<input id="notice" placeholder="Top Notice Text">
+<div class="card">
+<h3>Deposit Settings</h3>
+
 <input id="qr" placeholder="Cloudinary QR URL">
 <input id="upi" placeholder="UPI ID">
 <input id="amount" placeholder="Deposit Amount">
 
-<button onclick="save()">Save</button>
+<h3>Top Notice</h3>
+<input id="notice" placeholder="Enter running notice text">
+
+<button onclick="save()">Save Settings</button>
+</div>
+
+<div class="card">
+<h3>Withdraw Requests</h3>
+<div id="list"></div>
+</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { 
+getFirestore, 
+getDocs, 
+collection, 
+updateDoc, 
+doc, 
+setDoc 
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
 apiKey:"AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
@@ -22,17 +98,64 @@ authDomain:"inrpay-44413.firebaseapp.com",
 projectId:"inrpay-44413"
 });
 
-const db=getFirestore(app);
+const db = getFirestore(app);
 
-window.save=async()=>{
+/* ===== SAVE SETTINGS ===== */
+window.save = async () => {
+
+let qr = document.getElementById("qr").value;
+let upi = document.getElementById("upi").value;
+let amount = document.getElementById("amount").value;
+let notice = document.getElementById("notice").value;
+
 await setDoc(doc(db,"settings","main"),{
-notice:document.getElementById("notice").value,
-qr:document.getElementById("qr").value,
-upi:document.getElementById("upi").value,
-amount:document.getElementById("amount").value
+qr:qr,
+upi:upi,
+amount:amount,
+notice:notice
 });
-alert("Updated");
+
+alert("✅ Settings Updated");
 };
+
+/* ===== LOAD WITHDRAW ===== */
+async function load(){
+
+let snap = await getDocs(collection(db,"withdraw"));
+
+list.innerHTML="";
+
+snap.forEach(d=>{
+
+let data = d.data();
+
+list.innerHTML += `
+<div class="item">
+<div>
+${data.user} <br>
+₹${data.amount}
+</div>
+
+<button class="approveBtn" onclick="approve('${d.id}')">
+Approve
+</button>
+</div>
+`;
+
+});
+
+}
+
+/* ===== APPROVE ===== */
+window.approve = async(id)=>{
+await updateDoc(doc(db,"withdraw",id),{
+status:"Done"
+});
+load();
+};
+
+/* ===== AUTO LOAD ===== */
+load();
 
 </script>
 
