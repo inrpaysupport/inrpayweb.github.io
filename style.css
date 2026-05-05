@@ -3,6 +3,31 @@ margin:0;
 font-family:Arial;
 background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
+padding-top:40px;
+}
+
+/* 🔥 NOTICE */
+.topNotice{
+width:100%;
+overflow:hidden;
+background:black;
+color:white;
+padding:8px 0;
+position:fixed;
+top:0;
+z-index:999;
+}
+
+.noticeText{
+display:inline-block;
+white-space:nowrap;
+padding-left:100%;
+animation:scrollText 12s linear infinite;
+}
+
+@keyframes scrollText{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
 }
 
 #auth{
@@ -56,12 +81,10 @@ border-radius:10px;
 width:90%;
 }
 
-/* Account Bind Right Fix */
 .txRow{
 display:flex;
 justify-content:space-between;
 align-items:center;
-width:100%;
 }
 
 .txRight{
@@ -78,7 +101,6 @@ background:red;
 border-radius:50%;
 }
 
-/* Box */
 .account-bind-box{
 margin:10px;
 padding:10px;
@@ -95,7 +117,6 @@ cursor:pointer;
 text-align:center;
 }
 
-/* Popup */
 .popup{
 display:none;
 position:fixed;
