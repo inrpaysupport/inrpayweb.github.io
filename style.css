@@ -140,6 +140,31 @@ font-size:14px;
 border-radius:8px;
 }
 
+/* PASSWORD BOX FIX */
+.passwordBox{
+position:relative;
+width:80%;
+margin:8px auto;
+}
+
+.passwordBox input{
+width:100%;
+padding:12px;
+padding-right:40px; /* space for eye */
+border-radius:12px;
+border:none;
+box-sizing:border-box;
+}
+
+.eyeIcon{
+position:absolute;
+right:12px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:16px;
+}
+
 /* NAV */
 .bottomNav{
 position:fixed;
