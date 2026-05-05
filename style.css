@@ -5,10 +5,6 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-* {
--webkit-tap-highlight-color: transparent;
-}
-
 /* AUTH */
 #auth{
 height:100vh;
@@ -18,59 +14,21 @@ justify-content:center;
 align-items:center;
 }
 
-.appLogo{
-font-size:28px;
-margin-bottom:20px;
-}
-
 /* INPUT */
-input, .passwordBox{
-width:85%;
-margin:8px auto;
-display:block;
-box-sizing:border-box;
-}
-
 input{
 padding:12px;
-border-radius:12px;
+margin:8px;
+width:80%;
 border:none;
-}
-
-.passwordBox{
-position:relative;
-}
-
-.passwordBox input{
-width:100%;
-padding:12px;
-padding-right:40px;
-}
-
-.eyeIcon{
-position:absolute;
-right:12px;
-top:50%;
-transform:translateY(-50%);
-cursor:pointer;
+border-radius:10px;
 }
 
 /* BUTTON */
 button{
-padding:12px;
-margin:6px;
+padding:10px;
+margin:5px;
 border:none;
-border-radius:10px;
-cursor:pointer;
-}
-
-/* LINK BUTTON */
-.linkBtn{
-background:none;
-border:none;
-color:white;
-text-decoration:underline;
-cursor:pointer;
+border-radius:8px;
 }
 
 /* CARD */
@@ -81,83 +39,30 @@ background:#ffffff20;
 border-radius:10px;
 }
 
-/* ACCOUNT BIND */
-.account-bind-box{
-margin:10px;
-padding:15px;
-background:#ffffff20;
-border-radius:10px;
-}
-
-.account-bind-box div{
-padding:10px;
-margin:6px 0;
-background:#ffffff30;
-border-radius:8px;
-text-align:center;
-cursor:pointer;
-}
-
-/* POPUP FIX */
-.popup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#00000080;
-justify-content:center;
+/* ACCOUNT BIND FIX */
+.txRow{
+display:flex;
+justify-content:space-between;
 align-items:center;
-z-index:1000;
-pointer-events:none;
 }
 
-.popup.active{
+.txRight{
 display:flex;
-pointer-events:auto;
+align-items:center;
+gap:6px;
 }
 
-.popup-box{
-background:white;
-color:black;
-padding:20px;
-border-radius:10px;
-width:90%;
-max-width:400px;
+.dot{
+width:10px;
+height:10px;
+border-radius:50%;
 }
 
-/* QR */
-#qrImage{
-display:block;
-margin:10px auto;
-width:200px;
+.dot.red{
+background:red;
 }
 
-/* NAV */
-.bottomNav{
-position:fixed;
-bottom:0;
-left:0;
-width:100%;
-display:flex;
-justify-content:space-around;
-background:#111;
-padding:10px;
-z-index:9999;
-pointer-events:auto;
-}
-
-.bottomNav div{
-cursor:pointer;
-}
-
-/* PAGE FIX */
-.page{
-padding-bottom:80px;
-}
-
-/* NOTICE */
+/* NOTICE SCROLL */
 .notice{
 width:100%;
 background:black;
@@ -168,10 +73,10 @@ white-space:nowrap;
 .notice span{
 display:inline-block;
 padding-left:100%;
-animation:moveText 10s linear infinite;
+animation:scroll 10s linear infinite;
 }
 
-@keyframes moveText{
+@keyframes scroll{
 0%{transform:translateX(0);}
 100%{transform:translateX(-100%);}
 }
