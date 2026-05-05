@@ -5,35 +5,7 @@ background:linear-gradient(135deg,#2b0a4a,#6a11cb);
 color:white;
 }
 
-/* SPLASH */
-#splash{
-position:fixed;
-width:100%;
-height:100%;
-background:#1a0033;
-display:flex;
-justify-content:center;
-align-items:center;
-z-index:999;
-animation:fadeOut 2s forwards 2s;
-}
-
-.logo{
-font-size:35px;
-font-weight:bold;
-animation:zoom 2s infinite alternate;
-}
-
-@keyframes zoom{
-from{transform:scale(1);}
-to{transform:scale(1.2);}
-}
-
-@keyframes fadeOut{
-to{opacity:0;visibility:hidden;}
-}
-
-/* AUTH */
+/* AUTH CENTER */
 #auth{
 height:100vh;
 display:flex;
@@ -54,6 +26,31 @@ padding:12px;
 margin:8px;
 border-radius:12px;
 border:none;
+}
+
+/* PASSWORD FIX */
+.passwordBox{
+position:relative;
+width:80%;
+margin:8px auto;
+}
+
+.passwordBox input{
+width:100%;
+padding:12px;
+padding-right:40px;
+border-radius:12px;
+border:none;
+box-sizing:border-box;
+}
+
+.eyeIcon{
+position:absolute;
+right:12px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:16px;
 }
 
 /* BUTTON */
@@ -129,40 +126,6 @@ color:black;
 padding:20px;
 border-radius:15px;
 width:90%;
-}
-
-/* WITHDRAW */
-.withdrawCard input{
-width:100%;
-padding:8px;
-margin:5px 0;
-font-size:14px;
-border-radius:8px;
-}
-
-/* PASSWORD BOX FIX */
-.passwordBox{
-position:relative;
-width:80%;
-margin:8px auto;
-}
-
-.passwordBox input{
-width:100%;
-padding:12px;
-padding-right:40px; /* space for eye */
-border-radius:12px;
-border:none;
-box-sizing:border-box;
-}
-
-.eyeIcon{
-position:absolute;
-right:12px;
-top:50%;
-transform:translateY(-50%);
-cursor:pointer;
-font-size:16px;
 }
 
 /* NAV */
