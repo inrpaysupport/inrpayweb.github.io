@@ -12,17 +12,14 @@
 <div id="auth">
 
 <h1 class="appLogo">INRPAY</h1>
-
 <h2 id="authTitle">Create Account</h2>
 
 <input id="name" placeholder="Name">
+<input id="number" placeholder="Mobile Number" maxlength="10">
 
-<input id="number" placeholder="Mobile Number" maxlength="10" inputmode="numeric">
-
-<!-- PASSWORD FIX -->
 <div class="passwordBox">
-  <input id="password" type="password" placeholder="Password">
-  <span onclick="togglePass()" class="eyeIcon">👁</span>
+<input id="password" type="password" placeholder="Password">
+<span onclick="togglePass()" class="eyeIcon">👁</span>
 </div>
 
 <button id="registerBtn" onclick="register()">Sign Up</button>
@@ -52,7 +49,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 <div onclick="openBank()">Add Bank Account</div>
 </div>
 
-<!-- ACCOUNT BIND -->
 <div class="card">
 <div class="txRow">
 <div>Account Bind</div>
@@ -63,7 +59,6 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 </div>
 </div>
 
-<!-- TRANSACTION -->
 <div class="card">
 <div class="txRow">
 <div>Transactions</div>
@@ -103,31 +98,41 @@ Already have account? <span onclick="showLogin()">Sign In</span>
 
 </div>
 
+<!-- DEPOSIT -->
+<div id="depositBox" class="popup">
+<div class="popup-box">
+<h3>Security Deposit</h3>
+<input id="utr" placeholder="Enter UTR">
+<button onclick="submitDeposit()">Submit</button>
+<div id="depositList"></div>
+<button onclick="closeDeposit()">Close</button>
+</div>
+</div>
+
+<!-- BANK -->
+<div id="bankBox" class="popup">
+<div class="popup-box">
+<h3>Add Bank</h3>
+<input id="bankName" placeholder="Bank Name">
+<input id="bankAcc" placeholder="Account Number">
+<input id="bankIfsc" placeholder="IFSC Code">
+<button onclick="saveBank()">Save</button>
+<div id="bankList"></div>
+<button onclick="closeBank()">Close</button>
+</div>
+</div>
+
 <!-- WITHDRAW -->
 <div id="withdrawBox" class="popup">
 <div class="popup-box">
-
 <h2>Withdraw</h2>
 
-<div class="withdrawCard">
-<h3>Settlement Account</h3>
-
-<input id="accNameInput" placeholder="Account Name">
-<input id="accNumberInput" placeholder="Account Number">
-<input id="ifscInput" placeholder="IFSC Code">
-
-<button onclick="saveAccount()">Save</button>
-</div>
-
 <input id="wAmount" placeholder="Amount ₹">
-<p>Minimum ₹200</p>
-
 <button onclick="submitWithdraw()">Withdraw</button>
 
-<div id="withdrawList" class="scrollArea"></div>
+<div id="withdrawList"></div>
 
 <button onclick="closeWithdraw()">Close</button>
-
 </div>
 </div>
 
