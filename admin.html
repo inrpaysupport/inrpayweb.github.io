@@ -3,20 +3,40 @@
 <body>
 
 <h2>Admin Panel</h2>
+
+<h3>Deposit Settings</h3>
+
+<input id="qrLink" placeholder="QR Image URL (Cloudinary link)">
+<input id="upiId" placeholder="UPI ID">
+<input id="depositAmount" placeholder="Deposit Amount">
+
+<button onclick="saveDepositSettings()">Save</button>
+
+<hr>
+
 <div id="list"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, getDocs, collection, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, getDocs, collection, updateDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
 authDomain:"inrpay-44413.firebaseapp.com",
 projectId:"inrpay-44413"
 });
 
 const db=getFirestore(app);
+
+window.saveDepositSettings = async ()=>{
+await setDoc(doc(db,"settings","deposit"),{
+qr:document.getElementById("qrLink").value,
+upi:document.getElementById("upiId").value,
+amount:document.getElementById("depositAmount").value
+});
+alert("Saved");
+};
 
 async function load(){
 let snap=await getDocs(collection(db,"withdraw"));
@@ -28,7 +48,7 @@ let data=d.data();
 
 list.innerHTML+=`
 <div>
-${data.name} | ₹${data.amount} | ${data.status}
+${data.user} | ₹${data.amount} | ${data.status || "Pending"}
 <button onclick="approve('${d.id}')">Approve</button>
 </div>`;
 });
