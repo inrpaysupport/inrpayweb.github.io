@@ -24,9 +24,7 @@
 Already have account? <span onclick="showLogin()">Sign In</span>
 </p>
 
-<p id="forgotText" onclick="openForgot()" style="display:none;color:yellow;">
-Forgot Password?
-</p>
+<p id="forgotText" onclick="openForgot()" style="display:none;">Forgot Password?</p>
 
 </div>
 
@@ -35,6 +33,7 @@ Forgot Password?
 
 <!-- HOME -->
 <div id="homePage" class="page">
+
 <h2 id="usernameHome"></h2>
 
 <div class="card">
@@ -47,8 +46,14 @@ Forgot Password?
 </div>
 
 <div class="card">
-<h3>Transactions</h3>
-<p id="txStatus">Active</p>
+<div class="txRow">
+<div class="txTitle">Account Bind</div>
+
+<div class="txRight">
+<span class="dot red"></span>
+<span id="txStatus">Deactivate</span>
+</div>
+</div>
 </div>
 
 </div>
@@ -69,14 +74,11 @@ Forgot Password?
 <p id="username2"></p>
 <p id="usernumber"></p>
 
-<h3>Change Password</h3>
-
 <input id="oldPass" placeholder="Old Password">
 <input id="newPass" placeholder="New Password">
 <input id="confirmPass" placeholder="Confirm Password">
 
-<button onclick="changePassword()">Update Password</button>
-
+<button onclick="changePassword()">Change Password</button>
 <button onclick="logout()">Logout</button>
 </div>
 
@@ -92,7 +94,7 @@ Forgot Password?
 <!-- DEPOSIT -->
 <div id="depositBox" class="popup">
 <div class="popup-box">
-<input id="utr" placeholder="Enter UTR">
+<input id="utr" placeholder="UTR">
 <button onclick="submitDeposit()">Submit</button>
 <div id="depositList"></div>
 <button onclick="closeDeposit()">Close</button>
@@ -112,34 +114,41 @@ Forgot Password?
 
 <!-- WITHDRAW -->
 <div id="withdrawBox" class="popup">
-<div class="popup-box">
+<div class="popup-box withdrawUI">
 
-<input id="wName" placeholder="Name">
-<input id="wAcc" placeholder="Account">
-<input id="wIfsc" placeholder="IFSC">
+<h2 class="center">Withdraw</h2>
 
-<div class="scrollArea">
-<div id="withdrawList"></div>
+<div class="withdrawCard">
+<div class="row space">
+<h3>Settlement Account</h3>
+<span onclick="editAccount()">✏️</span>
 </div>
 
-<button onclick="submitWithdraw()">Withdraw</button>
+<p>Account Name</p>
+<h4 id="accNameShow">---</h4>
+
+<p>Account Number</p>
+<h4 id="accNumberShow">---</h4>
+
+<p>IFSC</p>
+<h4 id="ifscShow">---</h4>
+</div>
+
+<div class="profitBox">
+Profit Withdrawable ₹<span id="profit">0</span>
+</div>
+
+<div class="withdrawForm">
+<input id="wAmount" placeholder="Withdrawal Amount (₹)">
+<p class="min">Minimum ₹200</p>
+<button onclick="submitWithdraw()">Submit Withdrawal</button>
+</div>
+
+<p class="viewHistory" onclick="loadWithdraw()">View Withdrawal Records</p>
+
+<div id="withdrawList" class="scrollArea"></div>
+
 <button onclick="closeWithdraw()">Close</button>
-
-</div>
-</div>
-
-<!-- FORGOT -->
-<div id="forgotBox" class="popup">
-<div class="popup-box">
-
-<input id="fNumber" placeholder="Mobile">
-<input id="fOtp" placeholder="OTP">
-<input id="fNewPass" placeholder="New Password">
-
-<button onclick="sendOtp()">Send OTP</button>
-<button onclick="resetPass()">Reset Password</button>
-
-<button onclick="closeForgot()">Close</button>
 
 </div>
 </div>
