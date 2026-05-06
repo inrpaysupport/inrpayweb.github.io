@@ -26,11 +26,12 @@ projectId:"inrpay-44413"
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const get = id => document.getElementById(id);
+const get = (id) => document.getElementById(id);
 
-/* ================= MSG ================= */
-function showMsg(t){
-get("msgText").innerText = t;
+/* ================= MESSAGE ================= */
+
+function showMsg(text){
+get("msgText").innerText = text;
 get("msgBox").classList.add("active");
 }
 
@@ -38,16 +39,22 @@ window.closeMsg = () => {
 get("msgBox").classList.remove("active");
 };
 
-/* ================= CLICK FIX ================= */
-document.addEventListener("click",()=>{});
-
 /* ================= PASSWORD TOGGLE ================= */
+
 window.togglePass = () => {
-let p = get("password");
-p.type = p.type === "password" ? "text" : "password";
+
+let pass = get("password");
+
+if(pass.type === "password"){
+pass.type = "text";
+}else{
+pass.type = "password";
+}
+
 };
 
 /* ================= AUTH SWITCH ================= */
+
 window.onload = () => {
 showRegister();
 };
@@ -66,8 +73,12 @@ get("forgotText").style.display = "none";
 
 get("toggleText").innerHTML = `
 Already have account?
-<button class="linkBtn" onclick="showLogin()">Sign In</button>
+<button class="linkBtn" id="switchBtn">
+Sign In
+</button>
 `;
+
+document.getElementById("switchBtn").onclick = showLogin;
 
 };
 
@@ -85,17 +96,22 @@ get("forgotText").style.display = "block";
 
 get("toggleText").innerHTML = `
 New user?
-<button class="linkBtn" onclick="showRegister()">Create Account</button>
+<button class="linkBtn" id="switchBtn">
+Create Account
+</button>
 `;
+
+document.getElementById("switchBtn").onclick = showRegister;
 
 };
 
 /* ================= REGISTER ================= */
+
 window.register = async () => {
 
-let name = get("name").value;
-let number = get("number").value;
-let email = get("email").value;
+let name = get("name").value.trim();
+let number = get("number").value.trim();
+let email = get("email").value.trim();
 let password = get("password").value;
 
 if(!name || !number || !email || !password){
@@ -119,6 +135,12 @@ balance:0
 });
 
 showMsg("Account Created");
+
+get("name").value = "";
+get("number").value = "";
+get("email").value = "";
+get("password").value = "";
+
 showLogin();
 
 }catch(err){
@@ -130,14 +152,17 @@ showMsg(err.message);
 };
 
 /* ================= LOGIN ================= */
+
 window.login = async () => {
 
-let number = get("number").value;
+let number = get("number").value.trim();
 let password = get("password").value;
 
 if(!number || !password){
 return showMsg("Fill all fields");
 }
+
+try{
 
 let snap = await getDoc(doc(db,"users",number));
 
@@ -151,13 +176,13 @@ if(user.password !== password){
 return showMsg("Wrong password");
 }
 
-try{
-
 await signInWithEmailAndPassword(
 auth,
 user.email,
 password
 );
+
+localStorage.setItem("user",number);
 
 get("auth").style.display = "none";
 get("app").style.display = "block";
@@ -166,8 +191,6 @@ get("usernameHome").innerText = user.name;
 get("username2").innerText = user.name;
 get("usernumber").innerText = user.number;
 get("useremail").innerText = user.email;
-
-localStorage.setItem("user",number);
 
 loadUser();
 
@@ -180,11 +203,14 @@ showMsg("Login failed");
 };
 
 /* ================= LOAD USER ================= */
+
 async function loadUser(){
 
-let snap = await getDoc(
-doc(db,"users",localStorage.getItem("user"))
-);
+let userId = localStorage.getItem("user");
+
+if(!userId) return;
+
+let snap = await getDoc(doc(db,"users",userId));
 
 if(snap.exists()){
 
@@ -198,17 +224,20 @@ get("earnBalance").innerText = bal;
 
 }
 
-/* ================= NAV ================= */
+/* ================= NAVIGATION ================= */
+
 window.showPage = (id) => {
 
-document.querySelectorAll(".page")
-.forEach(p => p.style.display = "none");
+document.querySelectorAll(".page").forEach(page=>{
+page.style.display = "none";
+});
 
 get(id).style.display = "block";
 
 };
 
 /* ================= WITHDRAW ================= */
+
 window.openWithdraw = () => {
 get("withdrawBox").classList.add("active");
 };
@@ -246,6 +275,7 @@ showMsg("Withdraw Submitted");
 };
 
 /* ================= SETTINGS ================= */
+
 async function loadSettings(){
 
 let snap = await getDoc(doc(db,"settings","main"));
@@ -263,6 +293,7 @@ get("amountText").innerText = "₹"+(d.amount || 1000);
 }
 
 /* ================= DEPOSIT ================= */
+
 window.deposit = () => {
 
 get("depositBox").classList.add("active");
@@ -293,6 +324,7 @@ showMsg("Deposit Submitted");
 };
 
 /* ================= BANK ================= */
+
 window.openBank = () => {
 get("bankBox").classList.add("active");
 };
@@ -314,6 +346,7 @@ showMsg("Bank Saved");
 };
 
 /* ================= CHANGE PASSWORD ================= */
+
 window.changePassword = async () => {
 
 let snap = await getDoc(
@@ -342,9 +375,10 @@ showMsg("Password Changed");
 };
 
 /* ================= FORGOT PASSWORD ================= */
+
 window.forgotPassword = async () => {
 
-let number = get("number").value;
+let number = get("number").value.trim();
 
 if(!number){
 return showMsg("Enter mobile number");
@@ -360,7 +394,10 @@ let user = snap.data();
 
 try{
 
-await sendPasswordResetEmail(auth,user.email);
+await sendPasswordResetEmail(
+auth,
+user.email
+);
 
 showMsg("Reset link sent to email");
 
@@ -373,6 +410,7 @@ showMsg("Reset failed");
 };
 
 /* ================= LOGOUT ================= */
+
 window.logout = () => {
 
 localStorage.clear();
