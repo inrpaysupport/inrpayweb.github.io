@@ -19,7 +19,8 @@
 
 <div id="adminAuth" class="container">
     <h2>Admin Login</h2>
-    <input id="adminPass" type="password" placeholder="Enter Admin Password">
+    <input id="adminUser" type="text" placeholder="Admin Username">
+    <input id="adminPass" type="password" placeholder="Admin Password">
     <button onclick="adminLogin()">Login</button>
 </div>
 
@@ -27,13 +28,13 @@
     <h2>Settings Control</h2>
     
     <label>Scrolling Notice Text:</label>
-    <textarea id="noticeInput" rows="2" placeholder="Enter new notice here..."></textarea>
+    <textarea id="noticeInput" rows="2" placeholder="Enter notice text..."></textarea>
     
     <button id="upload_widget" style="background: #007bff;">Upload QR (Cloudinary)</button>
     <input id="qr" placeholder="QR Image URL" readonly>
     
     <input id="upi" placeholder="UPI ID">
-    <input id="amount" placeholder="Deposit Amount (e.g. 1000)">
+    <input id="amount" placeholder="Deposit Amount">
     
     <button onclick="save()" style="background: #2b0a4a; margin-top: 15px;">Update All Settings</button>
 
@@ -53,19 +54,32 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-window.adminLogin = () => {
-    // Default password set to admin123
-    if(document.getElementById("adminPass").value === "admin123") {
-        document.getElementById("adminAuth").style.display = "none";
-        document.getElementById("adminApp").style.display = "block";
-        loadCurrentSettings();
-        loadWithdrawals();
-    } else { alert("Access Denied!"); }
+// ✅ Firebase Admin Login Check
+window.adminLogin = async () => {
+    const userInp = document.getElementById("adminUser").value;
+    const passInp = document.getElementById("adminPass").value;
+    
+    try {
+        const adminRef = doc(db, "admin", userInp);
+        const snap = await getDoc(adminRef);
+
+        if (snap.exists() && snap.data().password === passInp) {
+            document.getElementById("adminAuth").style.display = "none";
+            document.getElementById("adminApp").style.display = "block";
+            loadCurrentSettings();
+            loadWithdrawals();
+        } else {
+            alert("Invalid Username or Password!");
+        }
+    } catch (e) {
+        alert("Login Error: Make sure document ID is your username.");
+    }
 };
 
+// Cloudinary Widget
 var myWidget = cloudinary.createUploadWidget({
-    cloudName: 'demo', // Replace with your Cloudinary name
-    uploadPreset: 'unsigned_preset' // Replace with your Preset
+    cloudName: 'demo', 
+    uploadPreset: 'unsigned_preset'
 }, (error, result) => { 
     if (!error && result && result.event === "success") { 
         document.getElementById("qr").value = result.info.secure_url;
@@ -102,7 +116,7 @@ async function loadWithdrawals(){
         let data = d.data();
         if(data.status === "Pending") {
             list.innerHTML += `<div class="list-item">
-                <span>User: ${data.user} <br> <b>₹${data.amount}</b></span>
+                <span>User: ${data.user} | <b>₹${data.amount}</b></span>
                 <button class="approve-btn" onclick="approve('${d.id}')">Approve</button>
             </div>`;
         }
