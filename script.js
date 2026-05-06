@@ -10,7 +10,6 @@ const app = initializeApp({
 const db = getFirestore(app);
 const get = id => document.getElementById(id);
 
-/* ================= BASIC FUNCTIONS ================= */
 window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
@@ -22,12 +21,13 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH ================= */
+/* ================= AUTH SWITCH (FIXED) ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.display = "block";
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
+    get("forgotText").style.display = "none"; // Hide Forgot on Register
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
@@ -36,13 +36,14 @@ window.showLogin = () => {
     get("name").style.display = "none";
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
+    get("forgotText").style.display = "block"; // Show Forgot on Login
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= FIREBASE LOGIC ================= */
+/* ================= FIREBASE ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
-    if(num.length < 10) return window.showMsg("Invalid Number");
+    if(!get("name").value || num.length < 10) return window.showMsg("Fill all details correctly");
     await setDoc(doc(db, "users", num), {
         name: get("name").value,
         password: get("password").value,
@@ -65,7 +66,7 @@ window.login = async () => {
         loadUserData(snap.data(), num);
         loadSettings();
     } else {
-        window.showMsg("Wrong Details!");
+        window.showMsg("Invalid credentials!");
     }
 };
 
@@ -75,25 +76,19 @@ function loadUserData(data, num) {
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
-    get("earnBalance").innerText = data.balance || 0;
 }
 
-/* ================= POPUP FUNCTIONS ================= */
+/* ================= APP FUNCTIONS ================= */
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
-
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
-
-window.openSupport = () => get("supportBox").classList.add("active");
-window.closeSupport = () => get("supportBox").classList.remove("active");
 
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
 };
 
-/* ================= ACTION FUNCTIONS ================= */
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
@@ -102,7 +97,7 @@ window.submitDeposit = async () => {
         utr: utr,
         status: "Pending"
     });
-    window.showMsg("UTR Submitted!");
+    window.showMsg("Submitted!");
     window.closeDeposit();
 };
 
@@ -124,27 +119,17 @@ window.changePassword = async () => {
     
     if(snap.data().password === oldP) {
         await updateDoc(doc(db, "users", user), { password: newP });
-        window.showMsg("Password Updated!");
+        window.showMsg("Updated!");
     } else {
-        window.showMsg("Old Password Wrong!");
+        window.showMsg("Old password wrong!");
     }
-};
-
-window.supportMsg = (type) => {
-    window.showMsg("Support team will contact you soon.");
-    window.closeSupport();
-};
-
-window.logout = () => {
-    localStorage.clear();
-    location.reload();
 };
 
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        get("scrollingNotice").innerText = d.notice || "Welcome";
         get("qrImage").src = d.qr;
         get("upiText").innerText = d.upi;
         get("amountText").innerText = "₹" + d.amount;
@@ -152,5 +137,6 @@ async function loadSettings() {
 }
 
 window.onload = () => {
+    window.showRegister();
     if(localStorage.getItem("user")) window.showLogin();
 };
