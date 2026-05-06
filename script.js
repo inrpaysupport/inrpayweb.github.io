@@ -1,13 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
+const app = initializeApp({
     apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
     authDomain: "inrpay-44413.firebaseapp.com",
     projectId: "inrpay-44413"
-};
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const get = id => document.getElementById(id);
 
@@ -22,10 +21,11 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH ================= */
+/* ================= AUTH SWITCH (FIXED) ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.setProperty("display", "block", "important"); // Show Name
+    // Name box dikhane ke liye important property lagayi
+    get("name").style.setProperty("display", "block", "important");
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -34,7 +34,8 @@ window.showRegister = () => {
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.setProperty("display", "none", "important"); // Hide Name
+    // Name box ko forcefully hide karne ke liye setProperty use kiya
+    get("name").style.setProperty("display", "none", "important");
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
@@ -46,8 +47,7 @@ window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
     let pass = get("password").value;
-    if(!name || num.length < 10 || !pass) return window.showMsg("Fill all details correctly");
-    
+    if(!name || num.length < 10) return window.showMsg("Fill all details correctly");
     await setDoc(doc(db, "users", num), {
         name: name,
         password: pass,
@@ -127,10 +127,6 @@ async function loadSettings() {
 }
 
 window.onload = () => {
-    if(localStorage.getItem("user")) {
-        // Auto login logic can be added here if needed
-        window.showLogin();
-    } else {
-        window.showRegister();
-    }
+    window.showRegister();
+    if(localStorage.getItem("user")) window.showLogin();
 };
