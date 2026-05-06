@@ -47,20 +47,30 @@ window.showLogin = () => {
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
-    let email = get("email").value;
+    let email = get("email").value; // Naya variable
     let pass = get("password").value;
-    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
 
-    await setDoc(doc(db, "users", num), {
-        name: name,
-        email: email,
-        password: pass,
-        balance: 0,
-        uid: Math.floor(100000 + Math.random() * 900000)
-    });
-    window.showMsg("Account Created!");
-    window.showLogin();
+    // Validation check mein 'email' add kiya gaya hai
+    if(!name || num.length < 10 || !pass || !email) {
+        return window.showMsg("Please fill all details including Email");
+    }
+
+    try {
+        await setDoc(doc(db, "users", num), {
+            name: name,
+            email: email, // Firebase mein store karne ke liye
+            password: pass,
+            balance: 0,
+            uid: Math.floor(100000 + Math.random() * 900000)
+        });
+        window.showMsg("Account Created Successfully!");
+        window.showLogin();
+    } catch (error) {
+        console.error("Firebase Error:", error);
+        window.showMsg("Error: " + error.message);
+    }
 };
+
 
 window.login = async () => {
     let num = get("number").value;
