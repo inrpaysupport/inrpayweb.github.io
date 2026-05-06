@@ -39,7 +39,7 @@ window.showRegister = () => {
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
     get("name").style.setProperty("display", "none", "important");
-    get("email").style.setProperty("display", "none", "important");
+    get("email").style.setProperty("display", "block", "important"); // Login me bhi email field dikhani hogi reset ke liye
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
@@ -48,84 +48,59 @@ window.showLogin = () => {
 
 /* ================= MAIN AUTH ACTIONS ================= */
 
-// 1. REGISTER: Auth aur Firestore dono mein account banata hai
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
     let email = get("email").value;
     let pass = get("password").value;
-    
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
-
     try {
-        // Firebase Auth mein user create karein
         await createUserWithEmailAndPassword(auth, email, pass);
-        
-        // Firestore mein details save karein
         await setDoc(doc(db, "users", num), {
-            name: name,
-            email: email,
-            password: pass, 
-            balance: 0,
+            name: name, email: email, password: pass, balance: 0,
             uid: Math.floor(100000 + Math.random() * 900000)
         });
-        
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) {
-        window.showMsg("Registration Error: " + error.message);
-    }
+    } catch (error) { window.showMsg("Registration Error: " + error.message); }
 };
 
-// 2. FORGOT PASSWORD: Email reset link bhejta hai
+// Point 2 & 3: Custom Forgot Password logic with Spam message
 window.forgotPassword = async () => {
-    let email = prompt("Enter your registered Email Address:");
-    if (!email) return;
+    let email = get("email").value;
+    if (!email) return window.showMsg("Please enter your email address in the field above.");
 
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent to your email!");
+        window.showMsg("Password reset link sent! If you don't see it, please check your Spam or Junk folder.");
     } catch (error) {
-        window.showMsg("Error: User not found with this email.");
+        window.showMsg("Error: Make sure the email address is correct.");
     }
 };
 
-// 3. LOGIN: Firebase Auth se verify karta hai (Forgot password isi se sync hota hai)
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
-
     if(!num || !pass) return window.showMsg("Enter Number & Password");
-
-    // Firestore se pehle user ka email fetch karein
     const userRef = doc(db, "users", num);
     const snap = await getDoc(userRef);
-
     if (snap.exists()) {
         const userData = snap.data();
         const email = userData.email;
-
         try {
-            // Firebase Auth login (Ye reset kiye gaye naye password ko pehchanta hai)
             await signInWithEmailAndPassword(auth, email, pass);
-
-            // Login successful: Sync password to Firestore (optional but keeps data clean)
             await updateDoc(userRef, { password: pass });
-
             localStorage.setItem("user", num);
             get("auth").style.display = "none";
             get("app").style.display = "block";
-            
             loadUserData(userData, num);
             loadSettings();
             loadBankData(); 
-        } catch (error) {
-            window.showMsg("Invalid Password or User!");
-        }
-    } else {
-        window.showMsg("Mobile number not registered!");
-    }
+        } catch (error) { window.showMsg("Invalid Password or User!"); }
+    } else { window.showMsg("Mobile number not registered!"); }
 };
+
+/* --- Baki functions (loadUserData, showPage, logout, etc.) pehle jaise hi rahenge --- */
 
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
@@ -138,18 +113,13 @@ function loadUserData(data, num) {
     localStorage.setItem("currentBalance", bal);
 }
 
-/* ================= APP PAGES & LOGIC ================= */
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
 };
 
-window.logout = () => {
-    localStorage.clear();
-    location.reload();
-};
+window.logout = () => { localStorage.clear(); location.reload(); };
 
-/* ================= DEPOSIT & WITHDRAW ================= */
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
 
@@ -157,9 +127,7 @@ window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     await setDoc(doc(db, "deposits", Date.now().toString()), {
-        user: localStorage.getItem("user"),
-        utr: utr,
-        status: "Pending"
+        user: localStorage.getItem("user"), utr: utr, status: "Pending"
     });
     window.showMsg("UTR Submitted for Verification!");
     window.closeDeposit();
@@ -169,10 +137,8 @@ window.submitWithdraw = async () => {
     let amt = Number(get("withdrawAmount").value);
     let user = localStorage.getItem("user");
     let currentBal = Number(localStorage.getItem("currentBalance"));
-    
     if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
     if(amt > currentBal) return window.showMsg("Insufficient Balance!");
-
     await setDoc(doc(db, "withdraw", Date.now().toString()), {
         user: user, amount: amt, status: "Pending", date: new Date().toLocaleString()
     });
@@ -180,7 +146,6 @@ window.submitWithdraw = async () => {
     get("withdrawAmount").value = "";
 };
 
-/* ================= BANK DETAILS ================= */
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
 
@@ -206,7 +171,6 @@ window.saveBank = async () => {
     closeBank();
 };
 
-/* ================= INITIAL LOAD ================= */
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
@@ -221,7 +185,6 @@ async function loadSettings() {
 window.onload = () => {
     let savedUser = localStorage.getItem("user");
     if(savedUser) {
-        // Auto-login logic
         getDoc(doc(db, "users", savedUser)).then(snap => {
             if(snap.exists()){
                 get("auth").style.display = "none";
@@ -231,7 +194,5 @@ window.onload = () => {
                 loadBankData();
             }
         });
-    } else {
-        window.showLogin();
-    }
+    } else { window.showLogin(); }
 };
