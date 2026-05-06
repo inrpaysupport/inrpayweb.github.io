@@ -1,6 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
+// Firebase Configuration
 const app = initializeApp({
     apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
     authDomain: "inrpay-44413.firebaseapp.com",
@@ -8,6 +10,7 @@ const app = initializeApp({
 });
 
 const db = getFirestore(app);
+const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
 /* ================= UTILITY FUNCTIONS ================= */
@@ -44,24 +47,51 @@ window.showLogin = () => {
 };
 
 /* ================= FIREBASE ACTIONS ================= */
+
+// 1. REGISTER: Create user in Auth and Firestore
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
     let email = get("email").value;
     let pass = get("password").value;
+    
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
 
-    await setDoc(doc(db, "users", num), {
-        name: name,
-        email: email,
-        password: pass,
-        balance: 0,
-        uid: Math.floor(100000 + Math.random() * 900000)
-    });
-    window.showMsg("Account Created!");
-    window.showLogin();
+    try {
+        // Firebase Auth mein user register karein (Forgot password ke liye zaroori hai)
+        await createUserWithEmailAndPassword(auth, email, pass);
+        
+        // Firestore mein extra details save karein
+        await setDoc(doc(db, "users", num), {
+            name: name,
+            email: email,
+            password: pass,
+            balance: 0,
+            uid: Math.floor(100000 + Math.random() * 900000)
+        });
+        
+        window.showMsg("Account Created!");
+        window.showLogin();
+    } catch (error) {
+        window.showMsg(error.message);
+    }
 };
 
+// 2. FORGOT PASSWORD: Send email link
+window.forgotPassword = async () => {
+    let email = prompt("Enter your registered Email Address:");
+    
+    if (!email) return;
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        window.showMsg("Password reset link sent to: " + email);
+    } catch (error) {
+        window.showMsg("Error: User not found or invalid email.");
+    }
+};
+
+// 3. LOGIN: Authenticate using Firestore (as per your original logic)
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
