@@ -21,44 +21,48 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH (FIXED) ================= */
+/* ================= AUTH SWITCH (FIXED LOGIC) ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block";
+    get("name").style.display = "block"; // Name dikhao
+    get("forgotText").style.display = "none"; // Forgot password chupao
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
-    get("forgotText").style.display = "none"; // Hide Forgot on Register
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.display = "none";
+    get("name").style.display = "none"; // Name chupao
+    get("forgotText").style.display = "block"; // Forgot password dikhao Mobile ke niche
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
-    get("forgotText").style.display = "block"; // Show Forgot on Login
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= FIREBASE ACTIONS ================= */
+/* ================= REGISTER & LOGIN ================= */
 window.register = async () => {
     let num = get("number").value;
-    if(!get("name").value || num.length < 10) return window.showMsg("Fill all details correctly");
+    let name = get("name").value;
+    let pass = get("password").value;
+    if(!name || num.length < 10 || !pass) return window.showMsg("Please fill all details correctly");
+    
     await setDoc(doc(db, "users", num), {
-        name: get("name").value,
-        password: get("password").value,
+        name: name,
+        password: pass,
         balance: 0,
         uid: Math.floor(100000 + Math.random() * 900000)
     });
-    window.showMsg("Account Created!");
+    window.showMsg("Account Created! Now Sign In.");
     window.showLogin();
 };
 
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
-    let snap = await getDoc(doc(db, "users", num));
+    if(!num || !pass) return window.showMsg("Enter credentials");
     
+    let snap = await getDoc(doc(db, "users", num));
     if (snap.exists() && snap.data().password === pass) {
         localStorage.setItem("user", num);
         get("auth").style.display = "none";
@@ -66,10 +70,11 @@ window.login = async () => {
         loadUserData(snap.data(), num);
         loadSettings();
     } else {
-        window.showMsg("Invalid credentials!");
+        window.showMsg("Invalid User or Password!");
     }
 };
 
+/* ================= APP LOGIC ================= */
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
     get("username2").innerText = data.name;
@@ -78,7 +83,6 @@ function loadUserData(data, num) {
     get("balance").innerText = "₹" + (data.balance || 0);
 }
 
-/* ================= APP FUNCTIONS ================= */
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
 window.openBank = () => get("bankBox").classList.add("active");
@@ -97,7 +101,7 @@ window.submitDeposit = async () => {
         utr: utr,
         status: "Pending"
     });
-    window.showMsg("Submitted!");
+    window.showMsg("UTR Submitted!");
     window.closeDeposit();
 };
 
@@ -116,12 +120,11 @@ window.changePassword = async () => {
     let oldP = get("oldPass").value;
     let newP = get("newPass").value;
     let snap = await getDoc(doc(db, "users", user));
-    
     if(snap.data().password === oldP) {
         await updateDoc(doc(db, "users", user), { password: newP });
-        window.showMsg("Updated!");
+        window.showMsg("Password Updated!");
     } else {
-        window.showMsg("Old password wrong!");
+        window.showMsg("Old password is wrong!");
     }
 };
 
@@ -129,13 +132,16 @@ async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome";
+        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
         get("qrImage").src = d.qr;
         get("upiText").innerText = d.upi;
         get("amountText").innerText = "₹" + d.amount;
     }
 }
 
+window.logout = () => { localStorage.clear(); location.reload(); };
+
+// On Start
 window.onload = () => {
     window.showRegister();
     if(localStorage.getItem("user")) window.showLogin();
