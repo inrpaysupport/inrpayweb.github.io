@@ -1,16 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-const app = initializeApp({
+const firebaseConfig = {
     apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
     authDomain: "inrpay-44413.firebaseapp.com",
     projectId: "inrpay-44413"
-});
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY FUNCTIONS ================= */
+/* ================= UTILITY ================= */
 window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
@@ -22,73 +25,97 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH ================= */
+/* ================= AUTH LOGIC ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.setProperty("display", "block", "important");
+    get("name").style.display = "block";
+    get("email").style.display = "block"; // Show Email
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
-    get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
+    get("toggleText").innerHTML = `Already have an account? <button onclick="showLogin()" class="linkBtn">Login</button>`;
 };
 
 window.showLogin = () => {
-    get("authTitle").innerText = "Sign In";
-    get("name").style.setProperty("display", "none", "important");
+    get("authTitle").innerText = "Login";
+    get("name").style.display = "none";
+    get("email").style.display = "none"; // Hide Email
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
-    get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
+    get("toggleText").innerHTML = `Don't have an account? <button onclick="showRegister()" class="linkBtn">Register</button>`;
 };
 
-/* ================= FIREBASE ACTIONS ================= */
 window.register = async () => {
-    let num = get("number").value;
-    let name = get("name").value;
-    let pass = get("password").value;
-    if(!name || num.length < 10 || !pass) return window.showMsg("Fill all details correctly");
+    let n = get("name").value;
+    let m = get("number").value;
+    let e = get("email").value;
+    let p = get("password").value;
 
-    await setDoc(doc(db, "users", num), {
-        name: name,
-        password: pass,
-        balance: 0,
-        uid: Math.floor(100000 + Math.random() * 900000)
+    if(!n || m.length < 10 || !e || p.length < 6) return window.showMsg("Please fill all details correctly!");
+
+    let userSnap = await getDoc(doc(db, "users", m));
+    if(userSnap.exists()) return window.showMsg("Number already registered!");
+
+    await setDoc(doc(db, "users", m), {
+        name: n,
+        number: m,
+        email: e,
+        password: p,
+        balance: 0
     });
-    window.showMsg("Account Created!");
-    window.showLogin();
+
+    window.showMsg("Account Created! Login now.");
+    showLogin();
 };
 
 window.login = async () => {
-    let num = get("number").value;
-    let pass = get("password").value;
-    let snap = await getDoc(doc(db, "users", num));
+    let m = get("number").value;
+    let p = get("password").value;
 
-    if (snap.exists() && snap.data().password === pass) {
-        localStorage.setItem("user", num);
-        get("auth").style.display = "none";
-        get("app").style.display = "block";
-        loadUserData(snap.data(), num);
-        loadSettings();
-        loadBankData(); 
+    let userSnap = await getDoc(doc(db, "users", m));
+    if(userSnap.exists() && userSnap.data().password === p) {
+        localStorage.setItem("user", m);
+        loadUserData(m);
     } else {
-        window.showMsg("Invalid credentials!");
+        window.showMsg("Invalid Credentials!");
     }
 };
 
-function loadUserData(data, num) {
-    get("usernameHome").innerText = "Hello, " + data.name;
-    get("username2").innerText = data.name;
-    get("usernumber").innerText = "Mobile: " + num;
-    get("userid").innerText = "UID: " + data.uid;
-    const bal = data.balance || 0;
-    get("balance").innerText = "₹" + bal;
-    localStorage.setItem("currentBalance", bal);
+async function loadUserData(m) {
+    let userSnap = await getDoc(doc(db, "users", m));
+    if(userSnap.exists()){
+        let data = userSnap.data();
+        get("auth").style.display = "none";
+        get("app").style.display = "block";
+        get("userBalance").innerText = "₹" + data.balance;
+        get("userNameDisplay").innerText = data.name;
+        get("userNumDisplay").innerText = data.number;
+        get("userEmailDisplay").innerText = data.email || "N/A";
+    }
 }
 
-/* ================= PAGE & APP LOGIC ================= */
-window.showPage = (id) => {
-    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-    get(id).style.display = "block";
+/* ================= FORGOT PASSWORD ================= */
+window.showForgotPopup = () => get("forgotBox").classList.add("active");
+
+window.sendResetLink = async () => {
+    let m = get("forgotNum").value;
+    if(!m) return window.showMsg("Enter registered number");
+
+    let userSnap = await getDoc(doc(db, "users", m));
+    if(!userSnap.exists()) return window.showMsg("User not found!");
+
+    let userEmail = userSnap.data().email;
+
+    // Firebase standard password reset function
+    sendPasswordResetEmail(auth, userEmail)
+    .then(() => {
+        window.showMsg("Reset link sent to: " + userEmail);
+        get("forgotBox").classList.remove("active");
+    })
+    .catch((error) => {
+        window.showMsg("Error: " + error.message);
+    });
 };
 
 window.logout = () => {
@@ -96,118 +123,8 @@ window.logout = () => {
     location.reload();
 };
 
-/* ================= DEPOSIT & BANK ================= */
-window.deposit = () => get("depositBox").classList.add("active");
-window.closeDeposit = () => get("depositBox").classList.remove("active");
-
-window.submitDeposit = async () => {
-    let utr = get("utr").value;
-    if(!utr) return window.showMsg("Enter UTR!");
-    await setDoc(doc(db, "deposits", Date.now().toString()), {
-        user: localStorage.getItem("user"),
-        utr: utr,
-        status: "Pending"
-    });
-    window.showMsg("Submitted!");
-    window.closeDeposit();
-};
-
-window.openBank = () => get("bankBox").classList.add("active");
-window.closeBank = () => get("bankBox").classList.remove("active");
-
-async function loadBankData() {
-    let user = localStorage.getItem("user");
-    
-    // 1. Home Page Bank Details Load
-    let snapHome = await getDoc(doc(db, "bank", user));
-    if(snapHome.exists()) {
-        let d = snapHome.data();
-        if(get("bankName")) get("bankName").value = d.bank || "";
-        if(get("bankAcc")) get("bankAcc").value = d.acc || "";
-        if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
-    }
-
-    // 2. Earning Page Bank Details Load
-    let snapEarn = await getDoc(doc(db, "bank_withdraw", user));
-    if(snapEarn.exists()) {
-        let d = snapEarn.data();
-        if(get("earnBankName")) get("earnBankName").value = d.bank || "";
-        if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
-        if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
-    }
-}
-
-window.saveBank = async () => {
-    const bName = get("bankName").value;
-    const bAcc = get("bankAcc").value;
-    const bIfsc = get("bankIfsc").value;
-
-    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: bName,
-        acc: bAcc,
-        ifsc: bIfsc
-    });
-    window.showMsg("Home Bank Details Updated!");
-    if(get("bankBox")) closeBank();
-};
-
-window.saveWithdrawBank = async () => {
-    const bName = get("earnBankName").value;
-    const bAcc = get("earnBankAcc").value;
-    const bIfsc = get("earnBankIfsc").value;
-
-    await setDoc(doc(db, "bank_withdraw", localStorage.getItem("user")), {
-        bank: bName,
-        acc: bAcc,
-        ifsc: bIfsc
-    });
-    window.showMsg("Withdrawal Bank Details Updated!");
-};
-
-/* ================= EARNING / WITHDRAW ================= */
-window.submitWithdraw = async () => {
-    let amt = Number(get("withdrawAmount").value);
-    let user = localStorage.getItem("user");
-    let currentBal = Number(localStorage.getItem("currentBalance"));
-
-    if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
-    if(currentBal < 200) {
-        return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required.");
-    }
-    if(amt > currentBal) return window.showMsg("Insufficient Balance!");
-
-    await setDoc(doc(db, "withdraw", Date.now().toString()), {
-        user: user,
-        amount: amt,
-        status: "Pending",
-        date: new Date().toLocaleString()
-    });
-    window.showMsg("Withdrawal Request Submitted!");
-    get("withdrawAmount").value = "";
-};
-
-/* ================= SETTINGS & QR LOAD ================= */
-async function loadSettings() {
-    let snap = await getDoc(doc(db, "settings", "main"));
-    if(snap.exists()) {
-        let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        
-        // Image Display Fix
-        if(d.qr) {
-            get("qrImage").src = d.qr;
-            get("qrImage").style.display = "block";
-        }
-        
-        get("upiText").innerText = d.upi || "N/A";
-        get("amountText").innerText = "₹" + (d.amount || "0");
-    }
-}
-
+// Check login on start
 window.onload = () => {
-    if(localStorage.getItem("user")) {
-        window.showLogin();
-    } else {
-        window.showRegister();
-    }
+    let savedUser = localStorage.getItem("user");
+    if(savedUser) loadUserData(savedUser);
 };
