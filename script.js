@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, updateDoc, collection } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
     apiKey:"AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
@@ -7,115 +7,150 @@ const app = initializeApp({
     projectId:"inrpay-44413"
 });
 
-const db=getFirestore(app);
-const get=id=>document.getElementById(id);
+const db = getFirestore(app);
+const get = id => document.getElementById(id);
 
-/* ================= MESSAGE BOX ================= */
-function showMsg(t){
-    get("msgText").innerText=t;
+/* ================= BASIC FUNCTIONS ================= */
+window.showMsg = (t) => {
+    get("msgText").innerText = t;
     get("msgBox").classList.add("active");
-}
-window.closeMsg=()=>get("msgBox").classList.remove("active");
+};
+window.closeMsg = () => get("msgBox").classList.remove("active");
 
-/* ================= AUTH SWITCH (FIXED) ================= */
-window.showRegister=()=>{
-    get("authTitle").innerText="Create Account";
-    get("name").style.display="block";
-    get("registerBtn").style.display="block";
-    get("loginBtn").style.display="none";
-    get("forgotText").style.display="none";
+window.togglePass = () => {
+    let p = get("password");
+    p.type = p.type === "password" ? "text" : "password";
+};
+
+/* ================= AUTH SWITCH ================= */
+window.showRegister = () => {
+    get("authTitle").innerText = "Create Account";
+    get("name").style.display = "block";
+    get("registerBtn").style.display = "block";
+    get("loginBtn").style.display = "none";
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
-window.showLogin=()=>{
-    get("authTitle").innerText="Sign In";
-    get("name").style.display="none";
-    get("registerBtn").style.display="none";
-    get("loginBtn").style.display="block";
-    get("forgotText").style.display="block";
+window.showLogin = () => {
+    get("authTitle").innerText = "Sign In";
+    get("name").style.display = "none";
+    get("registerBtn").style.display = "none";
+    get("loginBtn").style.display = "block";
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= PASSWORD TOGGLE ================= */
-window.togglePass=()=>{
-    let p=get("password");
-    p.type=p.type==="password"?"text":"password";
-};
-
-/* ================= REGISTER ================= */
-window.register=async()=>{
-    if(get("name").style.display !== "none" && !get("name").value) return showMsg("Please enter your name");
-    if(!get("number").value || !get("password").value) return showMsg("Please fill all fields");
-
-    await setDoc(doc(db,"users",get("number").value),{
-        name:get("name").value,
-        password:get("password").value,
-        balance:0
+/* ================= FIREBASE LOGIC ================= */
+window.register = async () => {
+    let num = get("number").value;
+    if(num.length < 10) return window.showMsg("Invalid Number");
+    await setDoc(doc(db, "users", num), {
+        name: get("name").value,
+        password: get("password").value,
+        balance: 0,
+        uid: Math.floor(100000 + Math.random() * 900000)
     });
-    showMsg("Account Created");
-    showLogin();
+    window.showMsg("Account Created!");
+    window.showLogin();
 };
 
-/* ================= LOGIN ================= */
-window.login=async()=>{
-    let snap=await getDoc(doc(db,"users",get("number").value));
-    if(!snap.exists()) return showMsg("User not found");
-
-    let user=snap.data();
-    if(user.password!==get("password").value) return showMsg("Wrong password");
-
-    get("auth").style.display="none";
-    get("app").style.display="block";
-
-    get("usernameHome").innerText= "Hello, " + user.name;
-    get("username2").innerText= user.name;
-    get("usernumber").innerText= "Mobile: " + get("number").value;
-    get("userid").innerText= "UID: " + (user.uid || Math.floor(100000 + Math.random() * 900000));
-
-    localStorage.setItem("user",get("number").value);
-    loadUser();
-    loadSettings();
+window.login = async () => {
+    let num = get("number").value;
+    let pass = get("password").value;
+    let snap = await getDoc(doc(db, "users", num));
+    
+    if (snap.exists() && snap.data().password === pass) {
+        localStorage.setItem("user", num);
+        get("auth").style.display = "none";
+        get("app").style.display = "block";
+        loadUserData(snap.data(), num);
+        loadSettings();
+    } else {
+        window.showMsg("Wrong Details!");
+    }
 };
 
-/* ================= SUPPORT LOGIC ================= */
+function loadUserData(data, num) {
+    get("usernameHome").innerText = "Hello, " + data.name;
+    get("username2").innerText = data.name;
+    get("usernumber").innerText = "Mobile: " + num;
+    get("userid").innerText = "UID: " + data.uid;
+    get("balance").innerText = "₹" + (data.balance || 0);
+    get("earnBalance").innerText = data.balance || 0;
+}
+
+/* ================= POPUP FUNCTIONS ================= */
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
+
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+
 window.openSupport = () => get("supportBox").classList.add("active");
 window.closeSupport = () => get("supportBox").classList.remove("active");
+
+window.showPage = (id) => {
+    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+    get(id).style.display = "block";
+};
+
+/* ================= ACTION FUNCTIONS ================= */
+window.submitDeposit = async () => {
+    let utr = get("utr").value;
+    if(!utr) return window.showMsg("Enter UTR!");
+    await setDoc(doc(db, "deposits", Date.now().toString()), {
+        user: localStorage.getItem("user"),
+        utr: utr,
+        status: "Pending"
+    });
+    window.showMsg("UTR Submitted!");
+    window.closeDeposit();
+};
+
+window.saveBank = async () => {
+    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
+        bank: get("bankName").value,
+        acc: get("bankAcc").value,
+        ifsc: get("bankIfsc").value
+    });
+    window.showMsg("Bank Saved!");
+    window.closeBank();
+};
+
+window.changePassword = async () => {
+    let user = localStorage.getItem("user");
+    let oldP = get("oldPass").value;
+    let newP = get("newPass").value;
+    let snap = await getDoc(doc(db, "users", user));
+    
+    if(snap.data().password === oldP) {
+        await updateDoc(doc(db, "users", user), { password: newP });
+        window.showMsg("Password Updated!");
+    } else {
+        window.showMsg("Old Password Wrong!");
+    }
+};
+
 window.supportMsg = (type) => {
-    let msg = type === 'rep' ? "Our representative will contact you in 5 minutes." : "Our manager will contact you in 5 minutes.";
-    closeSupport();
-    showMsg(msg);
+    window.showMsg("Support team will contact you soon.");
+    window.closeSupport();
 };
 
-/* ================= SETTINGS & NOTICE ================= */
-async function loadSettings(){
-    let snap=await getDoc(doc(db,"settings","main"));
-    if(snap.exists()){
-        let d=snap.data();
-        if(d.notice) get("scrollingNotice").innerText = d.notice;
-        get("qrImage").src=d.qr || "";
-        get("upiText").innerText=d.upi || "upi@id";
-        get("amountText").innerText="₹"+(d.amount || 1000);
-    }
-}
-
-/* ================= OTHER FUNCTIONS ================= */
-async function loadUser(){
-    let snap=await getDoc(doc(db,"users",localStorage.getItem("user")));
-    if(snap.exists()){
-        let bal=snap.data().balance||0;
-        get("balance").innerText="₹"+bal;
-        if(get("earnBalance")) get("earnBalance").innerText=bal;
-    }
-}
-
-window.showPage=(id)=>{
-    document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-    get(id).style.display="block";
-};
-
-window.logout=()=>{
+window.logout = () => {
     localStorage.clear();
     location.reload();
 };
 
-window.onload=()=>showRegister();
+async function loadSettings() {
+    let snap = await getDoc(doc(db, "settings", "main"));
+    if(snap.exists()) {
+        let d = snap.data();
+        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        get("qrImage").src = d.qr;
+        get("upiText").innerText = d.upi;
+        get("amountText").innerText = "₹" + d.amount;
+    }
+}
+
+window.onload = () => {
+    if(localStorage.getItem("user")) window.showLogin();
+};
