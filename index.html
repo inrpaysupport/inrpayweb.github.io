@@ -5,7 +5,7 @@
 <title>INRPAY</title>
 <link rel="stylesheet" href="style.css">
 <style>
-    /* CSS Fix for uniform size and position */
+    /* Sabhi inputs aur password box ka size ek jaisa rakhne ke liye */
     input, .passwordBox {
         width: 85% !important;
         margin: 10px auto !important;
@@ -14,15 +14,12 @@
     .passwordBox { position: relative; }
     .passwordBox input { width: 100% !important; margin: 0 !important; }
     
-    /* Popup and Nav Fix */
-    .popup { z-index: 9999 !important; }
-    .bottomNav { z-index: 1000 !important; }
-    
     .forgot-link {
         color: white;
-        font-size: 14px;
-        text-decoration: none;
-        margin-top: 10px;
+        font-size: 13px;
+        text-decoration: underline;
+        margin-top: -5px;
+        margin-bottom: 10px;
         display: block;
         text-align: center;
         cursor: pointer;
@@ -36,15 +33,18 @@
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
 
-    <input id="name" placeholder="Name">
-    <input id="number" placeholder="Mobile Number" maxlength="10">
+    <div id="authFields" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <input id="name" placeholder="Name">
+        
+        <input id="number" placeholder="Mobile Number" maxlength="10">
 
-    <div class="passwordBox">
-        <input id="password" type="password" placeholder="Password">
-        <span onclick="togglePass()" class="eyeIcon">👁</span>
+        <div class="passwordBox">
+            <input id="password" type="password" placeholder="Password">
+            <span onclick="togglePass()" class="eyeIcon">👁</span>
+        </div>
+
+        <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
     </div>
-
-    <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
 
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
