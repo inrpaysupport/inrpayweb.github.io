@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
     apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
@@ -10,6 +10,7 @@ const app = initializeApp({
 const db = getFirestore(app);
 const get = id => document.getElementById(id);
 
+/* ================= UTILITY FUNCTIONS ================= */
 window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
@@ -24,8 +25,7 @@ window.togglePass = () => {
 /* ================= AUTH SWITCH (FIXED) ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    // Name box dikhane ke liye important property lagayi
-    get("name").style.setProperty("display", "block", "important");
+    get("name").style.setProperty("display", "block", "important"); // Force Show Name
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -34,8 +34,7 @@ window.showRegister = () => {
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    // Name box ko forcefully hide karne ke liye setProperty use kiya
-    get("name").style.setProperty("display", "none", "important");
+    get("name").style.setProperty("display", "none", "important"); // Force Hide Name
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
@@ -47,7 +46,8 @@ window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
     let pass = get("password").value;
-    if(!name || num.length < 10) return window.showMsg("Fill all details correctly");
+    if(!name || num.length < 10 || !pass) return window.showMsg("Fill all details correctly");
+    
     await setDoc(doc(db, "users", num), {
         name: name,
         password: pass,
@@ -82,16 +82,20 @@ function loadUserData(data, num) {
     get("balance").innerText = "₹" + (data.balance || 0);
 }
 
-/* ================= APP FUNCTIONS ================= */
-window.deposit = () => get("depositBox").classList.add("active");
-window.closeDeposit = () => get("depositBox").classList.remove("active");
-window.openBank = () => get("bankBox").classList.add("active");
-window.closeBank = () => get("bankBox").classList.remove("active");
-
+/* ================= PAGE & APP LOGIC ================= */
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
 };
+
+window.logout = () => {
+    localStorage.clear();
+    location.reload();
+};
+
+/* ================= DEPOSIT & BANK ================= */
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
 
 window.submitDeposit = async () => {
     let utr = get("utr").value;
@@ -105,6 +109,9 @@ window.submitDeposit = async () => {
     window.closeDeposit();
 };
 
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+
 window.saveBank = async () => {
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
         bank: get("bankName").value,
@@ -115,18 +122,54 @@ window.saveBank = async () => {
     window.closeBank();
 };
 
+/* ================= EARNING / WITHDRAW ================= */
+window.submitWithdraw = async () => {
+    let amt = get("withdrawAmount").value;
+    let user = localStorage.getItem("user");
+    if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
+
+    await setDoc(doc(db, "withdraw", Date.now().toString()), {
+        user: user,
+        amount: amt,
+        status: "Pending",
+        date: new Date().toLocaleString()
+    });
+    window.showMsg("Withdrawal Request Submitted!");
+    get("withdrawAmount").value = "";
+};
+
+/* ================= SETTINGS ================= */
+window.changePassword = async () => {
+    let user = localStorage.getItem("user");
+    let oldP = get("oldPass").value;
+    let newP = get("newPass").value;
+    let snap = await getDoc(doc(db, "users", user));
+
+    if(snap.data().password === oldP) {
+        await updateDoc(doc(db, "users", user), { password: newP });
+        window.showMsg("Updated!");
+    } else {
+        window.showMsg("Old password wrong!");
+    }
+};
+
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome";
-        get("qrImage").src = d.qr;
-        get("upiText").innerText = d.upi;
-        get("amountText").innerText = "₹" + d.amount;
+        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        get("qrImage").src = d.qr || "";
+        get("upiText").innerText = d.upi || "N/A";
+        get("amountText").innerText = "₹" + (d.amount || "0");
     }
 }
 
+/* ================= ONLOAD ================= */
 window.onload = () => {
-    window.showRegister();
-    if(localStorage.getItem("user")) window.showLogin();
+    if(localStorage.getItem("user")) {
+        // Auto-login logic can be added here if needed
+        window.showLogin();
+    } else {
+        window.showRegister();
+    }
 };
