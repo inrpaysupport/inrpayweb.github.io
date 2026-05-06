@@ -1,77 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INRPAY - Secure</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        input, .passwordBox { width: 85% !important; margin: 10px auto !important; display: block !important; }
-        .popup { z-index: 9999 !important; }
-        .bottomNav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; background: #111; padding: 12px 0; z-index: 1000; }
-        .bottomNav div { cursor: pointer; color: white; font-size: 12px; text-align: center; }
-        .forgot-link { color: white; font-size: 14px; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>INRPAY</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
+<!-- AUTH -->
 <div id="auth">
-    <h2 id="authTitle">Login</h2>
-    <input id="name" placeholder="Full Name" style="display:none;">
-    <input id="email" type="email" placeholder="Email Address" style="display:none;"> 
+<h1 class="appLogo">INRPAY</h1>
+<h2 id="authTitle">Create Account</h2>
 
-    <input id="number" type="number" placeholder="Mobile Number">
-    <div class="passwordBox">
-        <input id="password" type="password" placeholder="Password">
-        <span class="eyeIcon" onclick="togglePass()">👁️</span>
-    </div>
+<input id="name" placeholder="Name">
+<input id="number" placeholder="Mobile Number" maxlength="10">
 
-    <button id="loginBtn" onclick="login()">Login</button>
-    <button id="registerBtn" onclick="register()" style="display:none;">Register</button>
-    
-    <p id="forgotText" class="forgot-link" onclick="showForgotPopup()">Forgot Password?</p>
-    <p id="toggleText">Don't have an account? <button onclick="showRegister()" class="linkBtn">Register</button></p>
+<div class="passwordBox">
+<input id="password" type="password" placeholder="Password">
+<span onclick="togglePass()" class="eyeIcon">👁</span>
 </div>
 
+<button id="registerBtn" onclick="register()">Sign Up</button>
+<button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
+
+<p id="toggleText">
+Already have account? <span onclick="showLogin()">Sign In</span>
+</p>
+
+<p id="forgotText" style="display:none;">Forgot Password?</p>
+</div>
+
+<!-- APP -->
 <div id="app" style="display:none;">
-    <div class="header">
-        <h2>INRPAY</h2>
-        <div class="balance-card">
-            <p>Total Balance</p>
-            <h1 id="userBalance">₹0</h1>
-        </div>
-    </div>
 
-    <div id="settings" style="padding: 20px;">
-        <h3>Account Details</h3>
-        <p>Name: <span id="userNameDisplay">---</span></p>
-        <p>Number: <span id="userNumDisplay">---</span></p>
-        <p>Email: <span id="userEmailDisplay">---</span></p>
-        <button onclick="logout()" style="background:red; color:white;">Logout</button>
-    </div>
-
-    <div class="bottomNav">
-        <div onclick="showPage('home')">🏠<br>Home</div>
-        <div onclick="showPage('settings')">⚙️<br>Settings</div>
-    </div>
+<!-- NOTICE -->
+<div class="notice">
+<span>Security deposit amount will be refunded to your bank account within 24–48 hours.</span>
 </div>
 
-<div id="forgotBox" class="popup">
-    <div class="popup-box">
-        <h3>Reset Password</h3>
-        <p style="font-size: 12px; color: gray;">Enter number to get reset link on your registered email.</p>
-        <input id="forgotNum" type="number" placeholder="Mobile Number">
-        <button onclick="sendResetLink()" style="background:#6a11cb; color:white; width:100%;">Send Reset Link</button>
-        <button onclick="get('forgotBox').classList.remove('active')" style="width:100%; margin-top:5px;">Cancel</button>
-    </div>
+<!-- HOME -->
+<div id="homePage" class="page">
+
+<h2 id="usernameHome"></h2>
+
+<div class="card">
+<h1 id="balance">₹0</h1>
 </div>
 
+<div class="services">
+<div onclick="deposit()">Security Deposit</div>
+<div onclick="openBank()">Add Bank Account</div>
+</div>
+
+<div class="card">
+<div class="txRow">
+<div>Account Bind</div>
+<div class="txRight">
+<div class="dot red"></div>
+<div>Deactivate</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="txRow">
+<div>Transactions</div>
+<div>No data</div>
+</div>
+</div>
+
+</div>
+
+<!-- EARN -->
+<div id="earnPage" class="page" style="display:none;">
+<h3 style="text-align:center;">Earnings</h3>
+
+<p style="text-align:center;">
+Total Balance: ₹<span id="earnBalance">0</span>
+</p>
+
+<button onclick="openWithdraw()">Withdraw</button>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsPage" class="page" style="display:none;text-align:center;">
+<p id="username2"></p>
+<p id="usernumber"></p>
+<p id="userid"></p>
+
+<input id="oldPass" placeholder="Old Password">
+<input id="newPass" placeholder="New Password">
+<input id="confirmPass" placeholder="Confirm Password">
+
+<button onclick="changePassword()">Change Password</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<!-- NAV -->
+<div class="bottomNav">
+<div onclick="showPage('homePage')">🏠</div>
+<div onclick="showPage('earnPage')">💰</div>
+<div onclick="showPage('settingsPage')">⚙️</div>
+</div>
+
+</div>
+
+<!-- DEPOSIT -->
+<div id="depositBox" class="popup">
+<div class="popup-box">
+<h3>Security Deposit</h3>
+<input id="utr" placeholder="Enter UTR">
+<button onclick="submitDeposit()">Submit</button>
+<div id="depositList"></div>
+<button onclick="closeDeposit()">Close</button>
+</div>
+</div>
+
+<!-- BANK -->
+<div id="bankBox" class="popup">
+<div class="popup-box">
+<input id="bankName" placeholder="Bank Name">
+<input id="bankAcc" placeholder="Account Number">
+<input id="bankIfsc" placeholder="IFSC Code">
+<button onclick="saveBank()">Save</button>
+<div id="bankList"></div>
+<button onclick="closeBank()">Close</button>
+</div>
+</div>
+
+<!-- WITHDRAW -->
+<div id="withdrawBox" class="popup">
+<div class="popup-box">
+
+<h2>Withdraw</h2>
+
+<p>Available Balance: ₹<span id="walletBalance">0</span></p>
+
+<input id="wAmount" placeholder="Amount ₹">
+<button onclick="submitWithdraw()">Withdraw</button>
+
+<div id="withdrawList"></div>
+
+<button onclick="closeWithdraw()">Close</button>
+
+</div>
+</div>
+
+<!-- MESSAGE -->
 <div id="msgBox" class="popup">
-    <div class="popup-box">
-        <p id="msgText"></p>
-        <button onclick="closeMsg()">OK</button>
-    </div>
+<div class="popup-box">
+<p id="msgText"></p>
+<button onclick="closeMsg()">OK</button>
+</div>
 </div>
 
 <script type="module" src="script.js"></script>
+
 </body>
 </html>
