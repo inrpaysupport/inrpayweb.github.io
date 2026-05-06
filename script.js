@@ -143,11 +143,8 @@ window.saveBank = async () => {
     const bName = get("bankName").value;
     const bAcc = get("bankAcc").value;
     const bIfsc = get("bankIfsc").value;
-
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: bName,
-        acc: bAcc,
-        ifsc: bIfsc
+        bank: bName, acc: bAcc, ifsc: bIfsc
     });
     window.showMsg("Home Bank Details Updated!");
     if(get("bankBox")) closeBank();
@@ -157,56 +154,58 @@ window.saveWithdrawBank = async () => {
     const bName = get("earnBankName").value;
     const bAcc = get("earnBankAcc").value;
     const bIfsc = get("earnBankIfsc").value;
-
     await setDoc(doc(db, "bank_withdraw", localStorage.getItem("user")), {
-        bank: bName,
-        acc: bAcc,
-        ifsc: bIfsc
+        bank: bName, acc: bAcc, ifsc: bIfsc
     });
     window.showMsg("Withdrawal Bank Details Updated!");
 };
 
-/* ================= EARNING / WITHDRAW ================= */
+/* ================= WITHDRAW & PASSWORD FIX ================= */
 window.submitWithdraw = async () => {
     let amt = Number(get("withdrawAmount").value);
     let user = localStorage.getItem("user");
     let currentBal = Number(localStorage.getItem("currentBalance"));
-
     if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
-    if(currentBal < 100) {
-        return window.showMsg("Withdrawal Failed: Minimum ₹100 Balance Required.");
-    }
+    if(currentBal < 100) return window.showMsg("Minimum ₹100 Balance Required.");
     if(amt > currentBal) return window.showMsg("Insufficient Balance!");
 
     await setDoc(doc(db, "withdraw", Date.now().toString()), {
-        user: user,
-        amount: amt,
-        status: "Pending",
-        date: new Date().toLocaleString()
+        user: user, amount: amt, status: "Pending", date: new Date().toLocaleString()
     });
     window.showMsg("Withdrawal Request Submitted!");
     get("withdrawAmount").value = "";
 };
 
-/* ================= SETTINGS & QR LOAD ================= */
+window.changePassword = async () => {
+    let oldP = get("oldPass").value;
+    let newP = get("newPass").value;
+    let userNum = localStorage.getItem("user");
+    if (!oldP || !newP) return window.showMsg("Enter both passwords");
+
+    let userRef = doc(db, "users", userNum);
+    let snap = await getDoc(userRef);
+    if (snap.exists() && snap.data().password === oldP) {
+        await updateDoc(userRef, { password: newP });
+        window.showMsg("Password Updated!");
+        get("oldPass").value = ""; get("newPass").value = "";
+    } else {
+        window.showMsg("Old Password is incorrect!");
+    }
+};
+
+/* ================= SETTINGS & LOAD ================= */
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        if(d.qr) {
-            get("qrImage").src = d.qr;
-            get("qrImage").style.display = "block";
-        }
+        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
 }
 
 window.onload = () => {
-    if(localStorage.getItem("user")) {
-        window.showLogin();
-    } else {
-        window.showRegister();
-    }
+    if(localStorage.getItem("user")) { window.showLogin(); } 
+    else { window.showRegister(); }
 };
