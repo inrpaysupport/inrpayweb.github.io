@@ -64,6 +64,9 @@ window.showRegister = () => {
 document.getElementById("name").style.display = "block";
 document.getElementById("email").style.display = "block";
 
+document.getElementById("name").type = "text";
+document.getElementById("email").type = "email";
+
 document.getElementById("registerBtn").style.display = "block";
 document.getElementById("loginBtn").style.display = "none";
 
@@ -80,6 +83,9 @@ window.showLogin = () => {
 
 document.getElementById("name").style.display = "none";
 document.getElementById("email").style.display = "none";
+
+document.getElementById("name").type = "hidden";
+document.getElementById("email").type = "hidden";
 
 document.getElementById("registerBtn").style.display = "none";
 document.getElementById("loginBtn").style.display = "block";
