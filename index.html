@@ -5,7 +5,6 @@
     <title>INRPAY</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* CSS Fix for uniform size and position */
         input, .passwordBox {
             width: 85% !important;
             margin: 10px auto !important;
@@ -13,8 +12,6 @@
         }
         .passwordBox { position: relative; }
         .passwordBox input { width: 100% !important; margin: 0 !important; }
-
-        /* Popup and Nav Fix */
         .popup { z-index: 9999 !important; }
         .bottomNav { 
             z-index: 1000 !important; 
@@ -29,7 +26,6 @@
             text-align: center;
         }
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
-
         .forgot-link {
             color: white;
             font-size: 14px;
@@ -39,7 +35,6 @@
             text-align: center;
             cursor: pointer;
         }
-        
         .no-data-box {
             text-align: center;
             padding: 20px;
@@ -48,35 +43,25 @@
         }
     </style>
 </head>
-
 <body>
 
 <div id="auth">
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
-
     <input id="name" placeholder="Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
-
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
-
     <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
-
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
-
-    <p id="toggleText">
-        Already have account? 
-        <button class="linkBtn" onclick="showLogin()">Sign In</button>
-    </p>
+    <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
 </div>
 
 <div id="app" style="display:none;">
     <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
-
     <div style="text-align: center; margin: 10px 0;">
         <button onclick="openSupport()" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
     </div>
@@ -84,21 +69,18 @@
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
         <div class="card"><h1 id="balance">₹0</h1></div>
-        
         <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
             <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
         </div>
         <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
             <h3 style="margin:0; text-align:center;">🏦 Add Bank Account</h3>
         </div>
-
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Account Bind</span>
                 <span style="color:red; font-weight:bold;">● Deactivate</span>
             </div>
         </div>
-
         <div class="card">
             <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
             <div class="no-data-box">No data available</div>
@@ -111,9 +93,8 @@
             <input id="earnBankName" placeholder="Account Holder Name">
             <input id="earnBankAcc" placeholder="Account Number">
             <input id="earnBankIfsc" placeholder="IFSC Code">
-            <button onclick="saveBank()" style="background:#2b0a4a; color:white; width:100%; border:none; border-radius:8px; padding:10px; margin-top:5px;">Update Bank Details</button>
+            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:100%; border:none; border-radius:8px; padding:10px; margin-top:5px;">Update Bank Details</button>
         </div>
-
         <div class="card">
             <h3 style="text-align:center;">Withdrawal</h3>
             <input id="withdrawAmount" type="number" placeholder="Enter Withdrawal Amount">
