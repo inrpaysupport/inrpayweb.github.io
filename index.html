@@ -19,11 +19,14 @@
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
     <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
-    <p id="forgotText" style="display:none;">Forgot Password?</p>
 </div>
 
 <div id="app" style="display:none;">
-    <div class="notice"><span>Security deposit amount will be refunded to your bank account within 24–48 hours.</span></div>
+    <div class="notice"><span id="scrollingNotice">Updating news...</span></div>
+
+    <div style="text-align: center; margin: 10px 0;">
+        <button onclick="openSupport()" class="support-btn">🎧 Customer Support</button>
+    </div>
 
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
@@ -37,7 +40,7 @@
         <div class="card">
             <div class="txRow" style="display:flex; justify-content:space-between; align-items:center;">
                 <div>Account Bind</div>
-                <div class="txRight" style="display:flex; align-items:center; gap:5px;">
+                <div class="txRight" style="display:flex; align-items:center; gap:8px;">
                     <div class="dot red"></div>
                     <div style="color:#ff4d4d; font-weight:bold;">Deactivate</div>
                 </div>
@@ -47,7 +50,7 @@
         <div class="card">
             <div class="txRow">
                 <div>Transactions</div>
-                <div style="margin-top:20px; color:#ccc; text-align:center;">No data available</div>
+                <div style="margin-top:35px; color:#bbb; text-align:center; font-size: 14px;">No data available</div>
             </div>
         </div>
     </div>
@@ -55,16 +58,12 @@
     <div id="earnPage" class="page" style="display:none;">
         <h3 style="text-align:center;">Earnings</h3>
         <p style="text-align:center;">Total Balance: ₹<span id="earnBalance">0</span></p>
-        <button onclick="openWithdraw()">Withdraw</button>
+        <button onclick="openWithdraw()" style="width:80%; display:block; margin:auto;">Withdraw</button>
     </div>
 
-    <div id="settingsPage" class="page" style="display:none;text-align:center;">
-        <p id="username2"></p><p id="usernumber"></p><p id="userid"></p>
-        <input id="oldPass" placeholder="Old Password">
-        <input id="newPass" placeholder="New Password">
-        <input id="confirmPass" placeholder="Confirm Password">
-        <button onclick="changePassword()">Change Password</button>
-        <button onclick="logout()">Logout</button>
+    <div id="settingsPage" class="page" style="display:none; text-align:center;">
+        <p id="username2"></p>
+        <button onclick="logout()" style="background:red; color:white;">Logout</button>
     </div>
 
     <div class="bottomNav">
@@ -77,16 +76,23 @@
 <div id="depositBox" class="popup">
     <div class="popup-box" style="text-align:center;">
         <h2 id="amountText">₹1000</h2>
-        <img id="qrImage" style="width:200px; height:200px; margin:10px auto; border:1px solid #ddd;">
-        <p id="upiText" style="font-weight:bold;">upi@id</p>
+        <img id="qrImage">
+        <p id="upiText" style="font-weight:bold; color:#6a11cb;"></p>
         <input id="utr" placeholder="Enter UTR Number">
         <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit</button>
-        <button onclick="closeDeposit()" style="background:red; color:white; width:100%; margin-top:5px;">Close</button>
+        <button onclick="closeDeposit()" style="width:100%; margin-top:5px;">Close</button>
     </div>
 </div>
 
-<div id="bankBox" class="popup"><div class="popup-box">...</div></div>
-<div id="withdrawBox" class="popup"><div class="popup-box">...</div></div>
+<div id="supportBox" class="popup">
+    <div class="popup-box">
+        <h3 style="text-align:center;">Help Center</h3>
+        <button onclick="supportMsg('rep')" style="width:100%; margin:5px 0;">1. Contact Representative</button>
+        <button onclick="supportMsg('man')" style="width:100%; margin:5px 0;">2. Contact Manager</button>
+        <button onclick="closeSupport()" style="width:100%; background:#eee; color:black; margin-top:10px;">Back</button>
+    </div>
+</div>
+
 <div id="msgBox" class="popup"><div class="popup-box"><p id="msgText"></p><button onclick="closeMsg()">OK</button></div></div>
 
 <script type="module" src="script.js"></script>
