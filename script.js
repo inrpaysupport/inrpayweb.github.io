@@ -26,7 +26,7 @@ window.togglePass = () => {
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.setProperty("display", "block", "important");
-    get("email").style.setProperty("display", "block", "important");
+    get("email").style.setProperty("display", "block", "important"); // Show Email on SignUp
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -36,7 +36,7 @@ window.showRegister = () => {
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
     get("name").style.setProperty("display", "none", "important");
-    get("email").style.setProperty("display", "none", "important");
+    get("email").style.setProperty("display", "none", "important"); // Hide Email on SignIn
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
@@ -47,30 +47,20 @@ window.showLogin = () => {
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
-    let email = get("email").value; // Naya variable
+    let email = get("email").value; // Get Email Value
     let pass = get("password").value;
+    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly including Email");
 
-    // Validation check mein 'email' add kiya gaya hai
-    if(!name || num.length < 10 || !pass || !email) {
-        return window.showMsg("Please fill all details including Email");
-    }
-
-    try {
-        await setDoc(doc(db, "users", num), {
-            name: name,
-            email: email, // Firebase mein store karne ke liye
-            password: pass,
-            balance: 0,
-            uid: Math.floor(100000 + Math.random() * 900000)
-        });
-        window.showMsg("Account Created Successfully!");
-        window.showLogin();
-    } catch (error) {
-        console.error("Firebase Error:", error);
-        window.showMsg("Error: " + error.message);
-    }
+    await setDoc(doc(db, "users", num), {
+        name: name,
+        email: email, // Store Email in Firebase
+        password: pass,
+        balance: 0,
+        uid: Math.floor(100000 + Math.random() * 900000)
+    });
+    window.showMsg("Account Created!");
+    window.showLogin();
 };
-
 
 window.login = async () => {
     let num = get("number").value;
@@ -132,7 +122,6 @@ window.closeBank = () => get("bankBox").classList.remove("active");
 async function loadBankData() {
     let user = localStorage.getItem("user");
 
-    // 1. Home Page Bank Details Load
     let snapHome = await getDoc(doc(db, "bank", user));
     if(snapHome.exists()) {
         let d = snapHome.data();
@@ -141,7 +130,6 @@ async function loadBankData() {
         if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
     }
 
-    // 2. Earning Page Bank Details Load
     let snapEarn = await getDoc(doc(db, "bank_withdraw", user));
     if(snapEarn.exists()) {
         let d = snapEarn.data();
@@ -207,7 +195,6 @@ async function loadSettings() {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
 
-        // Image Display Fix
         if(d.qr) {
             get("qrImage").src = d.qr;
             get("qrImage").style.display = "block";
