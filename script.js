@@ -63,8 +63,8 @@ window.showRegister = () => {
 
 get("authTitle").innerText = "Create Account";
 
-get("name").style.display = "block";
-get("email").style.display = "block";
+get("name").style.display = "inline-block";
+get("email").style.display = "inline-block";
 
 get("registerBtn").style.display = "block";
 get("loginBtn").style.display = "none";
@@ -88,6 +88,9 @@ get("authTitle").innerText = "Sign In";
 
 get("name").style.display = "none";
 get("email").style.display = "none";
+
+get("name").value = "";
+get("email").value = "";
 
 get("registerBtn").style.display = "none";
 get("loginBtn").style.display = "block";
