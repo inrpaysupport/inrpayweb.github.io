@@ -1,12 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-const app = initializeApp({
-    apiKey:"AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
-    authDomain:"inrpay-44413.firebaseapp.com",
-    projectId:"inrpay-44413"
-});
+const firebaseConfig = {
+    apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+    authDomain: "inrpay-44413.firebaseapp.com",
+    projectId: "inrpay-44413"
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const get = id => document.getElementById(id);
 
@@ -21,32 +22,35 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH (FIXED) ================= */
+/* ================= AUTH SWITCH ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block";
+    get("name").style.setProperty("display", "block", "important"); // Show Name
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
-    get("forgotText").style.display = "none"; // Hide Forgot on Register
+    get("forgotText").style.display = "none";
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.display = "none";
+    get("name").style.setProperty("display", "none", "important"); // Hide Name
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
-    get("forgotText").style.display = "block"; // Show Forgot on Login
+    get("forgotText").style.display = "block";
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
 /* ================= FIREBASE ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
-    if(!get("name").value || num.length < 10) return window.showMsg("Fill all details correctly");
+    let name = get("name").value;
+    let pass = get("password").value;
+    if(!name || num.length < 10 || !pass) return window.showMsg("Fill all details correctly");
+    
     await setDoc(doc(db, "users", num), {
-        name: get("name").value,
-        password: get("password").value,
+        name: name,
+        password: pass,
         balance: 0,
         uid: Math.floor(100000 + Math.random() * 900000)
     });
@@ -58,7 +62,7 @@ window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
     let snap = await getDoc(doc(db, "users", num));
-    
+
     if (snap.exists() && snap.data().password === pass) {
         localStorage.setItem("user", num);
         get("auth").style.display = "none";
@@ -111,20 +115,6 @@ window.saveBank = async () => {
     window.closeBank();
 };
 
-window.changePassword = async () => {
-    let user = localStorage.getItem("user");
-    let oldP = get("oldPass").value;
-    let newP = get("newPass").value;
-    let snap = await getDoc(doc(db, "users", user));
-    
-    if(snap.data().password === oldP) {
-        await updateDoc(doc(db, "users", user), { password: newP });
-        window.showMsg("Updated!");
-    } else {
-        window.showMsg("Old password wrong!");
-    }
-};
-
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
@@ -137,6 +127,10 @@ async function loadSettings() {
 }
 
 window.onload = () => {
-    window.showRegister();
-    if(localStorage.getItem("user")) window.showLogin();
+    if(localStorage.getItem("user")) {
+        // Auto login logic can be added here if needed
+        window.showLogin();
+    } else {
+        window.showRegister();
+    }
 };
