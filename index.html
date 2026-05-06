@@ -5,17 +5,28 @@
 <title>INRPAY</title>
 <link rel="stylesheet" href="style.css">
 <style>
-    /* Click block fix */
-    .popup { z-index: 9999 !important; }
-    .bottomNav { z-index: 1000 !important; }
-    input, button { position: relative; z-index: 10; }
-    
-    /* Password box uniform size */
-    .passwordBox, input {
+    /* CSS Fix for uniform size and position */
+    input, .passwordBox {
         width: 85% !important;
         margin: 10px auto !important;
+        display: block !important;
     }
+    .passwordBox { position: relative; }
     .passwordBox input { width: 100% !important; margin: 0 !important; }
+    
+    /* Popup and Nav Fix */
+    .popup { z-index: 9999 !important; }
+    .bottomNav { z-index: 1000 !important; }
+    
+    .forgot-link {
+        color: white;
+        font-size: 14px;
+        text-decoration: none;
+        margin-top: 10px;
+        display: block;
+        text-align: center;
+        cursor: pointer;
+    }
 </style>
 </head>
 
@@ -24,15 +35,24 @@
 <div id="auth">
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
+
     <input id="name" placeholder="Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
+
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
+
+    <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
+
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
-    <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
+
+    <p id="toggleText">
+        Already have account? 
+        <button class="linkBtn" onclick="showLogin()">Sign In</button>
+    </p>
 </div>
 
 <div id="app" style="display:none;">
@@ -50,17 +70,11 @@
             <div onclick="openBank()">Add Bank Account</div>
         </div>
         <div class="card">
-            <div style="display:flex; justify-content:space-between;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Account Bind</span>
                 <span style="color:red; font-weight:bold;">● Deactivate</span>
             </div>
         </div>
-    </div>
-
-    <div id="earnPage" class="page" style="display:none;">
-        <h3 style="text-align:center;">Earnings</h3>
-        <p style="text-align:center;">Balance: ₹<span id="earnBalance">0</span></p>
-        <button onclick="openWithdraw()" style="width:80%; margin:auto; display:block;">Withdraw</button>
     </div>
 
     <div id="settingsPage" class="page" style="display:none; text-align:center;">
@@ -81,7 +95,6 @@
 
     <div class="bottomNav">
         <div onclick="showPage('homePage')">🏠</div>
-        <div onclick="showPage('earnPage')">💰</div>
         <div onclick="showPage('settingsPage')">⚙️</div>
     </div>
 </div>
@@ -105,15 +118,6 @@
         <input id="bankIfsc" placeholder="IFSC Code">
         <button onclick="saveBank()" style="background:#2b0a4a; color:white; width:100%;">Save Bank</button>
         <button onclick="closeBank()" style="width:100%; margin-top:5px;">Cancel</button>
-    </div>
-</div>
-
-<div id="supportBox" class="popup">
-    <div class="popup-box">
-        <h3>Customer Support</h3>
-        <button onclick="supportMsg('rep')" style="width:100%; margin:5px 0;">Contact Representative</button>
-        <button onclick="supportMsg('man')" style="width:100%; margin:5px 0;">Contact Manager</button>
-        <button onclick="closeSupport()" style="width:100%; margin-top:10px;">Back</button>
     </div>
 </div>
 
