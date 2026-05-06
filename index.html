@@ -5,7 +5,6 @@
 <title>INRPAY</title>
 <link rel="stylesheet" href="style.css">
 <style>
-    /* CSS Fix for uniform size and position */
     input, .passwordBox {
         width: 85% !important;
         margin: 10px auto !important;
@@ -13,20 +12,13 @@
     }
     .passwordBox { position: relative; }
     .passwordBox input { width: 100% !important; margin: 0 !important; }
-    
-    /* Popup and Nav Fix */
     .popup { z-index: 9999 !important; }
-    .bottomNav { z-index: 1000 !important; }
+    .bottomNav { z-index: 1000 !important; display: flex; justify-content: space-around; align-items: center; background: #111; padding: 10px 0; }
+    .bottomNav div { text-align: center; color: white; font-size: 12px; cursor: pointer; }
+    .bottomNav i { display: block; font-size: 20px; margin-bottom: 2px; }
     
-    .forgot-link {
-        color: white;
-        font-size: 14px;
-        text-decoration: none;
-        margin-top: 10px;
-        display: block;
-        text-align: center;
-        cursor: pointer;
-    }
+    /* Transaction box style */
+    .no-data { text-align: center; padding: 20px; color: #bbb; font-style: italic; }
 </style>
 </head>
 
@@ -35,45 +27,54 @@
 <div id="auth">
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
-
     <input id="name" placeholder="Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
-
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
-
     <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
-
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
-
-    <p id="toggleText">
-        Already have account? 
-        <button class="linkBtn" onclick="showLogin()">Sign In</button>
-    </p>
+    <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
 </div>
 
 <div id="app" style="display:none;">
     <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
-    
+
     <div style="text-align: center; margin: 10px 0;">
-        <button onclick="openSupport()" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
+        <button onclick="openSupport()" class="support-btn">🎧 Customer Support</button>
     </div>
 
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
         <div class="card"><h1 id="balance">₹0</h1></div>
-        <div class="account-bind-box">
-            <div onclick="deposit()">Security Deposit</div>
-            <div onclick="openBank()">Add Bank Account</div>
+        
+        <div class="card" onclick="deposit()" style="background:rgba(255,255,255,0.2); text-align:center; cursor:pointer;">
+            <h3>Security Deposit</h3>
         </div>
+        <div class="card" onclick="openBank()" style="background:rgba(255,255,255,0.2); text-align:center; cursor:pointer;">
+            <h3>Add Bank Account</h3>
+        </div>
+
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Account Bind</span>
                 <span style="color:red; font-weight:bold;">● Deactivate</span>
             </div>
+        </div>
+
+        <div class="card">
+            <h4 style="margin-top:0;">Recent Transactions</h4>
+            <div class="no-data">No data available</div>
+        </div>
+    </div>
+
+    <div id="earningPage" class="page" style="display:none; text-align:center;">
+        <div class="card">
+            <h3>Withdrawal Section</h3>
+            <input id="withdrawAmount" type="number" placeholder="Enter Amount">
+            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:90%;">Request Withdraw</button>
         </div>
     </div>
 
@@ -87,15 +88,15 @@
             <h4>Change Password</h4>
             <input id="oldPass" type="password" placeholder="Old Password">
             <input id="newPass" type="password" placeholder="New Password">
-            <input id="confirmPass" type="password" placeholder="Confirm Password">
             <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Update Password</button>
         </div>
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px;">Logout</button>
+        <button onclick="logout()" style="background:red; color:white; width:90%; margin:20px auto; display:block;">Logout</button>
     </div>
 
     <div class="bottomNav">
-        <div onclick="showPage('homePage')">🏠</div>
-        <div onclick="showPage('settingsPage')">⚙️</div>
+        <div onclick="showPage('homePage')">🏠<br>Home</div>
+        <div onclick="showPage('earningPage')">💰<br>Earning</div>
+        <div onclick="showPage('settingsPage')">⚙️<br>Settings</div>
     </div>
 </div>
 
