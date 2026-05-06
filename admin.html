@@ -16,8 +16,8 @@
 
 <div id="adminAuth" class="container">
     <h2>Admin Login</h2>
-    <input id="adminUser" type="text" placeholder="Username (admin)">
-    <input id="adminPass" type="password" placeholder="Password (Aezaz@798)">
+    <input id="adminUser" type="text" placeholder="Username">
+    <input id="adminPass" type="password" placeholder="Password">
     <button onclick="adminLogin()">Login</button>
 </div>
 
@@ -49,8 +49,7 @@ const db = getFirestore(app);
 window.adminLogin = async () => {
     const u = document.getElementById("adminUser").value;
     const p = document.getElementById("adminPass").value;
-    
-    // Screenshot ke mutabik: collection 'admins' aur document 'admin1'
+
     const snap = await getDoc(doc(db, "admins", "admin1"));
 
     if (snap.exists() && snap.data().username === u && snap.data().password === p) {
