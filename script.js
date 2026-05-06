@@ -22,10 +22,10 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH (FIXED) ================= */
+/* ================= AUTH SWITCH ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.setProperty("display", "block", "important"); // Force Show Name
+    get("name").style.setProperty("display", "block", "important");
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -34,7 +34,7 @@ window.showRegister = () => {
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.setProperty("display", "none", "important"); // Force Hide Name
+    get("name").style.setProperty("display", "none", "important");
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
@@ -69,6 +69,7 @@ window.login = async () => {
         get("app").style.display = "block";
         loadUserData(snap.data(), num);
         loadSettings();
+        loadBankData(); // Bank data load karein
     } else {
         window.showMsg("Invalid credentials!");
     }
@@ -79,7 +80,9 @@ function loadUserData(data, num) {
     get("username2").innerText = data.name;
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
-    get("balance").innerText = "₹" + (data.balance || 0);
+    const bal = data.balance || 0;
+    get("balance").innerText = "₹" + bal;
+    localStorage.setItem("currentBalance", bal); // Withdrawal check ke liye
 }
 
 /* ================= PAGE & APP LOGIC ================= */
@@ -112,21 +115,51 @@ window.submitDeposit = async () => {
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
 
+async function loadBankData() {
+    let user = localStorage.getItem("user");
+    let snap = await getDoc(doc(db, "bank", user));
+    if(snap.exists()) {
+        let d = snap.data();
+        // Home page/Settings inputs
+        if(get("bankName")) get("bankName").value = d.bank || "";
+        if(get("bankAcc")) get("bankAcc").value = d.acc || "";
+        if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
+        
+        // Earning page display (agar editable banana hai to earningPage me ye inputs hone chahiye)
+        if(get("earnBankName")) get("earnBankName").value = d.bank || "";
+        if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
+        if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
+    }
+}
+
 window.saveBank = async () => {
+    const bName = get("bankName").value || get("earnBankName").value;
+    const bAcc = get("bankAcc").value || get("earnBankAcc").value;
+    const bIfsc = get("bankIfsc").value || get("earnBankIfsc").value;
+
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: get("bankName").value,
-        acc: get("bankAcc").value,
-        ifsc: get("bankIfsc").value
+        bank: bName,
+        acc: bAcc,
+        ifsc: bIfsc
     });
-    window.showMsg("Bank Saved!");
-    window.closeBank();
+    window.showMsg("Bank Details Updated!");
+    if(get("bankBox")) closeBank();
 };
 
 /* ================= EARNING / WITHDRAW ================= */
 window.submitWithdraw = async () => {
-    let amt = get("withdrawAmount").value;
+    let amt = Number(get("withdrawAmount").value);
     let user = localStorage.getItem("user");
+    let currentBal = Number(localStorage.getItem("currentBalance"));
+
     if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
+    
+    // Requirement: Balance 200 se kam ho to popup
+    if(currentBal < 200) {
+        return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required in account.");
+    }
+
+    if(amt > currentBal) return window.showMsg("Insufficient Balance!");
 
     await setDoc(doc(db, "withdraw", Date.now().toString()), {
         user: user,
@@ -164,10 +197,8 @@ async function loadSettings() {
     }
 }
 
-/* ================= ONLOAD ================= */
 window.onload = () => {
     if(localStorage.getItem("user")) {
-        // Auto-login logic can be added here if needed
         window.showLogin();
     } else {
         window.showRegister();
