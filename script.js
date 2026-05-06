@@ -118,7 +118,7 @@ window.closeBank = () => get("bankBox").classList.remove("active");
 async function loadBankData() {
     let user = localStorage.getItem("user");
     
-    // Home Page Bank Load
+    // 1. Home Page Bank Details Load
     let snapHome = await getDoc(doc(db, "bank", user));
     if(snapHome.exists()) {
         let d = snapHome.data();
@@ -127,7 +127,7 @@ async function loadBankData() {
         if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
     }
 
-    // Earning Page Bank Load
+    // 2. Earning Page Bank Details Load
     let snapEarn = await getDoc(doc(db, "bank_withdraw", user));
     if(snapEarn.exists()) {
         let d = snapEarn.data();
@@ -172,7 +172,7 @@ window.submitWithdraw = async () => {
 
     if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
     if(currentBal < 200) {
-        return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required in account.");
+        return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required.");
     }
     if(amt > currentBal) return window.showMsg("Insufficient Balance!");
 
@@ -186,27 +186,19 @@ window.submitWithdraw = async () => {
     get("withdrawAmount").value = "";
 };
 
-/* ================= SETTINGS ================= */
-window.changePassword = async () => {
-    let user = localStorage.getItem("user");
-    let oldP = get("oldPass").value;
-    let newP = get("newPass").value;
-    let snap = await getDoc(doc(db, "users", user));
-
-    if(snap.data().password === oldP) {
-        await updateDoc(doc(db, "users", user), { password: newP });
-        window.showMsg("Updated!");
-    } else {
-        window.showMsg("Old password wrong!");
-    }
-};
-
+/* ================= SETTINGS & QR LOAD ================= */
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        get("qrImage").src = d.qr || "";
+        
+        // Image Display Fix
+        if(d.qr) {
+            get("qrImage").src = d.qr;
+            get("qrImage").style.display = "block";
+        }
+        
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
