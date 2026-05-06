@@ -1,63 +1,107 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Admin Panel - INRPAY</title>
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { padding: 10px 20px; background: #6a11cb; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #adminApp { display: none; }
+        .list-item { border-bottom: 1px solid #ccc; padding: 10px 0; display: flex; justify-content: space-between; }
+    </style>
+</head>
 <body>
 
-<h2>Admin Panel</h2>
+<div id="adminAuth" class="container">
+    <h2>Admin Login</h2>
+    <input id="adminPass" type="password" placeholder="Enter Admin Password">
+    <button onclick="adminLogin()">Login</button>
+</div>
 
-<!-- ✅ FIX 5 -->
-<input id="qr" placeholder="Cloudinary QR URL">
-<input id="upi" placeholder="UPI ID">
-<input id="amount" placeholder="Deposit Amount">
+<div id="adminApp" class="container">
+    <h2>Admin Settings</h2>
+    
+    <button id="upload_widget" class="cloudinary-button">Upload QR Image</button>
+    <p id="qrStatus" style="font-size: 12px; color: green;"></p>
+    <input id="qr" placeholder="QR URL (Auto-filled after upload)" readonly>
+    
+    <input id="upi" placeholder="UPI ID">
+    <input id="amount" placeholder="Deposit Amount">
+    <button onclick="save()">Save Settings</button>
 
-<button onclick="save()">Save</button>
-
-<hr>
-<div id="list"></div>
+    <hr>
+    <h3>Withdrawal Requests</h3>
+    <div id="list"></div>
+</div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, getDocs, collection, updateDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, getDocs, collection, updateDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
-apiKey:"AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
-authDomain:"inrpay-44413.firebaseapp.com",
-projectId:"inrpay-44413"
+    apiKey:"AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
+    authDomain:"inrpay-44413.firebaseapp.com",
+    projectId:"inrpay-44413"
+});
+const db = getFirestore(app);
+
+// Simple Admin Login
+window.adminLogin = () => {
+    if(document.getElementById("adminPass").value === "admin123") { // Change password here
+        document.getElementById("adminAuth").style.display = "none";
+        document.getElementById("adminApp").style.display = "block";
+        load();
+    } else {
+        alert("Wrong Password");
+    }
+};
+
+// Cloudinary Widget
+var myWidget = cloudinary.createUploadWidget({
+    cloudName: 'demo', // Replace with your Cloudinary cloud name
+    uploadPreset: 'unsigned_preset' // Replace with your Unsigned Preset
+}, (error, result) => { 
+    if (!error && result && result.event === "success") { 
+        document.getElementById("qr").value = result.info.secure_url;
+        document.getElementById("qrStatus").innerText = "Image Uploaded Successfully!";
+    }
 });
 
-const db=getFirestore(app);
+document.getElementById("upload_widget").addEventListener("click", function(){
+    myWidget.open();
+}, false);
 
-// ✅ SAVE SETTINGS
-window.save=async()=>{
-await setDoc(doc(db,"settings","main"),{
-qr:document.getElementById("qr").value,
-upi:document.getElementById("upi").value,
-amount:document.getElementById("amount").value
-});
-alert("Updated");
+window.save = async () => {
+    await setDoc(doc(db,"settings","main"),{
+        qr: document.getElementById("qr").value,
+        upi: document.getElementById("upi").value,
+        amount: document.getElementById("amount").value
+    });
+    alert("Settings Updated");
 };
 
 async function load(){
-let snap=await getDocs(collection(db,"withdraw"));
-list.innerHTML="";
-snap.forEach(d=>{
-let data=d.data();
-list.innerHTML+=`
-<div>
-${data.user} | ₹${data.amount}
-<button onclick="approve('${d.id}')">Approve</button>
-</div>`;
-});
+    let snap = await getDocs(collection(db,"withdraw"));
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    snap.forEach(d => {
+        let data = d.data();
+        if(data.status === "Pending") {
+            list.innerHTML += `
+            <div class="list-item">
+                <span>User: ${data.user} | ₹${data.amount}</span>
+                <button onclick="approve('${d.id}')">Approve</button>
+            </div>`;
+        }
+    });
 }
 
-window.approve=async(id)=>{
-await updateDoc(doc(db,"withdraw",id),{status:"Done"});
-load();
+window.approve = async(id) => {
+    await updateDoc(doc(db,"withdraw",id), {status:"Done"});
+    load();
 };
-
-load();
-
 </script>
-
 </body>
 </html>
