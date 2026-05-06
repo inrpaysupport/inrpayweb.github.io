@@ -24,36 +24,33 @@ window.togglePass = () => {
 /* ================= AUTH SWITCH (FIXED) ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block"; // Sign-up mein name dikhao
-    get("forgotText").style.display = "none";
+    get("name").style.display = "block";
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
+    get("forgotText").style.display = "none"; // Hide Forgot on Register
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.display = "none"; // Sign-in mein name hide karo
-    get("forgotText").style.display = "block";
+    get("name").style.display = "none";
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
+    get("forgotText").style.display = "block"; // Show Forgot on Login
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= ACTIONS ================= */
+/* ================= FIREBASE ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
-    let name = get("name").value;
-    let pass = get("password").value;
-    if(!name || num.length < 10 || !pass) return window.showMsg("Please fill all details");
-    
+    if(!get("name").value || num.length < 10) return window.showMsg("Fill all details correctly");
     await setDoc(doc(db, "users", num), {
-        name: name,
-        password: pass,
+        name: get("name").value,
+        password: get("password").value,
         balance: 0,
         uid: Math.floor(100000 + Math.random() * 900000)
     });
-    window.showMsg("Success! Please Sign In.");
+    window.showMsg("Account Created!");
     window.showLogin();
 };
 
@@ -61,16 +58,85 @@ window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
     let snap = await getDoc(doc(db, "users", num));
+    
     if (snap.exists() && snap.data().password === pass) {
         localStorage.setItem("user", num);
         get("auth").style.display = "none";
         get("app").style.display = "block";
-        get("usernameHome").innerText = "Hello, " + snap.data().name;
+        loadUserData(snap.data(), num);
+        loadSettings();
     } else {
-        window.showMsg("Wrong details!");
+        window.showMsg("Invalid credentials!");
     }
 };
 
+function loadUserData(data, num) {
+    get("usernameHome").innerText = "Hello, " + data.name;
+    get("username2").innerText = data.name;
+    get("usernumber").innerText = "Mobile: " + num;
+    get("userid").innerText = "UID: " + data.uid;
+    get("balance").innerText = "₹" + (data.balance || 0);
+}
+
+/* ================= APP FUNCTIONS ================= */
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+
+window.showPage = (id) => {
+    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+    get(id).style.display = "block";
+};
+
+window.submitDeposit = async () => {
+    let utr = get("utr").value;
+    if(!utr) return window.showMsg("Enter UTR!");
+    await setDoc(doc(db, "deposits", Date.now().toString()), {
+        user: localStorage.getItem("user"),
+        utr: utr,
+        status: "Pending"
+    });
+    window.showMsg("Submitted!");
+    window.closeDeposit();
+};
+
+window.saveBank = async () => {
+    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
+        bank: get("bankName").value,
+        acc: get("bankAcc").value,
+        ifsc: get("bankIfsc").value
+    });
+    window.showMsg("Bank Saved!");
+    window.closeBank();
+};
+
+window.changePassword = async () => {
+    let user = localStorage.getItem("user");
+    let oldP = get("oldPass").value;
+    let newP = get("newPass").value;
+    let snap = await getDoc(doc(db, "users", user));
+    
+    if(snap.data().password === oldP) {
+        await updateDoc(doc(db, "users", user), { password: newP });
+        window.showMsg("Updated!");
+    } else {
+        window.showMsg("Old password wrong!");
+    }
+};
+
+async function loadSettings() {
+    let snap = await getDoc(doc(db, "settings", "main"));
+    if(snap.exists()) {
+        let d = snap.data();
+        get("scrollingNotice").innerText = d.notice || "Welcome";
+        get("qrImage").src = d.qr;
+        get("upiText").innerText = d.upi;
+        get("amountText").innerText = "₹" + d.amount;
+    }
+}
+
 window.onload = () => {
     window.showRegister();
+    if(localStorage.getItem("user")) window.showLogin();
 };
