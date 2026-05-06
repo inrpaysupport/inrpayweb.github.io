@@ -47,7 +47,7 @@ window.register = async () => {
     let name = get("name").value;
     let pass = get("password").value;
     if(!name || num.length < 10 || !pass) return window.showMsg("Fill all details correctly");
-    
+
     await setDoc(doc(db, "users", num), {
         name: name,
         password: pass,
@@ -69,7 +69,7 @@ window.login = async () => {
         get("app").style.display = "block";
         loadUserData(snap.data(), num);
         loadSettings();
-        loadBankData(); // Bank data load karein
+        loadBankData(); 
     } else {
         window.showMsg("Invalid credentials!");
     }
@@ -82,7 +82,7 @@ function loadUserData(data, num) {
     get("userid").innerText = "UID: " + data.uid;
     const bal = data.balance || 0;
     get("balance").innerText = "₹" + bal;
-    localStorage.setItem("currentBalance", bal); // Withdrawal check ke liye
+    localStorage.setItem("currentBalance", bal);
 }
 
 /* ================= PAGE & APP LOGIC ================= */
@@ -117,15 +117,20 @@ window.closeBank = () => get("bankBox").classList.remove("active");
 
 async function loadBankData() {
     let user = localStorage.getItem("user");
-    let snap = await getDoc(doc(db, "bank", user));
-    if(snap.exists()) {
-        let d = snap.data();
-        // Home page/Settings inputs
+    
+    // Home Page Bank Load
+    let snapHome = await getDoc(doc(db, "bank", user));
+    if(snapHome.exists()) {
+        let d = snapHome.data();
         if(get("bankName")) get("bankName").value = d.bank || "";
         if(get("bankAcc")) get("bankAcc").value = d.acc || "";
         if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
-        
-        // Earning page display (agar editable banana hai to earningPage me ye inputs hone chahiye)
+    }
+
+    // Earning Page Bank Load
+    let snapEarn = await getDoc(doc(db, "bank_withdraw", user));
+    if(snapEarn.exists()) {
+        let d = snapEarn.data();
         if(get("earnBankName")) get("earnBankName").value = d.bank || "";
         if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
         if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
@@ -133,17 +138,30 @@ async function loadBankData() {
 }
 
 window.saveBank = async () => {
-    const bName = get("bankName").value || get("earnBankName").value;
-    const bAcc = get("bankAcc").value || get("earnBankAcc").value;
-    const bIfsc = get("bankIfsc").value || get("earnBankIfsc").value;
+    const bName = get("bankName").value;
+    const bAcc = get("bankAcc").value;
+    const bIfsc = get("bankIfsc").value;
 
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
         bank: bName,
         acc: bAcc,
         ifsc: bIfsc
     });
-    window.showMsg("Bank Details Updated!");
+    window.showMsg("Home Bank Details Updated!");
     if(get("bankBox")) closeBank();
+};
+
+window.saveWithdrawBank = async () => {
+    const bName = get("earnBankName").value;
+    const bAcc = get("earnBankAcc").value;
+    const bIfsc = get("earnBankIfsc").value;
+
+    await setDoc(doc(db, "bank_withdraw", localStorage.getItem("user")), {
+        bank: bName,
+        acc: bAcc,
+        ifsc: bIfsc
+    });
+    window.showMsg("Withdrawal Bank Details Updated!");
 };
 
 /* ================= EARNING / WITHDRAW ================= */
@@ -153,12 +171,9 @@ window.submitWithdraw = async () => {
     let currentBal = Number(localStorage.getItem("currentBalance"));
 
     if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
-    
-    // Requirement: Balance 200 se kam ho to popup
     if(currentBal < 200) {
         return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required in account.");
     }
-
     if(amt > currentBal) return window.showMsg("Insufficient Balance!");
 
     await setDoc(doc(db, "withdraw", Date.now().toString()), {
