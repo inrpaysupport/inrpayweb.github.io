@@ -61,50 +61,35 @@ showRegister();
 
 window.showRegister = () => {
 
-get("authTitle").innerText = "Create Account";
+document.getElementById("name").style.display = "block";
+document.getElementById("email").style.display = "block";
 
-get("name").style.display = "inline-block";
-get("email").style.display = "inline-block";
+document.getElementById("registerBtn").style.display = "block";
+document.getElementById("loginBtn").style.display = "none";
 
-get("registerBtn").style.display = "block";
-get("loginBtn").style.display = "none";
+document.getElementById("forgotText").style.display = "none";
 
-get("forgotText").style.display = "none";
+document.getElementById("authTitle").innerText = "Create Account";
 
-get("toggleText").innerHTML = `
-Already have account?
-<button class="linkBtn" id="switchBtn">
-Sign In
-</button>
-`;
-
-document.getElementById("switchBtn").onclick = showLogin;
+document.getElementById("toggleText").innerHTML =
+'Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>';
 
 };
 
 window.showLogin = () => {
 
-get("authTitle").innerText = "Sign In";
+document.getElementById("name").style.display = "none";
+document.getElementById("email").style.display = "none";
 
-get("name").style.display = "none";
-get("email").style.display = "none";
+document.getElementById("registerBtn").style.display = "none";
+document.getElementById("loginBtn").style.display = "block";
 
-get("name").value = "";
-get("email").value = "";
+document.getElementById("forgotText").style.display = "block";
 
-get("registerBtn").style.display = "none";
-get("loginBtn").style.display = "block";
+document.getElementById("authTitle").innerText = "Sign In";
 
-get("forgotText").style.display = "block";
-
-get("toggleText").innerHTML = `
-New user?
-<button class="linkBtn" id="switchBtn">
-Create Account
-</button>
-`;
-
-document.getElementById("switchBtn").onclick = showRegister;
+document.getElementById("toggleText").innerHTML =
+'New user? <button class="linkBtn" onclick="showRegister()">Create Account</button>';
 
 };
 
