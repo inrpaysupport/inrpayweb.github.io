@@ -25,7 +25,7 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH ================= */
+/* ================= AUTH SWITCH LOGIC ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.setProperty("display", "block", "important");
@@ -46,9 +46,9 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= FIREBASE ACTIONS ================= */
+/* ================= MAIN AUTH ACTIONS ================= */
 
-// 1. REGISTER: Create user in Firebase Auth & Firestore
+// 1. REGISTER: Auth aur Firestore dono mein account banata hai
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
@@ -58,14 +58,14 @@ window.register = async () => {
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
 
     try {
-        // Firebase Auth mein register (Forgot password ke liye zaroori)
+        // Firebase Auth mein user create karein
         await createUserWithEmailAndPassword(auth, email, pass);
         
-        // Firestore mein data save karein
+        // Firestore mein details save karein
         await setDoc(doc(db, "users", num), {
             name: name,
             email: email,
-            password: pass, // Sync ke liye rakha hai
+            password: pass, 
             balance: 0,
             uid: Math.floor(100000 + Math.random() * 900000)
         });
@@ -73,53 +73,54 @@ window.register = async () => {
         window.showMsg("Account Created Successfully!");
         window.showLogin();
     } catch (error) {
-        window.showMsg(error.message);
+        window.showMsg("Registration Error: " + error.message);
     }
 };
 
-// 2. FORGOT PASSWORD: Send reset link
+// 2. FORGOT PASSWORD: Email reset link bhejta hai
 window.forgotPassword = async () => {
     let email = prompt("Enter your registered Email Address:");
     if (!email) return;
 
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Reset link sent to: " + email);
+        window.showMsg("Password reset link sent to your email!");
     } catch (error) {
-        window.showMsg("Error: Email not found in our records.");
+        window.showMsg("Error: User not found with this email.");
     }
 };
 
-// 3. LOGIN: Now using Firebase Auth (Fixes 'Invalid Credentials' after reset)
+// 3. LOGIN: Firebase Auth se verify karta hai (Forgot password isi se sync hota hai)
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
 
     if(!num || !pass) return window.showMsg("Enter Number & Password");
 
-    // Pehle Firestore se email check karein
-    let snap = await getDoc(doc(db, "users", num));
+    // Firestore se pehle user ka email fetch karein
+    const userRef = doc(db, "users", num);
+    const snap = await getDoc(userRef);
 
     if (snap.exists()) {
-        let userData = snap.data();
-        let email = userData.email;
+        const userData = snap.data();
+        const email = userData.email;
 
         try {
-            // Firebase Auth se sign in (Yeh naye password ko accept karega)
+            // Firebase Auth login (Ye reset kiye gaye naye password ko pehchanta hai)
             await signInWithEmailAndPassword(auth, email, pass);
+
+            // Login successful: Sync password to Firestore (optional but keeps data clean)
+            await updateDoc(userRef, { password: pass });
 
             localStorage.setItem("user", num);
             get("auth").style.display = "none";
             get("app").style.display = "block";
             
-            // Login hone par Firestore mein bhi naya password update kar dein (Optional)
-            await updateDoc(doc(db, "users", num), { password: pass });
-
             loadUserData(userData, num);
             loadSettings();
             loadBankData(); 
         } catch (error) {
-            window.showMsg("Invalid Password!");
+            window.showMsg("Invalid Password or User!");
         }
     } else {
         window.showMsg("Mobile number not registered!");
@@ -137,7 +138,7 @@ function loadUserData(data, num) {
     localStorage.setItem("currentBalance", bal);
 }
 
-/* ================= PAGE & APP LOGIC ================= */
+/* ================= APP PAGES & LOGIC ================= */
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
@@ -148,7 +149,7 @@ window.logout = () => {
     location.reload();
 };
 
-/* ================= DEPOSIT & BANK ================= */
+/* ================= DEPOSIT & WITHDRAW ================= */
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
 
@@ -160,29 +161,37 @@ window.submitDeposit = async () => {
         utr: utr,
         status: "Pending"
     });
-    window.showMsg("Submitted!");
+    window.showMsg("UTR Submitted for Verification!");
     window.closeDeposit();
 };
 
+window.submitWithdraw = async () => {
+    let amt = Number(get("withdrawAmount").value);
+    let user = localStorage.getItem("user");
+    let currentBal = Number(localStorage.getItem("currentBalance"));
+    
+    if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
+    if(amt > currentBal) return window.showMsg("Insufficient Balance!");
+
+    await setDoc(doc(db, "withdraw", Date.now().toString()), {
+        user: user, amount: amt, status: "Pending", date: new Date().toLocaleString()
+    });
+    window.showMsg("Withdrawal Request Submitted!");
+    get("withdrawAmount").value = "";
+};
+
+/* ================= BANK DETAILS ================= */
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
 
 async function loadBankData() {
     let user = localStorage.getItem("user");
-    let snapHome = await getDoc(doc(db, "bank", user));
-    if(snapHome.exists()) {
-        let d = snapHome.data();
+    let snap = await getDoc(doc(db, "bank", user));
+    if(snap.exists()) {
+        let d = snap.data();
         if(get("bankName")) get("bankName").value = d.bank || "";
         if(get("bankAcc")) get("bankAcc").value = d.acc || "";
         if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
-    }
-
-    let snapEarn = await getDoc(doc(db, "bank_withdraw", user));
-    if(snapEarn.exists()) {
-        let d = snapEarn.data();
-        if(get("earnBankName")) get("earnBankName").value = d.bank || "";
-        if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
-        if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
     }
 }
 
@@ -193,54 +202,11 @@ window.saveBank = async () => {
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
         bank: bName, acc: bAcc, ifsc: bIfsc
     });
-    window.showMsg("Home Bank Details Updated!");
-    if(get("bankBox")) closeBank();
+    window.showMsg("Bank Details Saved!");
+    closeBank();
 };
 
-window.saveWithdrawBank = async () => {
-    const bName = get("earnBankName").value;
-    const bAcc = get("earnBankAcc").value;
-    const bIfsc = get("earnBankIfsc").value;
-    await setDoc(doc(db, "bank_withdraw", localStorage.getItem("user")), {
-        bank: bName, acc: bAcc, ifsc: bIfsc
-    });
-    window.showMsg("Withdrawal Bank Details Updated!");
-};
-
-/* ================= WITHDRAW & PASSWORD FIX ================= */
-window.submitWithdraw = async () => {
-    let amt = Number(get("withdrawAmount").value);
-    let user = localStorage.getItem("user");
-    let currentBal = Number(localStorage.getItem("currentBalance"));
-    if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
-    if(currentBal < 100) return window.showMsg("Minimum ₹100 Balance Required.");
-    if(amt > currentBal) return window.showMsg("Insufficient Balance!");
-
-    await setDoc(doc(db, "withdraw", Date.now().toString()), {
-        user: user, amount: amt, status: "Pending", date: new Date().toLocaleString()
-    });
-    window.showMsg("Withdrawal Request Submitted!");
-    get("withdrawAmount").value = "";
-};
-
-window.changePassword = async () => {
-    let oldP = get("oldPass").value;
-    let newP = get("newPass").value;
-    let userNum = localStorage.getItem("user");
-    if (!oldP || !newP) return window.showMsg("Enter both passwords");
-
-    let userRef = doc(db, "users", userNum);
-    let snap = await getDoc(userRef);
-    if (snap.exists() && snap.data().password === oldP) {
-        await updateDoc(userRef, { password: newP });
-        window.showMsg("Password Updated!");
-        get("oldPass").value = ""; get("newPass").value = "";
-    } else {
-        window.showMsg("Old Password is incorrect!");
-    }
-};
-
-/* ================= SETTINGS & LOAD ================= */
+/* ================= INITIAL LOAD ================= */
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
@@ -253,19 +219,19 @@ async function loadSettings() {
 }
 
 window.onload = () => {
-    if(localStorage.getItem("user")) {
-        // Automatically login if session exists (Need to fetch data again)
-        let num = localStorage.getItem("user");
-        getDoc(doc(db, "users", num)).then(snap => {
+    let savedUser = localStorage.getItem("user");
+    if(savedUser) {
+        // Auto-login logic
+        getDoc(doc(db, "users", savedUser)).then(snap => {
             if(snap.exists()){
                 get("auth").style.display = "none";
                 get("app").style.display = "block";
-                loadUserData(snap.data(), num);
+                loadUserData(snap.data(), savedUser);
                 loadSettings();
                 loadBankData();
             }
         });
     } else {
-        window.showRegister();
+        window.showLogin();
     }
 };
