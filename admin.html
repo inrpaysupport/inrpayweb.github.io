@@ -25,7 +25,9 @@
     <h2>Admin Settings</h2>
     <label>Scrolling Notice:</label>
     <textarea id="noticeInput" rows="2"></textarea>
-    <button id="upload_widget" style="background: #007bff; margin-bottom: 10px;">Upload QR (Cloudinary)</button>
+    
+    <button id="upload_widget_btn" style="background: #007bff; margin-bottom: 10px;">Upload QR (Cloudinary)</button>
+    
     <input id="qr" placeholder="QR URL" readonly>
     <input id="upi" placeholder="UPI ID">
     <input id="amount" placeholder="Deposit Amount">
@@ -45,6 +47,27 @@ const app = initializeApp({
     projectId: "inrpay-44413"
 });
 const db = getFirestore(app);
+
+// --- Cloudinary Configuration ---
+// Yahan apna Cloudinary Name aur Preset dalein
+const cloudName = "YOUR_CLOUD_NAME"; 
+const uploadPreset = "YOUR_UPLOAD_PRESET"; 
+
+const myWidget = cloudinary.createUploadWidget({
+    cloudName: cloudName, 
+    uploadPreset: uploadPreset 
+}, (error, result) => { 
+    if (!error && result && result.event === "success") { 
+        console.log('Done! Here is the image info: ', result.info); 
+        document.getElementById("qr").value = result.info.secure_url;
+        alert("QR Uploaded Successfully!");
+    }
+});
+
+document.getElementById("upload_widget_btn").addEventListener("click", function(){
+    myWidget.open();
+}, false);
+// --------------------------------
 
 window.adminLogin = async () => {
     const u = document.getElementById("adminUser").value;
