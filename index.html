@@ -1,25 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>INRPAY</title>
-<link rel="stylesheet" href="style.css">
-<style>
-    input, .passwordBox {
-        width: 85% !important;
-        margin: 10px auto !important;
-        display: block !important;
-    }
-    .passwordBox { position: relative; }
-    .passwordBox input { width: 100% !important; margin: 0 !important; }
-    .popup { z-index: 9999 !important; }
-    .bottomNav { z-index: 1000 !important; display: flex; justify-content: space-around; align-items: center; background: #111; padding: 10px 0; }
-    .bottomNav div { text-align: center; color: white; font-size: 12px; cursor: pointer; }
-    .bottomNav i { display: block; font-size: 20px; margin-bottom: 2px; }
-    
-    /* Transaction box style */
-    .no-data { text-align: center; padding: 20px; color: #bbb; font-style: italic; }
-</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INRPAY</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS Fix for uniform size and position */
+        input, .passwordBox {
+            width: 85% !important;
+            margin: 10px auto !important;
+            display: block !important;
+        }
+        .passwordBox { position: relative; }
+        .passwordBox input { width: 100% !important; margin: 0 !important; }
+
+        /* Popup and Nav Fix */
+        .popup { z-index: 9999 !important; }
+        .bottomNav { 
+            z-index: 1000 !important; 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-around; 
+            background: #111; 
+            padding: 12px 0; 
+            text-align: center;
+        }
+        .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
+
+        .forgot-link {
+            color: white;
+            font-size: 14px;
+            text-decoration: none;
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .no-data-box {
+            text-align: center;
+            padding: 20px;
+            color: #ccc;
+            font-style: italic;
+        }
+    </style>
 </head>
 
 <body>
@@ -27,34 +54,42 @@
 <div id="auth">
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
+
     <input id="name" placeholder="Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
+
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
+
     <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
+
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
-    <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
+
+    <p id="toggleText">
+        Already have account? 
+        <button class="linkBtn" onclick="showLogin()">Sign In</button>
+    </p>
 </div>
 
 <div id="app" style="display:none;">
     <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
 
     <div style="text-align: center; margin: 10px 0;">
-        <button onclick="openSupport()" class="support-btn">🎧 Customer Support</button>
+        <button onclick="openSupport()" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
     </div>
 
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
         <div class="card"><h1 id="balance">₹0</h1></div>
         
-        <div class="card" onclick="deposit()" style="background:rgba(255,255,255,0.2); text-align:center; cursor:pointer;">
-            <h3>Security Deposit</h3>
+        <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
+            <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
         </div>
-        <div class="card" onclick="openBank()" style="background:rgba(255,255,255,0.2); text-align:center; cursor:pointer;">
-            <h3>Add Bank Account</h3>
+        <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
+            <h3 style="margin:0; text-align:center;">🏦 Add Bank Account</h3>
         </div>
 
         <div class="card">
@@ -65,16 +100,24 @@
         </div>
 
         <div class="card">
-            <h4 style="margin-top:0;">Recent Transactions</h4>
-            <div class="no-data">No data available</div>
+            <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
+            <div class="no-data-box">No data available</div>
         </div>
     </div>
 
-    <div id="earningPage" class="page" style="display:none; text-align:center;">
+    <div id="earningPage" class="page" style="display:none;">
         <div class="card">
-            <h3>Withdrawal Section</h3>
-            <input id="withdrawAmount" type="number" placeholder="Enter Amount">
-            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:90%;">Request Withdraw</button>
+            <h3 style="text-align:center;">Bank Details</h3>
+            <input id="earnBankName" placeholder="Account Holder Name">
+            <input id="earnBankAcc" placeholder="Account Number">
+            <input id="earnBankIfsc" placeholder="IFSC Code">
+            <button onclick="saveBank()" style="background:#2b0a4a; color:white; width:100%; border:none; border-radius:8px; padding:10px; margin-top:5px;">Update Bank Details</button>
+        </div>
+
+        <div class="card">
+            <h3 style="text-align:center;">Withdrawal</h3>
+            <input id="withdrawAmount" type="number" placeholder="Enter Withdrawal Amount">
+            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:100%; border:none; border-radius:8px; padding:12px; font-weight:bold; margin-top:10px;">Request Withdraw</button>
         </div>
     </div>
 
@@ -90,7 +133,7 @@
             <input id="newPass" type="password" placeholder="New Password">
             <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Update Password</button>
         </div>
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin:20px auto; display:block;">Logout</button>
+        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px; border:none; padding:12px; border-radius:8px;">Logout</button>
     </div>
 
     <div class="bottomNav">
@@ -103,7 +146,7 @@
 <div id="depositBox" class="popup">
     <div class="popup-box" style="text-align:center;">
         <h2 id="amountText">₹1000</h2>
-        <img id="qrImage" style="width:200px; height:200px; margin:10px 0;">
+        <img id="qrImage" alt="Payment QR">
         <p id="upiText" style="font-weight:bold;"></p>
         <input id="utr" placeholder="Enter UTR Number">
         <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit UTR</button>
@@ -123,7 +166,10 @@
 </div>
 
 <div id="msgBox" class="popup">
-    <div class="popup-box"><p id="msgText"></p><button onclick="closeMsg()">OK</button></div>
+    <div class="popup-box">
+        <p id="msgText" style="text-align:center; font-weight:bold;"></p>
+        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white; border:none; border-radius:8px;">OK</button>
+    </div>
 </div>
 
 <script type="module" src="script.js"></script>
