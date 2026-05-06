@@ -26,7 +26,7 @@ window.togglePass = () => {
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.setProperty("display", "block", "important");
-    get("email").style.setProperty("display", "block", "important"); // Show Email on SignUp
+    get("email").style.setProperty("display", "block", "important");
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -36,7 +36,7 @@ window.showRegister = () => {
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
     get("name").style.setProperty("display", "none", "important");
-    get("email").style.setProperty("display", "none", "important"); // Hide Email on SignIn
+    get("email").style.setProperty("display", "none", "important");
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
@@ -47,13 +47,13 @@ window.showLogin = () => {
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
-    let email = get("email").value; // Get Email Value
+    let email = get("email").value;
     let pass = get("password").value;
-    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly including Email");
+    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
 
     await setDoc(doc(db, "users", num), {
         name: name,
-        email: email, // Store Email in Firebase
+        email: email,
         password: pass,
         balance: 0,
         uid: Math.floor(100000 + Math.random() * 900000)
@@ -82,6 +82,7 @@ window.login = async () => {
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
     get("username2").innerText = data.name;
+    get("useremail").innerText = "Email: " + (data.email || "N/A");
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     const bal = data.balance || 0;
@@ -121,7 +122,6 @@ window.closeBank = () => get("bankBox").classList.remove("active");
 
 async function loadBankData() {
     let user = localStorage.getItem("user");
-
     let snapHome = await getDoc(doc(db, "bank", user));
     if(snapHome.exists()) {
         let d = snapHome.data();
@@ -173,8 +173,8 @@ window.submitWithdraw = async () => {
     let currentBal = Number(localStorage.getItem("currentBalance"));
 
     if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
-    if(currentBal < 200) {
-        return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required.");
+    if(currentBal < 100) {
+        return window.showMsg("Withdrawal Failed: Minimum ₹100 Balance Required.");
     }
     if(amt > currentBal) return window.showMsg("Insufficient Balance!");
 
@@ -194,12 +194,10 @@ async function loadSettings() {
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-
         if(d.qr) {
             get("qrImage").src = d.qr;
             get("qrImage").style.display = "block";
         }
-
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
