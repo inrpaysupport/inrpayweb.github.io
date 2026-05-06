@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INRPAY - Email Setup</title>
+    <title>INRPAY - Secure</title>
     <link rel="stylesheet" href="style.css">
     <style>
         input, .passwordBox { width: 85% !important; margin: 10px auto !important; display: block !important; }
@@ -17,13 +17,17 @@
 <div id="auth">
     <h2 id="authTitle">Login</h2>
     <input id="name" placeholder="Full Name" style="display:none;">
+    <input id="email" type="email" placeholder="Email Address" style="display:none;"> 
+
     <input id="number" type="number" placeholder="Mobile Number">
-    <input id="email" type="email" placeholder="Email Address" style="display:none;"> <div class="passwordBox">
+    <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span class="eyeIcon" onclick="togglePass()">👁️</span>
     </div>
+
     <button id="loginBtn" onclick="login()">Login</button>
     <button id="registerBtn" onclick="register()" style="display:none;">Register</button>
+    
     <p id="forgotText" class="forgot-link" onclick="showForgotPopup()">Forgot Password?</p>
     <p id="toggleText">Don't have an account? <button onclick="showRegister()" class="linkBtn">Register</button></p>
 </div>
@@ -41,7 +45,8 @@
         <h3>Account Details</h3>
         <p>Name: <span id="userNameDisplay">---</span></p>
         <p>Number: <span id="userNumDisplay">---</span></p>
-        <p>Email: <span id="userEmailDisplay">---</span></p> <button onclick="logout()" style="background:red; color:white;">Logout</button>
+        <p>Email: <span id="userEmailDisplay">---</span></p>
+        <button onclick="logout()" style="background:red; color:white;">Logout</button>
     </div>
 
     <div class="bottomNav">
@@ -53,9 +58,9 @@
 <div id="forgotBox" class="popup">
     <div class="popup-box">
         <h3>Reset Password</h3>
-        <p style="font-size: 12px; color: gray;">Enter your registered mobile number to receive reset link on email.</p>
+        <p style="font-size: 12px; color: gray;">Enter number to get reset link on your registered email.</p>
         <input id="forgotNum" type="number" placeholder="Mobile Number">
-        <button onclick="sendResetLink()" style="background:#6a11cb; color:white; width:100%;">Send Link</button>
+        <button onclick="sendResetLink()" style="background:#6a11cb; color:white; width:100%;">Send Reset Link</button>
         <button onclick="get('forgotBox').classList.remove('active')" style="width:100%; margin-top:5px;">Cancel</button>
     </div>
 </div>
