@@ -48,7 +48,7 @@ window.showLogin = () => {
 
 /* ================= FIREBASE ACTIONS ================= */
 
-// 1. REGISTER: Create user in Auth and Firestore
+// 1. REGISTER: Create user in Firebase Auth & Firestore
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
@@ -58,54 +58,71 @@ window.register = async () => {
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
 
     try {
-        // Firebase Auth mein user register karein (Forgot password ke liye zaroori hai)
+        // Firebase Auth mein register (Forgot password ke liye zaroori)
         await createUserWithEmailAndPassword(auth, email, pass);
         
-        // Firestore mein extra details save karein
+        // Firestore mein data save karein
         await setDoc(doc(db, "users", num), {
             name: name,
             email: email,
-            password: pass,
+            password: pass, // Sync ke liye rakha hai
             balance: 0,
             uid: Math.floor(100000 + Math.random() * 900000)
         });
         
-        window.showMsg("Account Created!");
+        window.showMsg("Account Created Successfully!");
         window.showLogin();
     } catch (error) {
         window.showMsg(error.message);
     }
 };
 
-// 2. FORGOT PASSWORD: Send email link
+// 2. FORGOT PASSWORD: Send reset link
 window.forgotPassword = async () => {
     let email = prompt("Enter your registered Email Address:");
-    
     if (!email) return;
 
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent to: " + email);
+        window.showMsg("Reset link sent to: " + email);
     } catch (error) {
-        window.showMsg("Error: User not found or invalid email.");
+        window.showMsg("Error: Email not found in our records.");
     }
 };
 
-// 3. LOGIN: Authenticate using Firestore (as per your original logic)
+// 3. LOGIN: Now using Firebase Auth (Fixes 'Invalid Credentials' after reset)
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
+
+    if(!num || !pass) return window.showMsg("Enter Number & Password");
+
+    // Pehle Firestore se email check karein
     let snap = await getDoc(doc(db, "users", num));
 
-    if (snap.exists() && snap.data().password === pass) {
-        localStorage.setItem("user", num);
-        get("auth").style.display = "none";
-        get("app").style.display = "block";
-        loadUserData(snap.data(), num);
-        loadSettings();
-        loadBankData(); 
+    if (snap.exists()) {
+        let userData = snap.data();
+        let email = userData.email;
+
+        try {
+            // Firebase Auth se sign in (Yeh naye password ko accept karega)
+            await signInWithEmailAndPassword(auth, email, pass);
+
+            localStorage.setItem("user", num);
+            get("auth").style.display = "none";
+            get("app").style.display = "block";
+            
+            // Login hone par Firestore mein bhi naya password update kar dein (Optional)
+            await updateDoc(doc(db, "users", num), { password: pass });
+
+            loadUserData(userData, num);
+            loadSettings();
+            loadBankData(); 
+        } catch (error) {
+            window.showMsg("Invalid Password!");
+        }
     } else {
-        window.showMsg("Invalid credentials!");
+        window.showMsg("Mobile number not registered!");
     }
 };
 
@@ -236,6 +253,19 @@ async function loadSettings() {
 }
 
 window.onload = () => {
-    if(localStorage.getItem("user")) { window.showLogin(); } 
-    else { window.showRegister(); }
+    if(localStorage.getItem("user")) {
+        // Automatically login if session exists (Need to fetch data again)
+        let num = localStorage.getItem("user");
+        getDoc(doc(db, "users", num)).then(snap => {
+            if(snap.exists()){
+                get("auth").style.display = "none";
+                get("app").style.display = "block";
+                loadUserData(snap.data(), num);
+                loadSettings();
+                loadBankData();
+            }
+        });
+    } else {
+        window.showRegister();
+    }
 };
