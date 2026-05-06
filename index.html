@@ -13,6 +13,7 @@
     <h2 id="authTitle">Create Account</h2>
 
     <input id="name" placeholder="Name">
+    
     <input id="number" placeholder="Mobile Number" maxlength="10">
 
     <div class="passwordBox">
@@ -32,7 +33,6 @@
 </div>
 
 <div id="app" style="display:none;">
-
     <div class="notice">
         <span id="scrollingNotice">Security deposit amount will be refunded to your bank account within 24–48 hours.</span>
     </div>
@@ -43,15 +43,11 @@
 
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
-        <div class="card">
-            <h1 id="balance">₹0</h1>
-        </div>
-
+        <div class="card"><h1 id="balance">₹0</h1></div>
         <div class="account-bind-box">
             <div onclick="deposit()">Security Deposit</div>
             <div onclick="openBank()">Add Bank Account</div>
         </div>
-
         <div class="card">
             <div class="txRow" style="display:flex; justify-content:space-between; align-items:center;">
                 <div>Account Bind</div>
@@ -61,82 +57,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="txRow">
-                <div>Transactions</div>
-                <div style="margin-top:20px; color:#bbb; text-align:center;">No data</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="earnPage" class="page" style="display:none;">
-        <h3 style="text-align:center;">Earnings</h3>
-        <p style="text-align:center;">Total Balance: ₹<span id="earnBalance">0</span></p>
-        <button onclick="openWithdraw()" style="width:80%; display:block; margin:auto;">Withdraw</button>
-    </div>
-
-    <div id="settingsPage" class="page" style="display:none;text-align:center;">
-        <div class="card">
-            <p id="username2" style="font-weight:bold;"></p>
-            <p id="usernumber"></p>
-            <p id="userid"></p>
-        </div>
-        
-        <div class="card">
-            <input id="oldPass" type="password" placeholder="Old Password">
-            <input id="newPass" type="password" placeholder="New Password">
-            <input id="confirmPass" type="password" placeholder="Confirm Password">
-            <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Change Password</button>
-        </div>
-        
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px;">Logout</button>
-    </div>
-
-    <div class="bottomNav">
-        <div onclick="showPage('homePage')">🏠</div>
-        <div onclick="showPage('earnPage')">💰</div>
-        <div onclick="showPage('settingsPage')">⚙️</div>
-    </div>
-</div>
-
-<div id="supportBox" class="popup">
-    <div class="popup-box">
-        <h3 style="text-align:center;">Support</h3>
-        <button onclick="supportMsg('rep')" style="width:100%; margin:5px 0;">1. Contact Representative</button>
-        <button onclick="supportMsg('man')" style="width:100%; margin:5px 0;">2. Contact Manager</button>
-        <button onclick="closeSupport()" style="width:100%; background:#eee; color:black; margin-top:10px;">Back</button>
-    </div>
-</div>
-
-<div id="depositBox" class="popup">
-    <div class="popup-box" style="text-align:center;">
-        <h2 id="amountText">₹1000</h2>
-        <img id="qrImage" style="width:200px;">
-        <p id="upiText" style="font-weight:bold;"></p>
-        <input id="utr" placeholder="Enter UTR Number">
-        <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit</button>
-        <button onclick="closeDeposit()" style="width:100%; margin-top:5px;">Close</button>
-    </div>
-</div>
-
-<div id="bankBox" class="popup">
-    <div class="popup-box">
-        <input id="bankName" placeholder="Bank Name">
-        <input id="bankAcc" placeholder="Account Number">
-        <input id="bankIfsc" placeholder="IFSC Code">
-        <button onclick="saveBank()" style="width:100%;">Save</button>
-        <button onclick="closeBank()" style="width:100%; margin-top:5px;">Close</button>
-    </div>
-</div>
-
-<div id="withdrawBox" class="popup">
-    <div class="popup-box">
-        <h2>Withdraw</h2>
-        <p>Available: ₹<span id="walletBalance">0</span></p>
-        <input id="wAmount" placeholder="Amount ₹">
-        <button onclick="submitWithdraw()" style="width:100%;">Submit</button>
-        <button onclick="closeWithdraw()" style="width:100%; margin-top:5px;">Close</button>
     </div>
 </div>
 
