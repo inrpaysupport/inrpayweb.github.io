@@ -25,11 +25,13 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH LOGIC ================= */
+/* ================= AUTH SWITCH (IMPROVED) ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block";
-    get("email").style.display = "block"; // Show Email
+    // Show Name & Email
+    get("name").style.setProperty("display", "block", "important");
+    get("email").style.setProperty("display", "block", "important");
+    
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -38,21 +40,24 @@ window.showRegister = () => {
 
 window.showLogin = () => {
     get("authTitle").innerText = "Login";
-    get("name").style.display = "none";
-    get("email").style.display = "none"; // Hide Email
+    // Hide Name & Email
+    get("name").style.setProperty("display", "none", "important");
+    get("email").style.setProperty("display", "none", "important");
+    
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
     get("toggleText").innerHTML = `Don't have an account? <button onclick="showRegister()" class="linkBtn">Register</button>`;
 };
 
+/* ================= CORE AUTH ================= */
 window.register = async () => {
     let n = get("name").value;
     let m = get("number").value;
     let e = get("email").value;
     let p = get("password").value;
 
-    if(!n || m.length < 10 || !e || p.length < 6) return window.showMsg("Please fill all details correctly!");
+    if(!n || m.length < 10 || !e || p.length < 6) return window.showMsg("Fill all details correctly!");
 
     let userSnap = await getDoc(doc(db, "users", m));
     if(userSnap.exists()) return window.showMsg("Number already registered!");
@@ -65,7 +70,7 @@ window.register = async () => {
         balance: 0
     });
 
-    window.showMsg("Account Created! Login now.");
+    window.showMsg("Account Created! You can login now.");
     showLogin();
 };
 
@@ -78,7 +83,7 @@ window.login = async () => {
         localStorage.setItem("user", m);
         loadUserData(m);
     } else {
-        window.showMsg("Invalid Credentials!");
+        window.showMsg("Invalid Mobile or Password!");
     }
 };
 
@@ -95,22 +100,21 @@ async function loadUserData(m) {
     }
 }
 
-/* ================= FORGOT PASSWORD ================= */
+/* ================= PASSWORD RESET ================= */
 window.showForgotPopup = () => get("forgotBox").classList.add("active");
 
 window.sendResetLink = async () => {
     let m = get("forgotNum").value;
-    if(!m) return window.showMsg("Enter registered number");
+    if(!m) return window.showMsg("Please enter your number");
 
     let userSnap = await getDoc(doc(db, "users", m));
-    if(!userSnap.exists()) return window.showMsg("User not found!");
+    if(!userSnap.exists()) return window.showMsg("This number is not registered!");
 
     let userEmail = userSnap.data().email;
 
-    // Firebase standard password reset function
     sendPasswordResetEmail(auth, userEmail)
     .then(() => {
-        window.showMsg("Reset link sent to: " + userEmail);
+        window.showMsg("Success! Password reset link sent to: " + userEmail);
         get("forgotBox").classList.remove("active");
     })
     .catch((error) => {
@@ -123,7 +127,6 @@ window.logout = () => {
     location.reload();
 };
 
-// Check login on start
 window.onload = () => {
     let savedUser = localStorage.getItem("user");
     if(savedUser) loadUserData(savedUser);
