@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>INRPAY</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* CSS Fix for uniform size and position */
+        /* CSS Fix for uniform size and centering */
         input, .passwordBox {
             width: 85% !important;
-            margin: 10px auto !important;
+            max-width: 350px;
+            margin: 12px auto !important;
             display: block !important;
+            border-radius: 10px;
+            border: none;
+            outline: none;
         }
-        .passwordBox { position: relative; }
+        .passwordBox { position: relative; padding: 0 !important; background: transparent; }
         .passwordBox input { width: 100% !important; margin: 0 !important; }
 
         /* Popup and Nav Fix */
@@ -28,23 +33,26 @@
             padding: 12px 0; 
             text-align: center;
         }
-        .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
-
-        .forgot-link {
-            color: white;
-            font-size: 14px;
-            text-decoration: none;
-            margin-top: 10px;
-            display: block;
-            text-align: center;
-            cursor: pointer;
-        }
+        .bottomNav div { cursor: pointer; color: white; font-size: 12px; flex: 1; }
         
         .no-data-box {
             text-align: center;
             padding: 20px;
             color: #ccc;
             font-style: italic;
+        }
+
+        .support-btn {
+            background: #ff9800;
+            color: white;
+            width: 90%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px auto;
+            display: block;
         }
     </style>
 </head>
@@ -55,48 +63,45 @@
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
 
-    <input id="name" placeholder="Name">
+    <input id="name" placeholder="Full Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
 
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
-        <span onclick="togglePass()" class="eyeIcon">👁</span>
+        <span onclick="togglePass()" class="eyeIcon" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#666;">👁</span>
     </div>
 
-    <p id="forgotText" class="forgot-link" style="display:none;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
+    <p id="forgotText" style="display:none; color:white; font-size:14px; cursor:pointer;" onclick="showMsg('Contact admin to reset password')">Forgot Password?</p>
 
-    <button id="registerBtn" onclick="register()">Sign Up</button>
-    <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
+    <button id="registerBtn" onclick="register()" style="width:85%; max-width:350px; background:#6a11cb; color:white; padding:12px; border-radius:10px; border:none; margin-top:10px;">Sign Up</button>
+    <button id="loginBtn" onclick="login()" style="display:none; width:85%; max-width:350px; background:#6a11cb; color:white; padding:12px; border-radius:10px; border:none; margin-top:10px;">Sign In</button>
 
-    <p id="toggleText">
+    <p id="toggleText" style="margin-top:15px;">
         Already have account? 
-        <button class="linkBtn" onclick="showLogin()">Sign In</button>
+        <button class="linkBtn" onclick="showLogin()" style="background:none; border:none; color:#00d4ff; font-weight:bold; cursor:pointer;">Sign In</button>
     </p>
 </div>
 
-<div id="app" style="display:none;">
-    <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
+<div id="app" style="display:none; padding-bottom: 80px;">
+    <div class="notice" style="background:rgba(0,0,0,0.5); padding:8px; overflow:hidden;"><span id="scrollingNotice">Welcome to INRPAY...</span></div>
 
-    <div style="text-align: center; margin: 10px 0;">
-        <button onclick="openSupport()" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
-    </div>
+    <button onclick="window.open('https://t.me/yourlink')" class="support-btn">🎧 Customer Support</button>
 
     <div id="homePage" class="page">
-        <h2 id="usernameHome" style="padding-left:15px;"></h2>
-        <div class="card"><h1 id="balance">₹0</h1></div>
+        <h2 id="usernameHome" style="padding:15px 0 0 15px; margin:0;"></h2>
+        <div class="card" style="text-align:center;"><h1 id="balance" style="margin:0;">₹0</h1><p style="margin:0; opacity:0.8;">Total Balance</p></div>
         
-        <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
-        </div>
-        <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🏦 Add Bank Account</h3>
+        <div class="card" onclick="deposit()" style="background: #4caf50; color:white; cursor:pointer; text-align:center;">
+            <h3 style="margin:0;">🛡️ Security Deposit</h3>
         </div>
 
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Account Bind</span>
-                <span style="color:red; font-weight:bold;">● Deactivate</span>
-            </div>
+            <h3 style="margin-top:0;">🏦 My Profile Bank</h3>
+            <p style="font-size:11px; color:#ddd; margin-bottom:10px;">(This is for your profile record)</p>
+            <input id="homeBankName" placeholder="Bank Name">
+            <input id="homeBankAcc" placeholder="Account Number">
+            <input id="homeBankIfsc" placeholder="IFSC Code">
+            <button onclick="saveHomeBank()" style="background:#2196f3; color:white; width:100%; border:none; padding:10px; border-radius:8px; font-weight:bold;">Save Home Bank</button>
         </div>
 
         <div class="card">
@@ -107,33 +112,34 @@
 
     <div id="earningPage" class="page" style="display:none;">
         <div class="card">
-            <h3 style="text-align:center;">Bank Details</h3>
+            <h3 style="text-align:center; margin-top:0;">💰 Withdrawal Bank Details</h3>
+            <p style="font-size:11px; text-align:center; color:#ccc;">(Where you want to receive money)</p>
             <input id="earnBankName" placeholder="Account Holder Name">
-            <input id="earnBankAcc" placeholder="Account Number">
+            <input id="earnBankAcc" placeholder="Withdrawal Bank Account">
             <input id="earnBankIfsc" placeholder="IFSC Code">
-            <button onclick="saveBank()" style="background:#2b0a4a; color:white; width:100%; border:none; border-radius:8px; padding:10px; margin-top:5px;">Update Bank Details</button>
+            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:100%; border:none; padding:10px; border-radius:8px; font-weight:bold;">Update Withdrawal Bank</button>
         </div>
 
         <div class="card">
-            <h3 style="text-align:center;">Withdrawal</h3>
-            <input id="withdrawAmount" type="number" placeholder="Enter Withdrawal Amount">
-            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:100%; border:none; border-radius:8px; padding:12px; font-weight:bold; margin-top:10px;">Request Withdraw</button>
+            <h3 style="text-align:center;">Request Withdrawal</h3>
+            <input id="withdrawAmount" type="number" placeholder="Enter Amount (Min ₹100)">
+            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:100%; border:none; padding:12px; border-radius:8px; font-weight:bold;">Withdraw Now</button>
         </div>
     </div>
 
     <div id="settingsPage" class="page" style="display:none; text-align:center;">
         <div class="card">
-            <p id="username2" style="font-weight:bold;"></p>
-            <p id="usernumber"></p>
-            <p id="userid"></p>
+            <p id="username2" style="font-weight:bold; margin:5px 0;"></p>
+            <p id="usernumber" style="margin:5px 0;"></p>
+            <p id="userid" style="margin:5px 0;"></p>
         </div>
         <div class="card">
             <h4>Change Password</h4>
             <input id="oldPass" type="password" placeholder="Old Password">
             <input id="newPass" type="password" placeholder="New Password">
-            <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Update Password</button>
+            <button onclick="changePassword()" style="background:#6a11cb; color:white; width:100%; border:none; padding:10px; border-radius:8px;">Update Password</button>
         </div>
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px; border:none; padding:12px; border-radius:8px;">Logout</button>
+        <button onclick="logout()" style="background:#ff4d4d; color:white; width:90%; padding:12px; border-radius:10px; border:none; margin-top:20px; font-weight:bold;">Logout</button>
     </div>
 
     <div class="bottomNav">
@@ -146,29 +152,18 @@
 <div id="depositBox" class="popup">
     <div class="popup-box" style="text-align:center;">
         <h2 id="amountText">₹1000</h2>
-        <img id="qrImage" alt="Payment QR">
-        <p id="upiText" style="font-weight:bold;"></p>
-        <input id="utr" placeholder="Enter UTR Number">
-        <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit UTR</button>
-        <button onclick="closeDeposit()" style="width:100%; margin-top:5px;">Close</button>
-    </div>
-</div>
-
-<div id="bankBox" class="popup">
-    <div class="popup-box">
-        <h3>Add Bank Account</h3>
-        <input id="bankName" placeholder="Bank Name">
-        <input id="bankAcc" placeholder="Account Number">
-        <input id="bankIfsc" placeholder="IFSC Code">
-        <button onclick="saveBank()" style="background:#2b0a4a; color:white; width:100%;">Save Bank</button>
-        <button onclick="closeBank()" style="width:100%; margin-top:5px;">Cancel</button>
+        <img id="qrImage" style="width:200px; height:200px; margin:10px 0; border:2px solid #eee; border-radius:10px;">
+        <p id="upiText" style="font-weight:bold; color:#333;"></p>
+        <input id="utr" placeholder="Enter 12 Digit UTR Number">
+        <button onclick="submitDeposit()" style="background:green; color:white; width:100%; border:none; padding:12px; border-radius:8px;">Submit UTR</button>
+        <button onclick="closeDeposit()" style="width:100%; margin-top:8px; background:#ddd; border:none; padding:10px; border-radius:8px;">Close</button>
     </div>
 </div>
 
 <div id="msgBox" class="popup">
     <div class="popup-box">
-        <p id="msgText" style="text-align:center; font-weight:bold;"></p>
-        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white; border:none; border-radius:8px;">OK</button>
+        <p id="msgText" style="text-align:center; font-weight:bold; color:#333; padding:10px 0;"></p>
+        <button onclick="closeMsg()" style="width:100%; padding:12px; background:#6a11cb; color:white; border:none; border-radius:8px; font-weight:bold;">OK</button>
     </div>
 </div>
 
