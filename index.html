@@ -42,9 +42,11 @@
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
-    <p id="forgotText" class="forgot-link" style="display:none;" onclick="forgotPassword()">Forgot Password?</p>
+    
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
+    <p id="forgotText" class="forgot-link" style="display:none;" onclick="forgotPassword()">Forgot Password?</p>
+    
     <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
 </div>
 
@@ -66,7 +68,7 @@
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Account Bind</span>
-                <span style="color:red; font-weight:bold;">● Deactivate</span>
+                <span style="color:white; font-weight:bold;"><span style="color:red;">●</span> Deactivate</span>
             </div>
         </div>
         <div class="card">
