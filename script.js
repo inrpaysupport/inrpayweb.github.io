@@ -6,95 +6,201 @@ const app = initializeApp({
     authDomain: "inrpay-44413.firebaseapp.com",
     projectId: "inrpay-44413"
 });
+
 const db = getFirestore(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY ================= */
-window.showMsg = (t) => { get("msgText").innerText = t; get("msgBox").classList.add("active"); };
+/* ================= UTILITY FUNCTIONS ================= */
+window.showMsg = (t) => {
+    get("msgText").innerText = t;
+    get("msgBox").classList.add("active");
+};
 window.closeMsg = () => get("msgBox").classList.remove("active");
-window.togglePass = () => { let p = get("password"); p.type = p.type === "password" ? "text" : "password"; };
 
-/* ================= AUTH SWITCH (FIXED) ================= */
-window.showLogin = () => {
-    get("authTitle").innerText = "Sign In";
-    get("name").style.display = "none"; // Sign In mein Name hide
-    get("registerBtn").style.display = "none";
-    get("loginBtn").style.display = "block";
-    get("forgotText").style.display = "block";
-    get("toggleText").innerHTML = `No account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
+window.togglePass = () => {
+    let p = get("password");
+    p.type = p.type === "password" ? "text" : "password";
 };
 
+/* ================= AUTH SWITCH ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block"; // Sign Up mein Name show
+    get("name").style.setProperty("display", "block", "important");
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
-    get("toggleText").innerHTML = `Have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
+    get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
+};
+
+window.showLogin = () => {
+    get("authTitle").innerText = "Sign In";
+    get("name").style.setProperty("display", "none", "important");
+    get("registerBtn").style.display = "none";
+    get("loginBtn").style.display = "block";
+    get("forgotText").style.display = "block";
+    get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
 /* ================= FIREBASE ACTIONS ================= */
+window.register = async () => {
+    let num = get("number").value;
+    let name = get("name").value;
+    let pass = get("password").value;
+    if(!name || num.length < 10 || !pass) return window.showMsg("Fill all details correctly");
+    
+    await setDoc(doc(db, "users", num), {
+        name: name,
+        password: pass,
+        balance: 0,
+        uid: Math.floor(100000 + Math.random() * 900000)
+    });
+    window.showMsg("Account Created!");
+    window.showLogin();
+};
+
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
     let snap = await getDoc(doc(db, "users", num));
+
     if (snap.exists() && snap.data().password === pass) {
         localStorage.setItem("user", num);
         get("auth").style.display = "none";
         get("app").style.display = "block";
         loadUserData(snap.data(), num);
         loadSettings();
-        loadBanks();
-    } else { window.showMsg("Invalid credentials!"); }
+        loadBankData(); // Bank data load karein
+    } else {
+        window.showMsg("Invalid credentials!");
+    }
 };
-
-window.register = async () => {
-    let num = get("number").value;
-    let name = get("name").value;
-    if(!name || num.length < 10) return window.showMsg("Enter valid details");
-    await setDoc(doc(db, "users", num), { name: name, password: get("password").value, balance: 0, uid: Math.floor(100000 + Math.random()*900000) });
-    window.showMsg("Account Created!"); window.showLogin();
-};
-
-/* ================= BANK & WITHDRAWAL ================= */
-window.saveHomeBank = async () => {
-    await setDoc(doc(db, "home_bank", localStorage.getItem("user")), { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value });
-    window.showMsg("Profile Bank Saved!");
-};
-
-window.saveWithdrawBank = async () => {
-    await setDoc(doc(db, "withdraw_bank", localStorage.getItem("user")), { bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value });
-    window.showMsg("Withdrawal Bank Updated!");
-};
-
-window.submitWithdraw = async () => {
-    let amt = Number(get("withdrawAmount").value);
-    let bal = Number(localStorage.getItem("currentBal") || 0);
-    if(bal < 200) return window.showMsg("Minimum ₹200 balance required.");
-    if(amt < 100 || amt > bal) return window.showMsg("Invalid Amount!");
-    await setDoc(doc(db, "withdraw", Date.now().toString()), { user: localStorage.getItem("user"), amount: amt, status: "Pending" });
-    window.showMsg("Request Sent!");
-};
-
-async function loadBanks() {
-    let user = localStorage.getItem("user");
-    let h = await getDoc(doc(db, "home_bank", user));
-    if(h.exists()){ get("homeBankName").value = h.data().bank; get("homeBankAcc").value = h.data().acc; get("homeBankIfsc").value = h.data().ifsc; }
-    let w = await getDoc(doc(db, "withdraw_bank", user));
-    if(w.exists()){ get("earnBankName").value = w.data().bank; get("earnBankAcc").value = w.data().acc; get("earnBankIfsc").value = w.data().ifsc; }
-}
 
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
-    get("balance").innerText = "₹" + data.balance;
-    localStorage.setItem("currentBal", data.balance);
+    get("username2").innerText = data.name;
+    get("usernumber").innerText = "Mobile: " + num;
+    get("userid").innerText = "UID: " + data.uid;
+    const bal = data.balance || 0;
+    get("balance").innerText = "₹" + bal;
+    localStorage.setItem("currentBalance", bal); // Withdrawal check ke liye
 }
 
-window.showPage = (id) => { document.querySelectorAll(".page").forEach(p => p.style.display = "none"); get(id).style.display = "block"; };
+/* ================= PAGE & APP LOGIC ================= */
+window.showPage = (id) => {
+    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+    get(id).style.display = "block";
+};
+
+window.logout = () => {
+    localStorage.clear();
+    location.reload();
+};
+
+/* ================= DEPOSIT & BANK ================= */
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
+
+window.submitDeposit = async () => {
+    let utr = get("utr").value;
+    if(!utr) return window.showMsg("Enter UTR!");
+    await setDoc(doc(db, "deposits", Date.now().toString()), {
+        user: localStorage.getItem("user"),
+        utr: utr,
+        status: "Pending"
+    });
+    window.showMsg("Submitted!");
+    window.closeDeposit();
+};
+
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+
+async function loadBankData() {
+    let user = localStorage.getItem("user");
+    let snap = await getDoc(doc(db, "bank", user));
+    if(snap.exists()) {
+        let d = snap.data();
+        // Home page/Settings inputs
+        if(get("bankName")) get("bankName").value = d.bank || "";
+        if(get("bankAcc")) get("bankAcc").value = d.acc || "";
+        if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
+        
+        // Earning page display (agar editable banana hai to earningPage me ye inputs hone chahiye)
+        if(get("earnBankName")) get("earnBankName").value = d.bank || "";
+        if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
+        if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
+    }
+}
+
+window.saveBank = async () => {
+    const bName = get("bankName").value || get("earnBankName").value;
+    const bAcc = get("bankAcc").value || get("earnBankAcc").value;
+    const bIfsc = get("bankIfsc").value || get("earnBankIfsc").value;
+
+    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
+        bank: bName,
+        acc: bAcc,
+        ifsc: bIfsc
+    });
+    window.showMsg("Bank Details Updated!");
+    if(get("bankBox")) closeBank();
+};
+
+/* ================= EARNING / WITHDRAW ================= */
+window.submitWithdraw = async () => {
+    let amt = Number(get("withdrawAmount").value);
+    let user = localStorage.getItem("user");
+    let currentBal = Number(localStorage.getItem("currentBalance"));
+
+    if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
+    
+    // Requirement: Balance 200 se kam ho to popup
+    if(currentBal < 200) {
+        return window.showMsg("Withdrawal Failed: Minimum ₹200 Balance Required in account.");
+    }
+
+    if(amt > currentBal) return window.showMsg("Insufficient Balance!");
+
+    await setDoc(doc(db, "withdraw", Date.now().toString()), {
+        user: user,
+        amount: amt,
+        status: "Pending",
+        date: new Date().toLocaleString()
+    });
+    window.showMsg("Withdrawal Request Submitted!");
+    get("withdrawAmount").value = "";
+};
+
+/* ================= SETTINGS ================= */
+window.changePassword = async () => {
+    let user = localStorage.getItem("user");
+    let oldP = get("oldPass").value;
+    let newP = get("newPass").value;
+    let snap = await getDoc(doc(db, "users", user));
+
+    if(snap.data().password === oldP) {
+        await updateDoc(doc(db, "users", user), { password: newP });
+        window.showMsg("Updated!");
+    } else {
+        window.showMsg("Old password wrong!");
+    }
+};
 
 async function loadSettings() {
-    let s = await getDoc(doc(db, "settings", "main"));
-    if(s.exists()){ get("scrollingNotice").innerText = s.data().notice; get("qrImage").src = s.data().qr; get("upiText").innerText = s.data().upi; get("amountText").innerText = "₹"+s.data().amount; }
+    let snap = await getDoc(doc(db, "settings", "main"));
+    if(snap.exists()) {
+        let d = snap.data();
+        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        get("qrImage").src = d.qr || "";
+        get("upiText").innerText = d.upi || "N/A";
+        get("amountText").innerText = "₹" + (d.amount || "0");
+    }
 }
 
-window.onload = () => { if(localStorage.getItem("user")) showLogin(); else showRegister(); };
+window.onload = () => {
+    if(localStorage.getItem("user")) {
+        window.showLogin();
+    } else {
+        window.showRegister();
+    }
+};
