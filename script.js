@@ -54,9 +54,11 @@ window.register = async () => {
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
     try {
         await createUserWithEmailAndPassword(auth, email, pass);
+        // UID generate ho raha hai yahan
+        let generatedUID = Math.floor(100000 + Math.random() * 900000);
         await setDoc(doc(db, "users", num), {
             name: name, email: email, password: pass, balance: 0,
-            uid: Math.floor(100000 + Math.random() * 900000)
+            uid: generatedUID
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
@@ -80,13 +82,12 @@ window.login = async () => {
             loadSettings();
             loadAllBankData();
             renderReferrals();
-            renderDepositHistory(); // Added
+            renderDepositHistory();
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= DEPOSIT HISTORY LOGIC (UI ONLY) ================= */
-// Hum localstorage use karenge history ke liye kyunki Firebase mana kiya hai
+/* ================= DEPOSIT HISTORY LOGIC ================= */
 function renderDepositHistory() {
     let list = get("depositHistoryList");
     let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
@@ -106,13 +107,12 @@ function renderDepositHistory() {
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
-    
+
     let now = new Date().toLocaleString();
     let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
     history.push({ utr: utr, date: now });
     localStorage.setItem("dep_history", JSON.stringify(history));
 
-    // Firebase (commented or kept as per your script requirement)
     await setDoc(doc(db, "deposits", Date.now().toString()), { 
         user: localStorage.getItem("user"), 
         utr: utr, 
@@ -167,16 +167,20 @@ function renderReferrals() {
     }
 }
 
+// UPDATED: Ab ye Mobile Number ki jagah UID share karega
 window.shareReferLink = async () => {
-    const user = localStorage.getItem("user");
-    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
+    const userUID = localStorage.getItem("userUID");
+    if(!userUID) return window.showMsg("Loading user data, please wait...");
+
+    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
+    
     if (navigator.share) {
         try {
             await navigator.share({ title: 'INRPAY', text: 'Earn daily with INRPAY!', url: link });
         } catch (e) { console.log(e); }
     } else {
         navigator.clipboard.writeText(link);
-        window.showMsg("Link Copied to Clipboard!");
+        window.showMsg("Link Copied (UID based)!");
     }
 };
 
@@ -197,6 +201,7 @@ async function loadAllBankData() {
     }
 }
 
+// UPDATED: UID ko localStorage mein save kiya gaya hai
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + (data.name || "User");
     get("username2").innerText = data.name;
@@ -204,7 +209,9 @@ function loadUserData(data, num) {
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
+    
     localStorage.setItem("currentBalance", data.balance || 0);
+    localStorage.setItem("userUID", data.uid); // Share link ke liye zaroori hai
 }
 
 window.showPage = (id) => {
