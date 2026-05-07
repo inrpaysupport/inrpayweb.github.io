@@ -61,7 +61,7 @@ window.register = async () => {
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { window.showMsg("Registration Error: " + error.message); }
+    } catch (error) { window.showMsg("Error: " + error.message); }
 };
 
 window.openForgotPopup = () => get("forgotBox").classList.add("active");
@@ -72,7 +72,7 @@ window.forgotPassword = async () => {
     if (!email) return window.showMsg("Please enter your email");
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent! Check Inbox and Spam folder.");
+        window.showMsg("Password reset link sent! Check Inbox.");
         closeForgot();
     } catch (error) { window.showMsg("Error: User not found."); }
 };
@@ -98,35 +98,24 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= WORKING PASSWORD CHANGE ================= */
+/* ================= PASSWORD CHANGE ================= */
 window.changePassword = async () => {
     let oldPass = get("oldPass").value;
     let newPass = get("newPass").value;
     let userNum = localStorage.getItem("user");
-
     if(!oldPass || !newPass) return window.showMsg("Enter both passwords");
-    if(newPass.length < 6) return window.showMsg("New password: min 6 chars");
-
     try {
         const user = auth.currentUser;
-        if (!user) return window.showMsg("Session expired, please login again");
-
         const credential = EmailAuthProvider.credential(user.email, oldPass);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPass);
-
-        const userRef = doc(db, "users", userNum);
-        await updateDoc(userRef, { password: newPass });
-
+        await updateDoc(doc(db, "users", userNum), { password: newPass });
         window.showMsg("Password Updated Successfully!");
-        get("oldPass").value = ""; 
-        get("newPass").value = "";
-    } catch (e) {
-        window.showMsg("Error: Old password incorrect or server error");
-    }
+        get("oldPass").value = ""; get("newPass").value = "";
+    } catch (e) { window.showMsg("Error: Old password incorrect"); }
 };
 
-/* ================= OTHER APP LOGIC ================= */
+/* ================= APP LOGIC ================= */
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
     get("username2").innerText = data.name;
@@ -134,12 +123,7 @@ function loadUserData(data, num) {
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
-    
-    // Set Referral Code
-    if(get("referCodeDisplay")) get("referCodeDisplay").innerText = data.uid;
-    
     localStorage.setItem("currentBalance", data.balance || 0);
-    localStorage.setItem("userUID", data.uid);
 }
 
 window.showPage = (id) => {
@@ -169,39 +153,33 @@ window.saveBank = async () => {
     window.showMsg("Bank Saved!"); closeBank();
 };
 
-// Fixed function name to match updated HTML
 window.saveWithdrawBank = async () => {
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: get("earnBankName").value, 
-        acc: get("earnBankAcc").value, 
-        ifsc: get("earnBankIfsc").value
+        bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value
     });
-    window.showMsg("Withdrawal Bank Updated!");
+    window.showMsg("Bank Updated!");
 };
 
 window.submitWithdraw = async () => {
     let amt = get("withdrawAmount").value;
-    let balance = parseInt(localStorage.getItem("currentBalance"));
+    let bal = parseInt(localStorage.getItem("currentBalance"));
     if(!amt || amt < 100) return window.showMsg("Min ₹100 required!");
-    if(amt > balance) return window.showMsg("Insufficient Balance!");
-
+    if(amt > bal) return window.showMsg("Insufficient Balance!");
     await setDoc(doc(db, "withdrawals", Date.now().toString()), {
-        user: localStorage.getItem("user"),
-        amount: amt,
-        status: "Pending",
-        date: new Date().toLocaleString()
+        user: localStorage.getItem("user"), amount: amt, status: "Pending", date: new Date().toLocaleString()
     });
     window.showMsg("Withdrawal Requested!");
     get("withdrawAmount").value = "";
 };
 
+// Simplified Refer Link (Forces Sign Up page)
 window.copyReferLink = () => {
-    const uid = localStorage.getItem("userUID");
-    const link = window.location.origin + "?ref=" + uid;
+    const user = localStorage.getItem("user");
+    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
     navigator.clipboard.writeText(link).then(() => {
         window.showMsg("Referral Link Copied!");
     }).catch(() => {
-        window.showMsg("Link: " + link);
+        window.showMsg("Copy this: " + link);
     });
 };
 
@@ -211,13 +189,9 @@ async function loadBankData() {
     let snap = await getDoc(doc(db, "bank", user));
     if(snap.exists()) {
         const d = snap.data();
-        if(get("bankName")) get("bankName").value = d.bank || "";
-        if(get("bankAcc")) get("bankAcc").value = d.acc || "";
-        if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
-        // Earning page inputs
-        if(get("earnBankName")) get("earnBankName").value = d.bank || "";
-        if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
-        if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
+        get("bankName").value = get("earnBankName").value = d.bank || "";
+        get("bankAcc").value = get("earnBankAcc").value = d.acc || "";
+        get("bankIfsc").value = get("earnBankIfsc").value = d.ifsc || "";
     }
 }
 
@@ -232,8 +206,11 @@ async function loadSettings() {
     }
 }
 
+// Check for referral link on load
 window.onload = () => {
+    const params = new URLSearchParams(window.location.search);
     let u = localStorage.getItem("user");
+    
     if(u) {
         getDoc(doc(db, "users", u)).then(s => {
             if(s.exists()){
@@ -241,5 +218,12 @@ window.onload = () => {
                 loadUserData(s.data(), u); loadSettings(); loadBankData();
             }
         });
-    } else { window.showLogin(); }
+    } else {
+        // If "signup=true" is in link, show Create Account page
+        if(params.get("signup") === "true") {
+            window.showRegister();
+        } else {
+            window.showLogin();
+        }
+    }
 };
