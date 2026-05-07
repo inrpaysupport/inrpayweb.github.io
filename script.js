@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
 const app = initializeApp({
@@ -47,165 +47,126 @@ window.showLogin = () => {
 };
 
 /* ================= MAIN AUTH ACTIONS ================= */
-
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
     let email = get("email").value;
     let pass = get("password").value;
-
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
-
     try {
         await createUserWithEmailAndPassword(auth, email, pass);
         await setDoc(doc(db, "users", num), {
-            name: name,
-            email: email,
-            password: pass, 
-            balance: 0,
+            name: name, email: email, password: pass, balance: 0,
             uid: Math.floor(100000 + Math.random() * 900000)
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) {
-        window.showMsg("Registration Error: " + error.message);
-    }
+    } catch (error) { window.showMsg("Registration Error: " + error.message); }
 };
 
-// Forgot Password Logic with Custom Popup
 window.openForgotPopup = () => get("forgotBox").classList.add("active");
 window.closeForgot = () => get("forgotBox").classList.remove("active");
 
 window.forgotPassword = async () => {
     let email = get("forgotEmail").value;
     if (!email) return window.showMsg("Please enter your email");
-
     try {
         await sendPasswordResetEmail(auth, email);
         window.showMsg("Password reset link sent to your email! Please check your Inbox and Spam folder.");
         closeForgot();
-    } catch (error) {
-        window.showMsg("Error: User not found with this email.");
-    }
+    } catch (error) { window.showMsg("Error: User not found."); }
 };
 
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
-
     if(!num || !pass) return window.showMsg("Enter Number & Password");
-
     const userRef = doc(db, "users", num);
     const snap = await getDoc(userRef);
-
     if (snap.exists()) {
-        const userData = snap.data();
-        const email = userData.email;
-
+        const email = snap.data().email;
         try {
             await signInWithEmailAndPassword(auth, email, pass);
             await updateDoc(userRef, { password: pass });
-
             localStorage.setItem("user", num);
             get("auth").style.display = "none";
             get("app").style.display = "block";
-
-            loadUserData(userData, num);
+            loadUserData(snap.data(), num);
             loadSettings();
-            loadBankData(); 
-        } catch (error) {
-            window.showMsg("Invalid Password or User!");
-        }
-    } else {
-        window.showMsg("Mobile number not registered!");
-    }
+            loadBankData();
+        } catch (e) { window.showMsg("Invalid Password!"); }
+    } else { window.showMsg("Not registered!"); }
 };
 
+/* ================= CHANGE PASSWORD (SETTINGS) ================= */
+window.changePassword = async () => {
+    let oldPass = get("oldPass").value;
+    let newPass = get("newPass").value;
+    let userNum = localStorage.getItem("user");
+    if(!oldPass || !newPass) return window.showMsg("Enter both passwords");
+    try {
+        const userRef = doc(db, "users", userNum);
+        const snap = await getDoc(userRef);
+        await signInWithEmailAndPassword(auth, snap.data().email, oldPass);
+        await updatePassword(auth.currentUser, newPass);
+        await updateDoc(userRef, { password: newPass });
+        window.showMsg("Password Updated Successfully!");
+        get("oldPass").value = ""; get("newPass").value = "";
+    } catch (e) { window.showMsg("Failed: Old password incorrect."); }
+};
+
+/* ================= OTHER APP LOGIC ================= */
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
     get("username2").innerText = data.name;
     get("useremail").innerText = "Email: " + (data.email || "N/A");
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
-    const bal = data.balance || 0;
-    get("balance").innerText = "₹" + bal;
-    localStorage.setItem("currentBalance", bal);
+    get("balance").innerText = "₹" + (data.balance || 0);
+    localStorage.setItem("currentBalance", data.balance || 0);
 }
 
-/* ================= APP PAGES & LOGIC ================= */
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
 };
 
-window.logout = () => {
-    localStorage.clear();
-    location.reload();
-};
+window.logout = () => { localStorage.clear(); location.reload(); };
 
-/* ================= DEPOSIT & WITHDRAW ================= */
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
-
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     await setDoc(doc(db, "deposits", Date.now().toString()), {
-        user: localStorage.getItem("user"),
-        utr: utr,
-        status: "Pending"
+        user: localStorage.getItem("user"), utr: utr, status: "Pending"
     });
-    window.showMsg("UTR Submitted for Verification!");
-    window.closeDeposit();
+    window.showMsg("Submitted!"); closeDeposit();
 };
 
-window.submitWithdraw = async () => {
-    let amt = Number(get("withdrawAmount").value);
-    let user = localStorage.getItem("user");
-    let currentBal = Number(localStorage.getItem("currentBalance"));
-
-    if(!amt || amt < 100) return window.showMsg("Minimum withdrawal ₹100");
-    if(amt > currentBal) return window.showMsg("Insufficient Balance!");
-
-    await setDoc(doc(db, "withdraw", Date.now().toString()), {
-        user: user, amount: amt, status: "Pending", date: new Date().toLocaleString()
-    });
-    window.showMsg("Withdrawal Request Submitted!");
-    get("withdrawAmount").value = "";
-};
-
-/* ================= BANK DETAILS ================= */
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
+window.saveBank = async () => {
+    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
+        bank: get("bankName").value, acc: get("bankAcc").value, ifsc: get("bankIfsc").value
+    });
+    window.showMsg("Bank Saved!"); closeBank();
+};
 
 async function loadBankData() {
-    let user = localStorage.getItem("user");
-    let snap = await getDoc(doc(db, "bank", user));
+    let snap = await getDoc(doc(db, "bank", localStorage.getItem("user")));
     if(snap.exists()) {
-        let d = snap.data();
-        if(get("bankName")) get("bankName").value = d.bank || "";
-        if(get("bankAcc")) get("bankAcc").value = d.acc || "";
-        if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
+        get("bankName").value = snap.data().bank || "";
+        get("bankAcc").value = snap.data().acc || "";
+        get("bankIfsc").value = snap.data().ifsc || "";
     }
 }
 
-window.saveBank = async () => {
-    const bName = get("bankName").value;
-    const bAcc = get("bankAcc").value;
-    const bIfsc = get("bankIfsc").value;
-    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: bName, acc: bAcc, ifsc: bIfsc
-    });
-    window.showMsg("Bank Details Saved!");
-    closeBank();
-};
-
-/* ================= INITIAL LOAD ================= */
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        get("scrollingNotice").innerText = d.notice || "Welcome";
         if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
@@ -213,18 +174,13 @@ async function loadSettings() {
 }
 
 window.onload = () => {
-    let savedUser = localStorage.getItem("user");
-    if(savedUser) {
-        getDoc(doc(db, "users", savedUser)).then(snap => {
-            if(snap.exists()){
-                get("auth").style.display = "none";
-                get("app").style.display = "block";
-                loadUserData(snap.data(), savedUser);
-                loadSettings();
-                loadBankData();
+    let u = localStorage.getItem("user");
+    if(u) {
+        getDoc(doc(db, "users", u)).then(s => {
+            if(s.exists()){
+                get("auth").style.display = "none"; get("app").style.display = "block";
+                loadUserData(s.data(), u); loadSettings(); loadBankData();
             }
         });
-    } else {
-        window.showLogin();
-    }
+    } else { window.showLogin(); }
 };
