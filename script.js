@@ -111,14 +111,10 @@ window.changePassword = async () => {
         const user = auth.currentUser;
         if (!user) return window.showMsg("Session expired, please login again");
 
-        // Firebase re-authentication (Security requirement)
         const credential = EmailAuthProvider.credential(user.email, oldPass);
         await reauthenticateWithCredential(user, credential);
-
-        // Update in Auth
         await updatePassword(user, newPass);
 
-        // Update in Firestore
         const userRef = doc(db, "users", userNum);
         await updateDoc(userRef, { password: newPass });
 
@@ -127,7 +123,6 @@ window.changePassword = async () => {
         get("newPass").value = "";
     } catch (e) {
         window.showMsg("Error: Old password incorrect or server error");
-        console.error(e);
     }
 };
 
@@ -139,7 +134,12 @@ function loadUserData(data, num) {
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
+    
+    // Set Referral Code
+    if(get("referCodeDisplay")) get("referCodeDisplay").innerText = data.uid;
+    
     localStorage.setItem("currentBalance", data.balance || 0);
+    localStorage.setItem("userUID", data.uid);
 }
 
 window.showPage = (id) => {
@@ -169,14 +169,55 @@ window.saveBank = async () => {
     window.showMsg("Bank Saved!"); closeBank();
 };
 
+// Fixed function name to match updated HTML
+window.saveWithdrawBank = async () => {
+    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
+        bank: get("earnBankName").value, 
+        acc: get("earnBankAcc").value, 
+        ifsc: get("earnBankIfsc").value
+    });
+    window.showMsg("Withdrawal Bank Updated!");
+};
+
+window.submitWithdraw = async () => {
+    let amt = get("withdrawAmount").value;
+    let balance = parseInt(localStorage.getItem("currentBalance"));
+    if(!amt || amt < 100) return window.showMsg("Min ₹100 required!");
+    if(amt > balance) return window.showMsg("Insufficient Balance!");
+
+    await setDoc(doc(db, "withdrawals", Date.now().toString()), {
+        user: localStorage.getItem("user"),
+        amount: amt,
+        status: "Pending",
+        date: new Date().toLocaleString()
+    });
+    window.showMsg("Withdrawal Requested!");
+    get("withdrawAmount").value = "";
+};
+
+window.copyReferLink = () => {
+    const uid = localStorage.getItem("userUID");
+    const link = window.location.origin + "?ref=" + uid;
+    navigator.clipboard.writeText(link).then(() => {
+        window.showMsg("Referral Link Copied!");
+    }).catch(() => {
+        window.showMsg("Link: " + link);
+    });
+};
+
 async function loadBankData() {
     let user = localStorage.getItem("user");
     if(!user) return;
     let snap = await getDoc(doc(db, "bank", user));
     if(snap.exists()) {
-        get("bankName").value = snap.data().bank || "";
-        get("bankAcc").value = snap.data().acc || "";
-        get("bankIfsc").value = snap.data().ifsc || "";
+        const d = snap.data();
+        if(get("bankName")) get("bankName").value = d.bank || "";
+        if(get("bankAcc")) get("bankAcc").value = d.acc || "";
+        if(get("bankIfsc")) get("bankIfsc").value = d.ifsc || "";
+        // Earning page inputs
+        if(get("earnBankName")) get("earnBankName").value = d.bank || "";
+        if(get("earnBankAcc")) get("earnBankAcc").value = d.acc || "";
+        if(get("earnBankIfsc")) get("earnBankIfsc").value = d.ifsc || "";
     }
 }
 
