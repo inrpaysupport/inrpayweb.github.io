@@ -100,20 +100,31 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= SETTINGS ================= */
+/* ================= SETTINGS: PASSWORD CHANGE ================= */
 window.changePassword = async () => {
     const user = auth.currentUser;
-    const oldPass = get("oldPass").value;
-    const newPass = get("newPass").value;
+    const oldPassField = get("oldPass");
+    const newPassField = get("newPass");
+    const oldPass = oldPassField.value;
+    const newPass = newPassField.value;
+
     if (!user) return window.showMsg("Please login again!");
     if (!oldPass || !newPass) return window.showMsg("Fill both password fields!");
+    
     try {
         const credential = EmailAuthProvider.credential(user.email, oldPass);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPass);
         await updateDoc(doc(db, "users", localStorage.getItem("user")), { password: newPass });
+        
         window.showMsg("Password updated successfully!");
-    } catch (error) { window.showMsg("Error: " + error.message); }
+        
+        // Input fields clear karna
+        oldPassField.value = "";
+        newPassField.value = "";
+    } catch (error) { 
+        window.showMsg("Error: " + error.message); 
+    }
 };
 
 /* ================= DEPOSIT & BANK BINDING ================= */
@@ -147,7 +158,7 @@ function renderDepositHistory() {
     }
 }
 
-// Bank Logic
+// Bind Primary Bank (Home Page)
 window.openBank = () => { renderBankHistory(); get("bankBox").classList.add("active"); };
 window.closeBank = () => get("bankBox").classList.remove("active");
 
@@ -160,13 +171,13 @@ async function renderBankHistory() {
         const d = snap.data();
         list.innerHTML = `
             <div class="bank-history-item">
-                <b>Name:</b> ${d.bank}<br>
-                <b>A/C:</b> ${d.acc}<br>
+                <b>Holder Name:</b> ${d.bank}<br>
+                <b>Account No:</b> ${d.acc}<br>
                 <b>IFSC:</b> ${d.ifsc}
             </div>`;
         actBtn.style.display = "block";
     } else {
-        list.innerHTML = `<p style="font-size:12px; color:#666;">No bank linked.</p>`;
+        list.innerHTML = `<p style="font-size:12px; color:#666;">No bank bound yet.</p>`;
         actBtn.style.display = "none";
     }
 }
@@ -174,7 +185,7 @@ async function renderBankHistory() {
 window.saveHomeBank = async () => {
     const user = localStorage.getItem("user");
     const data = { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value };
-    if(!data.bank || !data.acc) return window.showMsg("Fill details");
+    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
     await setDoc(doc(db, "bank_home", user), data);
     window.showMsg("Primary Bank Saved!");
     renderBankHistory();
@@ -185,15 +196,26 @@ window.triggerActivate = () => {
     window.showMsg("Please deposit security amount first");
 };
 
-/* ================= OTHER ACTIONS ================= */
+/* ================= EARNING: WITHDRAW BANK ================= */
 window.saveWithdrawBank = async () => {
     const user = localStorage.getItem("user");
-    const data = { bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value };
-    if(!data.bank || !data.acc) return window.showMsg("Fill details");
-    await setDoc(doc(db, "bank_earning", user), data);
-    window.showMsg("Withdraw Bank Saved!");
+    const data = { 
+        bank: get("earnBankName").value, 
+        acc: get("earnBankAcc").value, 
+        ifsc: get("earnBankIfsc").value 
+    };
+    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all withdraw bank details!");
+    
+    try {
+        // Alag collection 'bank_earning' mein save ho raha hai
+        await setDoc(doc(db, "bank_earning", user), data);
+        window.showMsg("Withdraw Bank Details Saved!");
+    } catch (e) {
+        window.showMsg("Error: " + e.message);
+    }
 };
 
+/* ================= OTHER ACTIONS ================= */
 function renderReferrals() { get("referralList").innerHTML = `<div class="no-data-box">No referrals available</div>`; }
 
 window.shareReferLink = async () => {
@@ -205,11 +227,19 @@ window.shareReferLink = async () => {
 
 async function loadAllBankData() {
     let user = localStorage.getItem("user");
+    // Load home bank
     const hSnap = await getDoc(doc(db, "bank_home", user));
     if(hSnap.exists()){
         get("homeBankName").value = hSnap.data().bank || "";
         get("homeBankAcc").value = hSnap.data().acc || "";
         get("homeBankIfsc").value = hSnap.data().ifsc || "";
+    }
+    // Load withdraw bank
+    const wSnap = await getDoc(doc(db, "bank_earning", user));
+    if(wSnap.exists()){
+        get("earnBankName").value = wSnap.data().bank || "";
+        get("earnBankAcc").value = wSnap.data().acc || "";
+        get("earnBankIfsc").value = wSnap.data().ifsc || "";
     }
 }
 
@@ -236,8 +266,13 @@ window.submitWithdraw = async () => {
     let bal = parseInt(localStorage.getItem("currentBalance"));
     if(!amt || amt < 100) return window.showMsg("Min ₹100!");
     if(amt > bal) return window.showMsg("Insufficient Balance!");
-    await setDoc(doc(db, "withdrawals", Date.now().toString()), { user: localStorage.getItem("user"), amount: amt, status: "Pending", date: new Date().toLocaleString() });
-    window.showMsg("Request Submitted!");
+    await setDoc(doc(db, "withdrawals", Date.now().toString()), { 
+        user: localStorage.getItem("user"), 
+        amount: amt, 
+        status: "Pending", 
+        date: new Date().toLocaleString() 
+    });
+    window.showMsg("Withdrawal Request Submitted!");
 };
 
 async function loadSettings() {
@@ -245,7 +280,11 @@ async function loadSettings() {
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; get("downloadQrBtn").style.display = "inline-block"; }
+        if(d.qr) { 
+            get("qrImage").src = d.qr; 
+            get("qrImage").style.display = "block"; 
+            get("downloadQrBtn").style.display = "inline-block"; 
+        }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
@@ -257,9 +296,13 @@ window.onload = () => {
         if (user && u) {
             getDoc(doc(db, "users", u)).then(s => {
                 if(s.exists()){ 
-                    get("auth").style.display = "none"; get("app").style.display = "block"; 
-                    loadUserData(s.data(), u); loadSettings(); loadAllBankData(); 
-                    renderReferrals(); renderDepositHistory();
+                    get("auth").style.display = "none"; 
+                    get("app").style.display = "block"; 
+                    loadUserData(s.data(), u); 
+                    loadSettings(); 
+                    loadAllBankData(); 
+                    renderReferrals(); 
+                    renderDepositHistory();
                 }
             });
         }
