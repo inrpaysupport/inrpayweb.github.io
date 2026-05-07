@@ -38,6 +38,9 @@
     <input id="name" placeholder="Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
     <input id="email" placeholder="Email Address">
+    
+    <input id="referralInput" placeholder="Referral Code (Optional)">
+
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
@@ -50,10 +53,7 @@
 
 <div id="app" style="display:none;">
     <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
-    <div style="text-align: center; margin: 10px 0;">
-        <button onclick="window.open('https://t.me/inrpay_manager')" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
-    </div>
-
+    
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
         <div class="card"><h1 id="balance">₹0</h1></div>
@@ -69,24 +69,20 @@
                 <span style="color:red; font-weight:bold;">● <span style="color:white; font-weight:normal;">Deactivate</span></span>
             </div>
         </div>
-        <div class="card">
-            <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
-            <div class="no-data-box">No data available</div>
-        </div>
     </div>
 
     <div id="earningPage" class="page" style="display:none;">
-        <div class="card">
-            <h3 style="text-align:center;">Bank Details</h3>
-            <input id="earnBankName" placeholder="Account Holder Name">
-            <input id="earnBankAcc" placeholder="Account Number">
-            <input id="earnBankIfsc" placeholder="IFSC Code">
-            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:100%; border:none; border-radius:8px; padding:10px; margin-top:5px;">Update Bank Details</button>
+        <div class="card" style="background: linear-gradient(to right, #6a11cb, #2575fc); color: white; text-align: center;">
+            <h3>🤝 Invite Friends & Earn</h3>
+            <p style="font-size: 12px;">Share your link and earn rewards!</p>
+            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px; word-break: break-all;" id="referralLinkText">Loading link...</div>
+            <button onclick="copyInviteLink()" style="width: 100%; background: white; color: #6a11cb; font-weight: bold; padding: 8px; border-radius: 5px;">Copy Invite Link</button>
         </div>
+
         <div class="card">
             <h3 style="text-align:center;">Withdrawal</h3>
             <input id="withdrawAmount" type="number" placeholder="Earning (Min ₹100)">
-            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:100%; border:none; border-radius:8px; padding:12px; font-weight:bold; margin-top:10px;">Request Withdraw</button>
+            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:100%;">Request Withdraw</button>
         </div>
     </div>
 
@@ -113,33 +109,10 @@
     </div>
 </div>
 
-<div id="depositBox" class="popup">
-    <div class="popup-box" style="text-align:center;">
-        <h2 id="amountText">₹0</h2>
-        <img id="qrImage" src="" alt="Payment QR" style="width: 200px; height: 200px; margin: 10px auto; display: none; border: 1px solid #eee;">
-        <p id="upiText" style="font-weight:bold;"></p>
-        <input id="utr" placeholder="Enter UTR Number">
-        <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit UTR</button>
-        <button onclick="closeDeposit()" style="width:100%; margin-top:5px;">Close</button>
-    </div>
-</div>
-
-<div id="bankBox" class="popup">
-    <div class="popup-box">
-        <h3>Add Bank Account</h3>
-        <input id="bankName" placeholder="Bank Name">
-        <input id="bankAcc" placeholder="Account Number">
-        <input id="bankIfsc" placeholder="IFSC Code">
-        <button onclick="saveBank()" style="background:#2b0a4a; color:white; width:100%;">Save</button>
-        <button onclick="closeBank()" style="width:100%; margin-top:5px;">Cancel</button>
-    </div>
-</div>
-
 <div id="forgotBox" class="popup">
     <div class="popup-box">
         <h3 style="text-align:center;">Reset Password</h3>
-        <p style="font-size:14px; color:#666; text-align:center;">Enter your registered email address to receive a reset link.</p>
-        <input id="forgotEmail" placeholder="Email Address" style="border: 1px solid #ddd !important;">
+        <input id="forgotEmail" placeholder="Enter your Email">
         <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Link</button>
         <button onclick="closeForgot()" style="width:100%; margin-top:5px; background:#eee; color:black;">Cancel</button>
     </div>
@@ -148,7 +121,7 @@
 <div id="msgBox" class="popup">
     <div class="popup-box">
         <p id="msgText" style="text-align:center; font-weight:bold;"></p>
-        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white; border:none; border-radius:8px;">OK</button>
+        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white;">OK</button>
     </div>
 </div>
 
