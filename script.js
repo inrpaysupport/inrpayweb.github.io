@@ -13,7 +13,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY FUNCTIONS ================= */
+/* ================= UTILITY ================= */
 window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
@@ -25,7 +25,7 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH LOGIC ================= */
+/* ================= AUTH LOGIC ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.setProperty("display", "block", "important");
@@ -46,7 +46,6 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= MAIN AUTH ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
@@ -64,19 +63,6 @@ window.register = async () => {
     } catch (error) { window.showMsg("Error: " + error.message); }
 };
 
-window.openForgotPopup = () => get("forgotBox").classList.add("active");
-window.closeForgot = () => get("forgotBox").classList.remove("active");
-
-window.forgotPassword = async () => {
-    let email = get("forgotEmail").value;
-    if (!email) return window.showMsg("Please enter your email");
-    try {
-        await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent! Check Inbox.");
-        closeForgot();
-    } catch (error) { window.showMsg("Error: User not found."); }
-};
-
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
@@ -87,7 +73,6 @@ window.login = async () => {
         const email = snap.data().email;
         try {
             await signInWithEmailAndPassword(auth, email, pass);
-            await updateDoc(userRef, { password: pass });
             localStorage.setItem("user", num);
             get("auth").style.display = "none";
             get("app").style.display = "block";
@@ -98,21 +83,40 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= PASSWORD CHANGE ================= */
-window.changePassword = async () => {
-    let oldPass = get("oldPass").value;
-    let newPass = get("newPass").value;
-    let userNum = localStorage.getItem("user");
-    if(!oldPass || !newPass) return window.showMsg("Enter both passwords");
+/* ================= QR DOWNLOAD LOGIC ================= */
+window.downloadQR = () => {
+    const qrImg = get("qrImage");
+    if (!qrImg.src) return window.showMsg("No QR Image found!");
+    
+    const link = document.createElement("a");
+    link.href = qrImg.src;
+    link.download = "Payment_QR.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+/* ================= MOBILE NATIVE SHARE ================= */
+window.shareReferLink = async () => {
+    const user = localStorage.getItem("user");
+    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
+    const shareData = {
+        title: 'Join INRPAY',
+        text: 'Join INRPAY and start earning rewards daily!',
+        url: link
+    };
+
     try {
-        const user = auth.currentUser;
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, newPass);
-        await updateDoc(doc(db, "users", userNum), { password: newPass });
-        window.showMsg("Password Updated Successfully!");
-        get("oldPass").value = ""; get("newPass").value = "";
-    } catch (e) { window.showMsg("Error: Old password incorrect"); }
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            // Fallback to copy if Web Share API is not supported
+            navigator.clipboard.writeText(link);
+            window.showMsg("Link Copied to Clipboard!");
+        }
+    } catch (err) {
+        console.log("Error sharing:", err);
+    }
 };
 
 /* ================= APP LOGIC ================= */
@@ -135,6 +139,7 @@ window.logout = () => { localStorage.clear(); location.reload(); };
 
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
+
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
@@ -146,12 +151,6 @@ window.submitDeposit = async () => {
 
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
-window.saveBank = async () => {
-    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: get("bankName").value, acc: get("bankAcc").value, ifsc: get("bankIfsc").value
-    });
-    window.showMsg("Bank Saved!"); closeBank();
-};
 
 window.saveWithdrawBank = async () => {
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
@@ -172,26 +171,15 @@ window.submitWithdraw = async () => {
     get("withdrawAmount").value = "";
 };
 
-// Simplified Refer Link (Forces Sign Up page)
-window.copyReferLink = () => {
-    const user = localStorage.getItem("user");
-    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
-    navigator.clipboard.writeText(link).then(() => {
-        window.showMsg("Referral Link Copied!");
-    }).catch(() => {
-        window.showMsg("Copy this: " + link);
-    });
-};
-
 async function loadBankData() {
     let user = localStorage.getItem("user");
     if(!user) return;
     let snap = await getDoc(doc(db, "bank", user));
     if(snap.exists()) {
         const d = snap.data();
-        get("bankName").value = get("earnBankName").value = d.bank || "";
-        get("bankAcc").value = get("earnBankAcc").value = d.acc || "";
-        get("bankIfsc").value = get("earnBankIfsc").value = d.ifsc || "";
+        get("earnBankName").value = d.bank || "";
+        get("earnBankAcc").value = d.acc || "";
+        get("earnBankIfsc").value = d.ifsc || "";
     }
 }
 
@@ -200,17 +188,19 @@ async function loadSettings() {
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome";
-        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; }
+        if(d.qr) { 
+            get("qrImage").src = d.qr; 
+            get("qrImage").style.display = "block"; 
+            get("downloadQrBtn").style.display = "inline-block";
+        }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
 }
 
-// Check for referral link on load
 window.onload = () => {
     const params = new URLSearchParams(window.location.search);
     let u = localStorage.getItem("user");
-    
     if(u) {
         getDoc(doc(db, "users", u)).then(s => {
             if(s.exists()){
@@ -219,11 +209,6 @@ window.onload = () => {
             }
         });
     } else {
-        // If "signup=true" is in link, show Create Account page
-        if(params.get("signup") === "true") {
-            window.showRegister();
-        } else {
-            window.showLogin();
-        }
+        if(params.get("signup") === "true") window.showRegister(); else window.showLogin();
     }
 };
