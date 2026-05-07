@@ -83,7 +83,7 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= FORGOT PASSWORD ================= */
+/* ================= FORGOT & CHANGE PASSWORD ================= */
 window.openForgotPopup = () => get("forgotBox").classList.add("active");
 window.closeForgot = () => get("forgotBox").classList.remove("active");
 
@@ -93,11 +93,33 @@ window.forgotPassword = async () => {
     try {
         await sendPasswordResetEmail(auth, email);
         window.closeForgot();
-        window.showMsg("Reset link sent! Check your Email/Spam folder.");
-    } catch (e) { window.showMsg("Error: User not found or invalid email."); }
+        window.showMsg("Reset link sent! Check Email/Spam folder.");
+    } catch (e) { window.showMsg("Error: User not found."); }
 };
 
-/* ================= BANK MANAGEMENT (SEPARATE) ================= */
+window.changePassword = async () => {
+    let oldPass = get("oldPass").value;
+    let newPass = get("newPass").value;
+    let userNum = localStorage.getItem("user");
+    const user = auth.currentUser;
+
+    if(!oldPass || !newPass) return window.showMsg("Fill both passwords");
+    if(!user) return window.showMsg("Session expired, login again");
+
+    try {
+        const credential = EmailAuthProvider.credential(user.email, oldPass);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPass);
+        await updateDoc(doc(db, "users", userNum), { password: newPass });
+        window.showMsg("Password Updated! ✅");
+        get("oldPass").value = ""; get("newPass").value = "";
+    } catch (e) { window.showMsg("Error: Old password incorrect."); }
+};
+
+/* ================= BANK & DEPOSIT ================= */
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
+
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
 
@@ -106,7 +128,7 @@ window.saveHomeBank = async () => {
     const data = { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value };
     if(!data.bank || !data.acc) return window.showMsg("Fill details");
     await setDoc(doc(db, "bank_home", user), data);
-    window.showMsg("Primary Bank Updated!");
+    window.showMsg("Primary Bank Saved!");
     closeBank();
 };
 
@@ -115,31 +137,45 @@ window.saveWithdrawBank = async () => {
     const data = { bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value };
     if(!data.bank || !data.acc) return window.showMsg("Fill details");
     await setDoc(doc(db, "bank_earning", user), data);
-    window.showMsg("Withdrawal Bank Updated!");
+    window.showMsg("Withdraw Bank Saved!");
 };
 
+/* ================= SHARE & REFER ================= */
+window.shareReferLink = async () => {
+    const user = localStorage.getItem("user");
+    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'INRPAY', text: 'Earn daily with INRPAY!', url: link });
+        } catch (e) { console.log(e); }
+    } else {
+        navigator.clipboard.writeText(link);
+        window.showMsg("Link Copied to Clipboard!");
+    }
+};
+
+/* ================= DATA LOADING ================= */
 async function loadAllBankData() {
     let user = localStorage.getItem("user");
     if(!user) return;
     const hSnap = await getDoc(doc(db, "bank_home", user));
     if(hSnap.exists()){
-        get("homeBankName").value = hSnap.data().bank;
-        get("homeBankAcc").value = hSnap.data().acc;
-        get("homeBankIfsc").value = hSnap.data().ifsc;
+        get("homeBankName").value = hSnap.data().bank || "";
+        get("homeBankAcc").value = hSnap.data().acc || "";
+        get("homeBankIfsc").value = hSnap.data().ifsc || "";
     }
     const eSnap = await getDoc(doc(db, "bank_earning", user));
     if(eSnap.exists()){
-        get("earnBankName").value = eSnap.data().bank;
-        get("earnBankAcc").value = eSnap.data().acc;
-        get("earnBankIfsc").value = eSnap.data().ifsc;
+        get("earnBankName").value = eSnap.data().bank || "";
+        get("earnBankAcc").value = eSnap.data().acc || "";
+        get("earnBankIfsc").value = eSnap.data().ifsc || "";
     }
 }
 
-/* ================= APP LOGIC ================= */
 function loadUserData(data, num) {
-    get("usernameHome").innerText = "Hello, " + data.name;
+    get("usernameHome").innerText = "Hello, " + (data.name || "User");
     get("username2").innerText = data.name;
-    get("useremail").innerText = "Email: " + (data.email || "N/A");
+    get("useremail").innerText = "Email: " + data.email;
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
@@ -157,7 +193,7 @@ window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     await setDoc(doc(db, "deposits", Date.now().toString()), { user: localStorage.getItem("user"), utr: utr, status: "Pending" });
-    window.showMsg("Submitted!"); get("depositBox").classList.remove("active");
+    window.showMsg("Submitted!"); closeDeposit();
 };
 
 window.submitWithdraw = async () => {
@@ -185,7 +221,11 @@ window.onload = () => {
         let u = localStorage.getItem("user");
         if (user && u) {
             getDoc(doc(db, "users", u)).then(s => {
-                if(s.exists()){ get("auth").style.display = "none"; get("app").style.display = "block"; loadUserData(s.data(), u); loadSettings(); loadAllBankData(); }
+                if(s.exists()){ 
+                    get("auth").style.display = "none"; 
+                    get("app").style.display = "block"; 
+                    loadUserData(s.data(), u); loadSettings(); loadAllBankData(); 
+                }
             });
         }
     });
