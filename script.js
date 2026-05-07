@@ -16,28 +16,28 @@ window.showMsg = (t) => { get("msgText").innerText = t; get("msgBox").classList.
 window.closeMsg = () => get("msgBox").classList.remove("active");
 window.togglePass = () => { let p = get("password"); p.type = p.type === "password" ? "text" : "password"; };
 
-/* --- AUTH TOGGLE LOGIC (FORCE HIDE/SHOW) --- */
+/* --- AUTH SWITCHING --- */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.setProperty("display", "block", "important");
-    get("email").style.setProperty("display", "block", "important");
-    get("registerBtn").style.setProperty("display", "block", "important");
-    get("loginBtn").style.setProperty("display", "none", "important");
-    get("forgotText").style.setProperty("display", "none", "important");
+    get("name").style.display = "block"; // REGISTER MODE: SHOW NAME
+    get("email").style.display = "block"; // REGISTER MODE: SHOW EMAIL
+    get("registerBtn").style.display = "block";
+    get("loginBtn").style.display = "none";
+    get("forgotText").style.display = "none";
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.setProperty("display", "none", "important");
-    get("email").style.setProperty("display", "none", "important");
-    get("registerBtn").style.setProperty("display", "none", "important");
-    get("loginBtn").style.setProperty("display", "block", "important");
-    get("forgotText").style.setProperty("display", "block", "important");
+    get("name").style.display = "none"; // LOGIN MODE: HIDE NAME
+    get("email").style.display = "none"; // LOGIN MODE: HIDE EMAIL
+    get("registerBtn").style.display = "none";
+    get("loginBtn").style.display = "block";
+    get("forgotText").style.display = "block";
     get("toggleText").innerHTML = `Don't have account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* --- AUTH ACTIONS --- */
+/* --- FIREBASE ACTIONS --- */
 window.register = async () => {
     let num = get("number").value, name = get("name").value, email = get("email").value, pass = get("password").value;
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Details check karein");
@@ -69,7 +69,7 @@ window.forgotPassword = async () => {
 
 window.changePassword = async () => {
     let oldP = get("oldPass").value, newP = get("newPass").value, u = auth.currentUser;
-    if(!oldP || !newP) return window.showMsg("Dono fields bharein");
+    if(!oldP || !newP) return window.showMsg("Fields empty!");
     try {
         const cred = EmailAuthProvider.credential(u.email, oldP);
         await reauthenticateWithCredential(u, cred);
@@ -79,7 +79,7 @@ window.changePassword = async () => {
     } catch (e) { window.showMsg("Old password galat hai!"); }
 };
 
-/* --- APP LOGIC --- */
+/* --- APP FEATURES --- */
 window.shareReferLink = async () => {
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + localStorage.getItem("user");
     if (navigator.share) await navigator.share({ title: 'INRPAY', url: link });
@@ -90,11 +90,9 @@ window.downloadQR = () => { const a = document.createElement("a"); a.href = get(
 
 window.saveWithdrawBank = async () => {
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: get("earnBankName").value || get("bankName").value,
-        acc: get("earnBankAcc").value || get("bankAcc").value,
-        ifsc: get("earnBankIfsc").value || get("bankIfsc").value
+        bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value
     });
-    window.showMsg("Saved!"); closeBank();
+    window.showMsg("Saved!");
 };
 
 window.submitWithdraw = async () => {
@@ -110,8 +108,8 @@ window.openForgotPopup = () => get("forgotBox").classList.add("active");
 window.closeForgot = () => get("forgotBox").classList.remove("active");
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
-window.openBank = () => get("bankBox").classList.add("active");
-window.closeBank = () => get("bankBox").classList.remove("active");
+window.openBank = () => { window.showPage('earningPage'); window.showMsg("Bank details update karein niche!"); };
+
 window.submitDeposit = async () => { await setDoc(doc(db,"deposits",Date.now().toString()),{user:localStorage.getItem("user"),utr:get("utr").value,status:"Pending"}); window.showMsg("Submitted!"); closeDeposit(); };
 
 async function loadData() {
@@ -128,9 +126,9 @@ async function loadData() {
     let bankSnap = await getDoc(doc(db, "bank", u));
     if(bankSnap.exists()){
         let bd = bankSnap.data();
-        get("earnBankName").value = get("bankName").value = bd.bank || "";
-        get("earnBankAcc").value = get("bankAcc").value = bd.acc || "";
-        get("earnBankIfsc").value = get("bankIfsc").value = bd.ifsc || "";
+        get("earnBankName").value = bd.bank || "";
+        get("earnBankAcc").value = bd.acc || "";
+        get("earnBankIfsc").value = bd.ifsc || "";
     }
     let setSnap = await getDoc(doc(db, "settings", "main"));
     if(setSnap.exists()){
