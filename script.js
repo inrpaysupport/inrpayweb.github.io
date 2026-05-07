@@ -19,25 +19,25 @@ window.togglePass = () => { let p = get("password"); p.type = p.type === "passwo
 /* --- AUTH SWITCHING --- */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block"; // REGISTER MODE: SHOW NAME
-    get("email").style.display = "block"; // REGISTER MODE: SHOW EMAIL
-    get("registerBtn").style.display = "block";
-    get("loginBtn").style.display = "none";
-    get("forgotText").style.display = "none";
+    get("name").style.setProperty("display", "block", "important");
+    get("email").style.setProperty("display", "block", "important");
+    get("registerBtn").style.setProperty("display", "block", "important");
+    get("loginBtn").style.setProperty("display", "none", "important");
+    get("forgotText").style.setProperty("display", "none", "important");
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.display = "none"; // LOGIN MODE: HIDE NAME
-    get("email").style.display = "none"; // LOGIN MODE: HIDE EMAIL
-    get("registerBtn").style.display = "none";
-    get("loginBtn").style.display = "block";
-    get("forgotText").style.display = "block";
+    get("name").style.setProperty("display", "none", "important");
+    get("email").style.setProperty("display", "none", "important");
+    get("registerBtn").style.setProperty("display", "none", "important");
+    get("loginBtn").style.setProperty("display", "block", "important");
+    get("forgotText").style.setProperty("display", "block", "important");
     get("toggleText").innerHTML = `Don't have account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* --- FIREBASE ACTIONS --- */
+/* --- ACTIONS --- */
 window.register = async () => {
     let num = get("number").value, name = get("name").value, email = get("email").value, pass = get("password").value;
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Details check karein");
@@ -64,7 +64,7 @@ window.login = async () => {
 window.forgotPassword = async () => {
     let email = get("forgotEmail").value;
     if(!email) return window.showMsg("Email daalein");
-    try { await sendPasswordResetEmail(auth, email); window.showMsg("Reset link sent!"); closeForgot(); } catch (e) { window.showMsg("User not found!"); }
+    try { await sendPasswordResetEmail(auth, email); window.showMsg("Reset link sent!"); get("forgotBox").classList.remove("active"); } catch (e) { window.showMsg("User not found!"); }
 };
 
 window.changePassword = async () => {
@@ -79,7 +79,6 @@ window.changePassword = async () => {
     } catch (e) { window.showMsg("Old password galat hai!"); }
 };
 
-/* --- APP FEATURES --- */
 window.shareReferLink = async () => {
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + localStorage.getItem("user");
     if (navigator.share) await navigator.share({ title: 'INRPAY', url: link });
@@ -108,8 +107,7 @@ window.openForgotPopup = () => get("forgotBox").classList.add("active");
 window.closeForgot = () => get("forgotBox").classList.remove("active");
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
-window.openBank = () => { window.showPage('earningPage'); window.showMsg("Bank details update karein niche!"); };
-
+window.openBank = () => { window.showPage('earningPage'); window.showMsg("Bank details niche update karein!"); };
 window.submitDeposit = async () => { await setDoc(doc(db,"deposits",Date.now().toString()),{user:localStorage.getItem("user"),utr:get("utr").value,status:"Pending"}); window.showMsg("Submitted!"); closeDeposit(); };
 
 async function loadData() {
