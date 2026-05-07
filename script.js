@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-// Firebase Configuration
 const app = initializeApp({
     apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
     authDomain: "inrpay-44413.firebaseapp.com",
@@ -13,23 +12,16 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY FUNCTIONS ================= */
-window.showMsg = (t) => {
-    get("msgText").innerText = t;
-    get("msgBox").classList.add("active");
-};
+/* UTILS */
+window.showMsg = (t) => { get("msgText").innerText = t; get("msgBox").classList.add("active"); };
 window.closeMsg = () => get("msgBox").classList.remove("active");
+window.togglePass = () => { let p = get("password"); p.type = p.type === "password" ? "text" : "password"; };
 
-window.togglePass = () => {
-    let p = get("password");
-    p.type = p.type === "password" ? "text" : "password";
-};
-
-/* ================= AUTH SWITCH LOGIC ================= */
+/* AUTH SWITCHING (ONLY NUMBER & PASS FOR LOGIN) */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.setProperty("display", "block", "important");
-    get("email").style.setProperty("display", "block", "important");
+    get("name").style.display = "block";
+    get("email").style.display = "block";
     get("registerBtn").style.display = "block";
     get("loginBtn").style.display = "none";
     get("forgotText").style.display = "none";
@@ -38,104 +30,119 @@ window.showRegister = () => {
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.setProperty("display", "none", "important");
-    get("email").style.setProperty("display", "none", "important");
+    get("name").style.display = "none";
+    get("email").style.display = "none";
     get("registerBtn").style.display = "none";
     get("loginBtn").style.display = "block";
     get("forgotText").style.display = "block";
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= MAIN AUTH ACTIONS ================= */
+/* AUTH ACTIONS */
 window.register = async () => {
-    let num = get("number").value;
-    let name = get("name").value;
-    let email = get("email").value;
-    let pass = get("password").value;
-    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
+    let num = get("number").value, name = get("name").value, email = get("email").value, pass = get("password").value;
+    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Details check karein");
     try {
         await createUserWithEmailAndPassword(auth, email, pass);
-        await setDoc(doc(db, "users", num), {
-            name: name, email: email, password: pass, balance: 0,
-            uid: Math.floor(100000 + Math.random() * 900000)
-        });
-        window.showMsg("Account Created Successfully!");
-        window.showLogin();
-    } catch (error) { window.showMsg("Registration Error: " + error.message); }
-};
-
-window.openForgotPopup = () => get("forgotBox").classList.add("active");
-window.closeForgot = () => get("forgotBox").classList.remove("active");
-
-window.forgotPassword = async () => {
-    let email = get("forgotEmail").value;
-    if (!email) return window.showMsg("Please enter your email");
-    try {
-        await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent! Check Inbox and Spam folder.");
-        closeForgot();
-    } catch (error) { window.showMsg("Error: User not found."); }
+        await setDoc(doc(db, "users", num), { name, email, password: pass, balance: 0, uid: Math.floor(100000 + Math.random() * 900000) });
+        window.showMsg("Account Created!"); window.showLogin();
+    } catch (e) { window.showMsg(e.message); }
 };
 
 window.login = async () => {
-    let num = get("number").value;
-    let pass = get("password").value;
+    let num = get("number").value, pass = get("password").value;
     if(!num || !pass) return window.showMsg("Enter Number & Password");
-    const userRef = doc(db, "users", num);
-    const snap = await getDoc(userRef);
+    const snap = await getDoc(doc(db, "users", num));
     if (snap.exists()) {
-        const email = snap.data().email;
         try {
-            await signInWithEmailAndPassword(auth, email, pass);
-            await updateDoc(userRef, { password: pass });
+            await signInWithEmailAndPassword(auth, snap.data().email, pass);
             localStorage.setItem("user", num);
-            get("auth").style.display = "none";
-            get("app").style.display = "block";
-            loadUserData(snap.data(), num);
-            loadSettings();
-            loadBankData();
+            location.reload();
         } catch (e) { window.showMsg("Invalid Password!"); }
-    } else { window.showMsg("Not registered!"); }
+    } else window.showMsg("Number not registered!");
 };
 
-/* ================= WORKING PASSWORD CHANGE ================= */
-window.changePassword = async () => {
-    let oldPass = get("oldPass").value;
-    let newPass = get("newPass").value;
-    let userNum = localStorage.getItem("user");
-
-    if(!oldPass || !newPass) return window.showMsg("Enter both passwords");
-    if(newPass.length < 6) return window.showMsg("New password: min 6 chars");
-
+/* FORGOT PASSWORD */
+window.openForgotPopup = () => get("forgotBox").classList.add("active");
+window.closeForgot = () => get("forgotBox").classList.remove("active");
+window.forgotPassword = async () => {
+    let email = get("forgotEmail").value;
+    if(!email) return window.showMsg("Enter your email");
     try {
-        const user = auth.currentUser;
-        if (!user) return window.showMsg("Session expired, please login again");
+        await sendPasswordResetEmail(auth, email);
+        window.showMsg("Reset link sent to your email!");
+        window.closeForgot();
+    } catch (e) { window.showMsg("Error: User not found"); }
+};
 
-        // Firebase re-authentication (Security requirement)
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
+/* CHANGE PASSWORD */
+window.changePassword = async () => {
+    let oldP = get("oldPass").value, newP = get("newPass").value, u = auth.currentUser;
+    if(!oldP || !newP) return window.showMsg("Dono password daalein");
+    try {
+        const cred = EmailAuthProvider.credential(u.email, oldP);
+        await reauthenticateWithCredential(u, cred);
+        await updatePassword(u, newP);
+        await updateDoc(doc(db, "users", localStorage.getItem("user")), { password: newP });
+        window.showMsg("Password Updated! ✅");
+        get("oldPass").value = get("newPass").value = "";
+    } catch (e) { window.showMsg("Old password is incorrect"); }
+};
 
-        // Update in Auth
-        await updatePassword(user, newPass);
+/* DEPOSIT & QR */
+window.downloadQR = () => {
+    const link = document.createElement("a");
+    link.href = get("qrImage").src;
+    link.download = "INRPAY_QR.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 
-        // Update in Firestore
-        const userRef = doc(db, "users", userNum);
-        await updateDoc(userRef, { password: newPass });
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
+window.submitDeposit = async () => {
+    let utr = get("utr").value;
+    if(!utr) return window.showMsg("Enter UTR!");
+    await setDoc(doc(db, "deposits", Date.now().toString()), { user: localStorage.getItem("user"), utr, status: "Pending" });
+    window.showMsg("Submitted!"); closeDeposit();
+};
 
-        window.showMsg("Password Updated Successfully!");
-        get("oldPass").value = ""; 
-        get("newPass").value = "";
-    } catch (e) {
-        window.showMsg("Error: Old password incorrect or server error");
-        console.error(e);
+/* BANK & WITHDRAWAL */
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+window.saveWithdrawBank = async () => {
+    let u = localStorage.getItem("user");
+    await setDoc(doc(db, "bank", u), {
+        bank: get("earnBankName").value || get("bankName").value,
+        acc: get("earnBankAcc").value || get("bankAcc").value,
+        ifsc: get("earnBankIfsc").value || get("bankIfsc").value
+    });
+    window.showMsg("Bank Details Saved!"); closeBank();
+};
+
+window.submitWithdraw = async () => {
+    let amt = get("withdrawAmount").value, bal = parseInt(localStorage.getItem("currentBalance"));
+    if(amt < 100 || amt > bal) return window.showMsg("Invalid Amount or Balance");
+    await setDoc(doc(db, "withdrawals", Date.now().toString()), { user: localStorage.getItem("user"), amount: amt, status: "Pending", date: new Date().toLocaleString() });
+    window.showMsg("Withdraw Request Sent!"); get("withdrawAmount").value = "";
+};
+
+/* REFER & SHARE */
+window.shareReferLink = async () => {
+    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + localStorage.getItem("user");
+    if (navigator.share) {
+        try { await navigator.share({ title: 'INRPAY', text: 'Join now and earn!', url: link }); } catch (e) { console.log(e); }
+    } else {
+        navigator.clipboard.writeText(link); window.showMsg("Link Copied!");
     }
 };
 
-/* ================= OTHER APP LOGIC ================= */
+/* DATA LOADING */
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + data.name;
     get("username2").innerText = data.name;
-    get("useremail").innerText = "Email: " + (data.email || "N/A");
+    get("useremail").innerText = data.email;
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
@@ -149,34 +156,13 @@ window.showPage = (id) => {
 
 window.logout = () => { localStorage.clear(); location.reload(); };
 
-window.deposit = () => get("depositBox").classList.add("active");
-window.closeDeposit = () => get("depositBox").classList.remove("active");
-window.submitDeposit = async () => {
-    let utr = get("utr").value;
-    if(!utr) return window.showMsg("Enter UTR!");
-    await setDoc(doc(db, "deposits", Date.now().toString()), {
-        user: localStorage.getItem("user"), utr: utr, status: "Pending"
-    });
-    window.showMsg("Submitted!"); closeDeposit();
-};
-
-window.openBank = () => get("bankBox").classList.add("active");
-window.closeBank = () => get("bankBox").classList.remove("active");
-window.saveBank = async () => {
-    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: get("bankName").value, acc: get("bankAcc").value, ifsc: get("bankIfsc").value
-    });
-    window.showMsg("Bank Saved!"); closeBank();
-};
-
 async function loadBankData() {
-    let user = localStorage.getItem("user");
-    if(!user) return;
-    let snap = await getDoc(doc(db, "bank", user));
+    let snap = await getDoc(doc(db, "bank", localStorage.getItem("user")));
     if(snap.exists()) {
-        get("bankName").value = snap.data().bank || "";
-        get("bankAcc").value = snap.data().acc || "";
-        get("bankIfsc").value = snap.data().ifsc || "";
+        let d = snap.data();
+        get("earnBankName").value = get("bankName").value = d.bank || "";
+        get("earnBankAcc").value = get("bankAcc").value = d.acc || "";
+        get("earnBankIfsc").value = get("bankIfsc").value = d.ifsc || "";
     }
 }
 
@@ -185,20 +171,28 @@ async function loadSettings() {
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome";
-        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; }
+        if(d.qr) { 
+            get("qrImage").src = d.qr; get("qrImage").style.display = "block"; 
+            get("downloadQrBtn").style.display = "inline-block";
+        }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
 }
 
 window.onload = () => {
-    let u = localStorage.getItem("user");
-    if(u) {
-        getDoc(doc(db, "users", u)).then(s => {
-            if(s.exists()){
-                get("auth").style.display = "none"; get("app").style.display = "block";
-                loadUserData(s.data(), u); loadSettings(); loadBankData();
-            }
-        });
-    } else { window.showLogin(); }
+    const params = new URLSearchParams(window.location.search);
+    onAuthStateChanged(auth, (user) => {
+        let u = localStorage.getItem("user");
+        if (user && u) {
+            getDoc(doc(db, "users", u)).then(s => {
+                if(s.exists()){
+                    get("auth").style.display = "none"; get("app").style.display = "block";
+                    loadUserData(s.data(), u); loadSettings(); loadBankData();
+                }
+            });
+        } else {
+            if(params.get("signup") === "true") window.showRegister(); else window.showLogin();
+        }
+    });
 };
