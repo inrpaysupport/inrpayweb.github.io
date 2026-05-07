@@ -28,6 +28,14 @@
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
         .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
         .no-data-box { text-align: center; padding: 20px; color: #ccc; font-style: italic; }
+        
+        /* New Styles for Compact Layout */
+        .flex-row { display: flex; gap: 5px; width: 90%; margin: 0 auto; }
+        .flex-row input { margin: 5px 0 !important; font-size: 12px; padding: 8px; }
+        .refer-box { 
+            background: linear-gradient(45deg, #6a11cb, #2575fc); 
+            border-radius: 12px; padding: 15px; margin: 15px; text-align: center; 
+        }
     </style>
 </head>
 <body>
@@ -76,17 +84,30 @@
     </div>
 
     <div id="earningPage" class="page" style="display:none;">
-        <div class="card">
-            <h3 style="text-align:center;">Bank Details</h3>
-            <input id="earnBankName" placeholder="Account Holder Name">
-            <input id="earnBankAcc" placeholder="Account Number">
-            <input id="earnBankIfsc" placeholder="IFSC Code">
-            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:100%; border:none; border-radius:8px; padding:10px; margin-top:5px;">Update Bank Details</button>
+        <div class="card" style="padding: 10px;">
+            <h3 style="text-align:center; margin: 5px 0;">🏦 Bank & Withdrawal</h3>
+            <div class="flex-row">
+                <input id="earnBankName" placeholder="Name">
+                <input id="earnBankAcc" placeholder="A/C No">
+                <input id="earnBankIfsc" placeholder="IFSC">
+            </div>
+            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; font-size:12px;">Update Bank Details</button>
+            
+            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 10px 0;">
+            
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 90%; margin: 0 auto;">
+                <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="margin:0 !important; flex: 2;">
+                <button onclick="submitWithdraw()" style="background:#4caf50; color:white; flex: 1; margin:0 !important; padding:12px; font-weight:bold; border-radius: 10px;">Withdraw</button>
+            </div>
         </div>
-        <div class="card">
-            <h3 style="text-align:center;">Withdrawal</h3>
-            <input id="withdrawAmount" type="number" placeholder="Earning (Min ₹100)">
-            <button onclick="submitWithdraw()" style="background:#4caf50; color:white; width:100%; border:none; border-radius:8px; padding:12px; font-weight:bold; margin-top:10px;">Request Withdraw</button>
+
+        <div class="refer-box">
+            <h3 style="margin: 0;">🎁 Refer & Earn</h3>
+            <p style="font-size: 13px; opacity: 0.9;">Invite friends and earn rewards!</p>
+            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; margin: 10px 0; border: 1px dashed white;">
+                <span id="referCodeDisplay" style="font-weight: bold; font-size: 18px; letter-spacing: 2px;">......</span>
+            </div>
+            <button onclick="copyReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px;">Copy Referral Link</button>
         </div>
     </div>
 
