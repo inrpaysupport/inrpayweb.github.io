@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
 const app = initializeApp({
@@ -13,7 +13,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY ================= */
+/* ================= UTILITY FUNCTIONS ================= */
 window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
@@ -25,7 +25,7 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH LOGIC ================= */
+/* ================= AUTH SWITCH LOGIC ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.setProperty("display", "block", "important");
@@ -46,6 +46,7 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
+/* ================= MAIN AUTH ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
@@ -60,7 +61,7 @@ window.register = async () => {
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { window.showMsg("Error: " + error.message); }
+    } catch (error) { window.showMsg("Registration Error: " + error.message); }
 };
 
 window.login = async () => {
@@ -83,39 +84,40 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= QR DOWNLOAD LOGIC ================= */
-window.downloadQR = () => {
-    const qrImg = get("qrImage");
-    if (!qrImg.src) return window.showMsg("No QR Image found!");
-    
-    const link = document.createElement("a");
-    link.href = qrImg.src;
-    link.download = "Payment_QR.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
+/* ================= CHANGE PASSWORD WORKING ================= */
+window.changePassword = async () => {
+    let oldPass = get("oldPass").value;
+    let newPass = get("newPass").value;
+    let userNum = localStorage.getItem("user");
 
-/* ================= MOBILE NATIVE SHARE ================= */
-window.shareReferLink = async () => {
-    const user = localStorage.getItem("user");
-    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
-    const shareData = {
-        title: 'Join INRPAY',
-        text: 'Join INRPAY and start earning rewards daily!',
-        url: link
-    };
+    if(!oldPass || !newPass) return window.showMsg("Please enter both passwords");
+    if(newPass.length < 6) return window.showMsg("New password must be at least 6 characters");
+
+    const user = auth.currentUser;
+    if (!user) return window.showMsg("Session expired. Please login again.");
 
     try {
-        if (navigator.share) {
-            await navigator.share(shareData);
+        // 1. Re-authenticate user (Security requirement for changing password)
+        const credential = EmailAuthProvider.credential(user.email, oldPass);
+        await reauthenticateWithCredential(user, credential);
+
+        // 2. Update password in Firebase Auth
+        await updatePassword(user, newPass);
+
+        // 3. Update password in Firestore (Users collection)
+        const userRef = doc(db, "users", userNum);
+        await updateDoc(userRef, { password: newPass });
+
+        window.showMsg("Password Updated Successfully! ✅");
+        get("oldPass").value = "";
+        get("newPass").value = "";
+    } catch (error) {
+        console.error(error);
+        if (error.code === 'auth/wrong-password') {
+            window.showMsg("Error: Old password is incorrect");
         } else {
-            // Fallback to copy if Web Share API is not supported
-            navigator.clipboard.writeText(link);
-            window.showMsg("Link Copied to Clipboard!");
+            window.showMsg("Error: " + error.message);
         }
-    } catch (err) {
-        console.log("Error sharing:", err);
     }
 };
 
@@ -128,6 +130,7 @@ function loadUserData(data, num) {
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
     localStorage.setItem("currentBalance", data.balance || 0);
+    localStorage.setItem("userUID", data.uid);
 }
 
 window.showPage = (id) => {
@@ -136,6 +139,32 @@ window.showPage = (id) => {
 };
 
 window.logout = () => { localStorage.clear(); location.reload(); };
+
+// QR Download
+window.downloadQR = () => {
+    const qrImg = get("qrImage");
+    if (!qrImg.src) return window.showMsg("No QR Image found!");
+    const link = document.createElement("a");
+    link.href = qrImg.src;
+    link.download = "Payment_QR.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Mobile Share
+window.shareReferLink = async () => {
+    const user = localStorage.getItem("user");
+    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'INRPAY', text: 'Join now and earn!', url: link });
+        } catch (e) { console.log(e); }
+    } else {
+        navigator.clipboard.writeText(link);
+        window.showMsg("Link Copied!");
+    }
+};
 
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
@@ -148,9 +177,6 @@ window.submitDeposit = async () => {
     });
     window.showMsg("Submitted!"); closeDeposit();
 };
-
-window.openBank = () => get("bankBox").classList.add("active");
-window.closeBank = () => get("bankBox").classList.remove("active");
 
 window.saveWithdrawBank = async () => {
     await setDoc(doc(db, "bank", localStorage.getItem("user")), {
@@ -191,7 +217,7 @@ async function loadSettings() {
         if(d.qr) { 
             get("qrImage").src = d.qr; 
             get("qrImage").style.display = "block"; 
-            get("downloadQrBtn").style.display = "inline-block";
+            if(get("downloadQrBtn")) get("downloadQrBtn").style.display = "inline-block";
         }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
@@ -201,14 +227,18 @@ async function loadSettings() {
 window.onload = () => {
     const params = new URLSearchParams(window.location.search);
     let u = localStorage.getItem("user");
-    if(u) {
-        getDoc(doc(db, "users", u)).then(s => {
-            if(s.exists()){
-                get("auth").style.display = "none"; get("app").style.display = "block";
-                loadUserData(s.data(), u); loadSettings(); loadBankData();
-            }
-        });
-    } else {
-        if(params.get("signup") === "true") window.showRegister(); else window.showLogin();
-    }
+    
+    // Auth State Listener
+    onAuthStateChanged(auth, (user) => {
+        if (user && u) {
+            getDoc(doc(db, "users", u)).then(s => {
+                if(s.exists()){
+                    get("auth").style.display = "none"; get("app").style.display = "block";
+                    loadUserData(s.data(), u); loadSettings(); loadBankData();
+                }
+            });
+        } else {
+            if(params.get("signup") === "true") window.showRegister(); else window.showLogin();
+        }
+    });
 };
