@@ -54,7 +54,6 @@ window.register = async () => {
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
     try {
         await createUserWithEmailAndPassword(auth, email, pass);
-        // UID generate ho raha hai yahan
         let generatedUID = Math.floor(100000 + Math.random() * 900000);
         await setDoc(doc(db, "users", num), {
             name: name, email: email, password: pass, balance: 0,
@@ -87,11 +86,36 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= DEPOSIT HISTORY LOGIC ================= */
+/* ================= SETTINGS: CHANGE PASSWORD ================= */
+window.changePassword = async () => {
+    const user = auth.currentUser;
+    const oldPass = get("oldPass").value;
+    const newPass = get("newPass").value;
+
+    if (!user) return window.showMsg("Please login again!");
+    if (!oldPass || !newPass) return window.showMsg("Fill both password fields!");
+    if (newPass.length < 6) return window.showMsg("New password must be 6+ chars!");
+
+    try {
+        const credential = EmailAuthProvider.credential(user.email, oldPass);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPass);
+
+        const userNum = localStorage.getItem("user");
+        await updateDoc(doc(db, "users", userNum), { password: newPass });
+
+        window.showMsg("Password updated successfully!");
+        get("oldPass").value = "";
+        get("newPass").value = "";
+    } catch (error) {
+        window.showMsg(error.code === "auth/wrong-password" ? "Wrong old password!" : "Error: " + error.message);
+    }
+};
+
+/* ================= DEPOSIT HISTORY ================= */
 function renderDepositHistory() {
     let list = get("depositHistoryList");
     let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
-
     if (history.length === 0) {
         list.innerHTML = `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
     } else {
@@ -107,31 +131,21 @@ function renderDepositHistory() {
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
-
     let now = new Date().toLocaleString();
     let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
     history.push({ utr: utr, date: now });
     localStorage.setItem("dep_history", JSON.stringify(history));
-
     await setDoc(doc(db, "deposits", Date.now().toString()), { 
-        user: localStorage.getItem("user"), 
-        utr: utr, 
-        status: "Pending",
-        date: now 
+        user: localStorage.getItem("user"), utr: utr, status: "Pending", date: now 
     });
-
     window.showMsg("Submitted Successfully!");
     get("utr").value = "";
     renderDepositHistory();
 };
 
 /* ================= OTHER ACTIONS ================= */
-window.deposit = () => {
-    renderDepositHistory();
-    get("depositBox").classList.add("active");
-};
+window.deposit = () => { renderDepositHistory(); get("depositBox").classList.add("active"); };
 window.closeDeposit = () => get("depositBox").classList.remove("active");
-
 window.openBank = () => get("bankBox").classList.add("active");
 window.closeBank = () => get("bankBox").classList.remove("active");
 
@@ -154,33 +168,18 @@ window.saveWithdrawBank = async () => {
 
 function renderReferrals() {
     let list = get("referralList");
-    let referralData = []; 
-    if(referralData.length === 0) {
-        list.innerHTML = `<div class="no-data-box">No referrals available</div>`;
-    } else {
-        list.innerHTML = referralData.map(ref => `
-            <div class="history-item">
-                <span>👤 ${ref.name}</span>
-                <span style="color:#4caf50;">+₹${ref.amount}</span>
-            </div>
-        `).join('');
-    }
+    list.innerHTML = `<div class="no-data-box">No referrals available</div>`;
 }
 
-// UPDATED: Ab ye Mobile Number ki jagah UID share karega
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
-    if(!userUID) return window.showMsg("Loading user data, please wait...");
-
+    if(!userUID) return window.showMsg("Data loading...");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
-    
     if (navigator.share) {
-        try {
-            await navigator.share({ title: 'INRPAY', text: 'Earn daily with INRPAY!', url: link });
-        } catch (e) { console.log(e); }
+        try { await navigator.share({ title: 'INRPAY', text: 'Earn daily!', url: link }); } catch (e) {}
     } else {
         navigator.clipboard.writeText(link);
-        window.showMsg("Link Copied (UID based)!");
+        window.showMsg("Link Copied!");
     }
 };
 
@@ -201,7 +200,6 @@ async function loadAllBankData() {
     }
 }
 
-// UPDATED: UID ko localStorage mein save kiya gaya hai
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + (data.name || "User");
     get("username2").innerText = data.name;
@@ -209,9 +207,8 @@ function loadUserData(data, num) {
     get("usernumber").innerText = "Mobile: " + num;
     get("userid").innerText = "UID: " + data.uid;
     get("balance").innerText = "₹" + (data.balance || 0);
-    
     localStorage.setItem("currentBalance", data.balance || 0);
-    localStorage.setItem("userUID", data.uid); // Share link ke liye zaroori hai
+    localStorage.setItem("userUID", data.uid);
 }
 
 window.showPage = (id) => {
@@ -224,7 +221,7 @@ window.logout = () => { localStorage.clear(); location.reload(); };
 window.submitWithdraw = async () => {
     let amt = get("withdrawAmount").value;
     let bal = parseInt(localStorage.getItem("currentBalance"));
-    if(!amt || amt < 100) return window.showMsg("Min ₹100 required!");
+    if(!amt || amt < 100) return window.showMsg("Min ₹100!");
     if(amt > bal) return window.showMsg("Insufficient Balance!");
     await setDoc(doc(db, "withdrawals", Date.now().toString()), { user: localStorage.getItem("user"), amount: amt, status: "Pending", date: new Date().toLocaleString() });
     window.showMsg("Request Submitted!");
@@ -247,8 +244,7 @@ window.onload = () => {
         if (user && u) {
             getDoc(doc(db, "users", u)).then(s => {
                 if(s.exists()){ 
-                    get("auth").style.display = "none"; 
-                    get("app").style.display = "block"; 
+                    get("auth").style.display = "none"; get("app").style.display = "block"; 
                     loadUserData(s.data(), u); loadSettings(); loadAllBankData(); 
                     renderReferrals(); renderDepositHistory();
                 }
