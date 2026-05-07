@@ -12,26 +12,46 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY & UI ================= */
+/* ================= UI CONTROLS ================= */
 window.showMsg = (t) => { get("msgText").innerText = t; get("msgBox").classList.add("active"); };
 window.closeMsg = () => get("msgBox").classList.remove("active");
 window.togglePass = () => { let p = get("password"); p.type = p.type === "password" ? "text" : "password"; };
 
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block"; get("email").style.display = "block"; get("referralInput").style.display = "block";
-    get("registerBtn").style.display = "block"; get("loginBtn").style.display = "none"; get("forgotText").style.display = "none";
+    
+    // Sab fields dikhao
+    get("name").style.setProperty("display", "block", "important");
+    get("number").style.setProperty("display", "block", "important");
+    get("email").style.setProperty("display", "block", "important");
+    get("passWrapper").style.setProperty("display", "block", "important");
+    get("referralInput").style.setProperty("display", "block", "important");
+    
+    get("registerBtn").style.display = "block";
+    get("loginBtn").style.display = "none";
+    get("forgotText").style.display = "none";
     get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
 };
 
 window.showLogin = () => {
     get("authTitle").innerText = "Sign In";
-    get("name").style.display = "none"; get("email").style.display = "none"; get("referralInput").style.display = "none";
-    get("registerBtn").style.display = "none"; get("loginBtn").style.display = "block"; get("forgotText").style.display = "block";
+    
+    // Signin mein Name, Email aur Referral ko forcibly hide karo
+    get("name").style.setProperty("display", "none", "important");
+    get("email").style.setProperty("display", "none", "important");
+    get("referralInput").style.setProperty("display", "none", "important");
+    
+    // Sirf Number aur Password dikhao
+    get("number").style.setProperty("display", "block", "important");
+    get("passWrapper").style.setProperty("display", "block", "important");
+    
+    get("registerBtn").style.display = "none";
+    get("loginBtn").style.display = "block";
+    get("forgotText").style.display = "block";
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= REFERRAL LOGIC ================= */
+/* ================= REFERRAL & INVITE ================= */
 function checkReferralURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
@@ -47,19 +67,20 @@ window.copyInviteLink = () => {
     navigator.clipboard.writeText(link).then(() => window.showMsg("Invite Link Copied!"));
 };
 
-/* ================= AUTH ACTIONS ================= */
+/* ================= AUTH LOGIC ================= */
 window.register = async () => {
     let num = get("number").value, name = get("name").value, email = get("email").value, pass = get("password").value, ref = get("referralInput").value || "none";
-    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details");
+    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
     try {
         await createUserWithEmailAndPassword(auth, email, pass);
         await setDoc(doc(db, "users", num), { name, email, password: pass, balance: 0, referredBy: ref, uid: Math.floor(100000 + Math.random() * 900000) });
-        window.showMsg("Success!"); window.showLogin();
+        window.showMsg("Registration Successful!"); window.showLogin();
     } catch (e) { window.showMsg(e.message); }
 };
 
 window.login = async () => {
     let num = get("number").value, pass = get("password").value;
+    if(!num || !pass) return window.showMsg("Enter credentials");
     const snap = await getDoc(doc(db, "users", num));
     if (snap.exists()) {
         try {
@@ -67,19 +88,21 @@ window.login = async () => {
             localStorage.setItem("user", num);
             location.reload();
         } catch (e) { window.showMsg("Wrong Password!"); }
-    } else window.showMsg("User not found!");
+    } else window.showMsg("Number not registered!");
 };
 
 window.openForgotPopup = () => get("forgotBox").classList.add("active");
 window.closeForgot = () => get("forgotBox").classList.remove("active");
 window.forgotPassword = async () => {
+    let email = get("forgotEmail").value;
+    if(!email) return window.showMsg("Enter email");
     try {
-        await sendPasswordResetEmail(auth, get("forgotEmail").value);
-        window.showMsg("Reset link sent! Check Inbox/Spam."); closeForgot();
-    } catch (e) { window.showMsg("Error!"); }
+        await sendPasswordResetEmail(auth, email);
+        window.showMsg("Reset link sent! Please check Inbox and Spam folder."); closeForgot();
+    } catch (e) { window.showMsg("User not found!"); }
 };
 
-/* ================= PASSWORD CHANGE (WORKING) ================= */
+/* ================= SETTINGS (WORKING) ================= */
 window.changePassword = async () => {
     let oldP = get("oldPass").value, newP = get("newPass").value, uNum = localStorage.getItem("user");
     if(!oldP || !newP) return window.showMsg("Enter passwords");
@@ -91,7 +114,7 @@ window.changePassword = async () => {
         await updateDoc(doc(db, "users", uNum), { password: newP });
         window.showMsg("Password Updated!");
         get("oldPass").value = ""; get("newPass").value = "";
-    } catch (e) { window.showMsg("Old password incorrect!"); }
+    } catch (e) { window.showMsg("Error: Old password incorrect"); }
 };
 
 /* ================= APP CORE ================= */
@@ -124,4 +147,20 @@ window.onload = () => {
     } else {
         showLogin(); checkReferralURL();
     }
+};
+
+/* ================= DEPOSIT/BANK FUNCTIONS ================= */
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
+window.submitDeposit = async () => {
+    let utr = get("utr").value;
+    if(!utr) return window.showMsg("Enter UTR!");
+    await setDoc(doc(db, "deposits", Date.now().toString()), { user: localStorage.getItem("user"), utr: utr, status: "Pending" });
+    window.showMsg("Submitted!"); closeDeposit();
+};
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+window.saveBank = async () => {
+    await setDoc(doc(db, "bank", localStorage.getItem("user")), { bank: get("bankName").value, acc: get("bankAcc").value, ifsc: get("bankIfsc").value });
+    window.showMsg("Bank Saved!"); closeBank();
 };
