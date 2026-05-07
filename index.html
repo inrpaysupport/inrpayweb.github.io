@@ -5,25 +5,20 @@
     <title>INRPAY</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* CSS se important hatane ke liye ya overwrite karne ke liye inline styles ka sahara liya gaya hai */
         input, .passwordBox {
             width: 85% !important;
             margin: 10px auto !important;
             display: block !important;
         }
-        .passwordBox { position: relative; }
+        .passwordBox { position: relative; padding: 0 !important; }
         .passwordBox input { width: 100% !important; margin: 0 !important; }
         .popup { z-index: 9999 !important; }
         .bottomNav { 
             z-index: 1000 !important; 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            display: flex; 
-            justify-content: space-around; 
-            background: #111; 
-            padding: 12px 0; 
-            text-align: center;
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            display: flex; justify-content: space-around; 
+            background: #111; padding: 12px 0; text-align: center;
         }
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
         .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
@@ -39,7 +34,7 @@
     <input id="number" placeholder="Mobile Number" maxlength="10">
     <input id="email" placeholder="Email Address">
     
-    <div class="passwordBox">
+    <div id="passWrapper" class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
