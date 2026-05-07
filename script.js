@@ -110,16 +110,15 @@ window.changePassword = async () => {
 
     if (!user) return window.showMsg("Please login again!");
     if (!oldPass || !newPass) return window.showMsg("Fill both password fields!");
-    
+
     try {
         const credential = EmailAuthProvider.credential(user.email, oldPass);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPass);
         await updateDoc(doc(db, "users", localStorage.getItem("user")), { password: newPass });
-        
+
         window.showMsg("Password updated successfully!");
-        
-        // Input fields clear karna
+
         oldPassField.value = "";
         newPassField.value = "";
     } catch (error) { 
@@ -158,7 +157,6 @@ function renderDepositHistory() {
     }
 }
 
-// Bind Primary Bank (Home Page)
 window.openBank = () => { renderBankHistory(); get("bankBox").classList.add("active"); };
 window.closeBank = () => get("bankBox").classList.remove("active");
 
@@ -184,11 +182,31 @@ async function renderBankHistory() {
 
 window.saveHomeBank = async () => {
     const user = localStorage.getItem("user");
-    const data = { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value };
+    const nameInput = get("homeBankName");
+    const accInput = get("homeBankAcc");
+    const ifscInput = get("homeBankIfsc");
+
+    const data = { 
+        bank: nameInput.value, 
+        acc: accInput.value, 
+        ifsc: ifscInput.value 
+    };
+
     if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
-    await setDoc(doc(db, "bank_home", user), data);
-    window.showMsg("Primary Bank Saved!");
-    renderBankHistory();
+    
+    try {
+        await setDoc(doc(db, "bank_home", user), data);
+        window.showMsg("Primary Bank Saved!");
+        
+        // Clearing inputs after save
+        nameInput.value = "";
+        accInput.value = "";
+        ifscInput.value = "";
+        
+        renderBankHistory();
+    } catch (e) {
+        window.showMsg("Error: " + e.message);
+    }
 };
 
 window.triggerActivate = () => {
@@ -199,17 +217,26 @@ window.triggerActivate = () => {
 /* ================= EARNING: WITHDRAW BANK ================= */
 window.saveWithdrawBank = async () => {
     const user = localStorage.getItem("user");
+    const nameInput = get("earnBankName");
+    const accInput = get("earnBankAcc");
+    const ifscInput = get("earnBankIfsc");
+
     const data = { 
-        bank: get("earnBankName").value, 
-        acc: get("earnBankAcc").value, 
-        ifsc: get("earnBankIfsc").value 
+        bank: nameInput.value, 
+        acc: accInput.value, 
+        ifsc: ifscInput.value 
     };
+
     if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all withdraw bank details!");
-    
+
     try {
-        // Alag collection 'bank_earning' mein save ho raha hai
         await setDoc(doc(db, "bank_earning", user), data);
         window.showMsg("Withdraw Bank Details Saved!");
+        
+        // Clearing inputs after save
+        nameInput.value = "";
+        accInput.value = "";
+        ifscInput.value = "";
     } catch (e) {
         window.showMsg("Error: " + e.message);
     }
@@ -227,14 +254,12 @@ window.shareReferLink = async () => {
 
 async function loadAllBankData() {
     let user = localStorage.getItem("user");
-    // Load home bank
     const hSnap = await getDoc(doc(db, "bank_home", user));
     if(hSnap.exists()){
         get("homeBankName").value = hSnap.data().bank || "";
         get("homeBankAcc").value = hSnap.data().acc || "";
         get("homeBankIfsc").value = hSnap.data().ifsc || "";
     }
-    // Load withdraw bank
     const wSnap = await getDoc(doc(db, "bank_earning", user));
     if(wSnap.exists()){
         get("earnBankName").value = wSnap.data().bank || "";
