@@ -29,12 +29,12 @@
         .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
         .no-data-box { text-align: center; padding: 20px; color: #ccc; font-style: italic; }
         
-        /* New Styles for Compact Layout */
+        /* Layout Fixes */
         .flex-row { display: flex; gap: 5px; width: 90%; margin: 0 auto; }
         .flex-row input { margin: 5px 0 !important; font-size: 12px; padding: 8px; }
         .refer-box { 
             background: linear-gradient(45deg, #6a11cb, #2575fc); 
-            border-radius: 12px; padding: 15px; margin: 15px; text-align: center; 
+            border-radius: 12px; padding: 20px; margin: 15px; text-align: center; 
         }
     </style>
 </head>
@@ -103,11 +103,8 @@
 
         <div class="refer-box">
             <h3 style="margin: 0;">🎁 Refer & Earn</h3>
-            <p style="font-size: 13px; opacity: 0.9;">Invite friends and earn rewards!</p>
-            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; margin: 10px 0; border: 1px dashed white;">
-                <span id="referCodeDisplay" style="font-weight: bold; font-size: 18px; letter-spacing: 2px;">......</span>
-            </div>
-            <button onclick="copyReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px;">Copy Referral Link</button>
+            <p style="font-size: 13px; margin: 10px 0;">Invite friends and get ₹50 on every referral!</p>
+            <button onclick="copyReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px; padding: 12px; border: none;">Copy Referral Link</button>
         </div>
     </div>
 
@@ -159,7 +156,7 @@
 <div id="forgotBox" class="popup">
     <div class="popup-box">
         <h3 style="text-align:center;">Reset Password</h3>
-        <p style="font-size:14px; color:#666; text-align:center;">Enter your registered email address to receive a reset link.</p>
+        <p style="font-size:14px; color:#666; text-align:center;">Enter your registered email address.</p>
         <input id="forgotEmail" placeholder="Email Address" style="border: 1px solid #ddd !important;">
         <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Link</button>
         <button onclick="closeForgot()" style="width:100%; margin-top:5px; background:#eee; color:black;">Cancel</button>
