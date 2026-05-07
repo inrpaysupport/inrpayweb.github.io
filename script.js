@@ -13,7 +13,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= UTILITY FUNCTIONS ================= */
+/* ================= UTILITY & UI ================= */
 window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
@@ -25,7 +25,6 @@ window.togglePass = () => {
     p.type = p.type === "password" ? "text" : "password";
 };
 
-/* ================= AUTH SWITCH LOGIC ================= */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
     get("name").style.setProperty("display", "block", "important");
@@ -46,7 +45,7 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= MAIN AUTH ACTIONS ================= */
+/* ================= AUTH ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
     let name = get("name").value;
@@ -79,38 +78,62 @@ window.login = async () => {
             get("app").style.display = "block";
             loadUserData(snap.data(), num);
             loadSettings();
-            loadBankData();
+            loadAllBankData();
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= CHANGE PASSWORD (FIREBASE CONNECTED) ================= */
-window.changePassword = async () => {
-    let oldPass = get("oldPass").value;
-    let newPass = get("newPass").value;
-    let userNum = localStorage.getItem("user");
+/* ================= FORGOT PASSWORD ================= */
+window.openForgotPopup = () => get("forgotBox").classList.add("active");
+window.closeForgot = () => get("forgotBox").classList.remove("active");
 
-    if(!oldPass || !newPass) return window.showMsg("Please enter both passwords");
-    if(newPass.length < 6) return window.showMsg("New password: min 6 chars");
-
-    const user = auth.currentUser;
-    if (!user) return window.showMsg("Session expired. Login again.");
-
+window.forgotPassword = async () => {
+    let email = get("forgotEmail").value.trim();
+    if (!email) return window.showMsg("Enter registered email");
     try {
-        // 1. Re-authenticate user
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
-        // 2. Update in Firebase Auth
-        await updatePassword(user, newPass);
-        // 3. Update in Firestore
-        await updateDoc(doc(db, "users", userNum), { password: newPass });
-
-        window.showMsg("Password Updated Successfully! ✅");
-        get("oldPass").value = ""; get("newPass").value = "";
-    } catch (e) {
-        window.showMsg("Error: Old password is wrong or server error");
-    }
+        await sendPasswordResetEmail(auth, email);
+        window.closeForgot();
+        window.showMsg("Reset link sent! Check your Email/Spam folder.");
+    } catch (e) { window.showMsg("Error: User not found or invalid email."); }
 };
+
+/* ================= BANK MANAGEMENT (SEPARATE) ================= */
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+
+window.saveHomeBank = async () => {
+    const user = localStorage.getItem("user");
+    const data = { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value };
+    if(!data.bank || !data.acc) return window.showMsg("Fill details");
+    await setDoc(doc(db, "bank_home", user), data);
+    window.showMsg("Primary Bank Updated!");
+    closeBank();
+};
+
+window.saveWithdrawBank = async () => {
+    const user = localStorage.getItem("user");
+    const data = { bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value };
+    if(!data.bank || !data.acc) return window.showMsg("Fill details");
+    await setDoc(doc(db, "bank_earning", user), data);
+    window.showMsg("Withdrawal Bank Updated!");
+};
+
+async function loadAllBankData() {
+    let user = localStorage.getItem("user");
+    if(!user) return;
+    const hSnap = await getDoc(doc(db, "bank_home", user));
+    if(hSnap.exists()){
+        get("homeBankName").value = hSnap.data().bank;
+        get("homeBankAcc").value = hSnap.data().acc;
+        get("homeBankIfsc").value = hSnap.data().ifsc;
+    }
+    const eSnap = await getDoc(doc(db, "bank_earning", user));
+    if(eSnap.exists()){
+        get("earnBankName").value = eSnap.data().bank;
+        get("earnBankAcc").value = eSnap.data().acc;
+        get("earnBankIfsc").value = eSnap.data().ifsc;
+    }
+}
 
 /* ================= APP LOGIC ================= */
 function loadUserData(data, num) {
@@ -130,49 +153,11 @@ window.showPage = (id) => {
 
 window.logout = () => { localStorage.clear(); location.reload(); };
 
-// QR Download Function
-window.downloadQR = () => {
-    const qrImg = get("qrImage");
-    if (!qrImg.src || qrImg.src === "") return window.showMsg("QR not loaded yet");
-    const link = document.createElement("a");
-    link.href = qrImg.src;
-    link.download = "INRPAY_Payment_QR.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
-
-// Mobile Native Share Function
-window.shareReferLink = async () => {
-    const user = localStorage.getItem("user");
-    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: 'INRPAY', text: 'Earn daily with INRPAY!', url: link });
-        } catch (e) { console.log(e); }
-    } else {
-        navigator.clipboard.writeText(link);
-        window.showMsg("Link Copied!");
-    }
-};
-
-window.deposit = () => get("depositBox").classList.add("active");
-window.closeDeposit = () => get("depositBox").classList.remove("active");
-
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
-    await setDoc(doc(db, "deposits", Date.now().toString()), {
-        user: localStorage.getItem("user"), utr: utr, status: "Pending"
-    });
-    window.showMsg("Submitted!"); closeDeposit();
-};
-
-window.saveWithdrawBank = async () => {
-    await setDoc(doc(db, "bank", localStorage.getItem("user")), {
-        bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value
-    });
-    window.showMsg("Bank Details Updated!");
+    await setDoc(doc(db, "deposits", Date.now().toString()), { user: localStorage.getItem("user"), utr: utr, status: "Pending" });
+    window.showMsg("Submitted!"); get("depositBox").classList.remove("active");
 };
 
 window.submitWithdraw = async () => {
@@ -180,54 +165,28 @@ window.submitWithdraw = async () => {
     let bal = parseInt(localStorage.getItem("currentBalance"));
     if(!amt || amt < 100) return window.showMsg("Min ₹100 required!");
     if(amt > bal) return window.showMsg("Insufficient Balance!");
-    await setDoc(doc(db, "withdrawals", Date.now().toString()), {
-        user: localStorage.getItem("user"), amount: amt, status: "Pending", date: new Date().toLocaleString()
-    });
+    await setDoc(doc(db, "withdrawals", Date.now().toString()), { user: localStorage.getItem("user"), amount: amt, status: "Pending", date: new Date().toLocaleString() });
     window.showMsg("Request Submitted!");
-    get("withdrawAmount").value = "";
 };
-
-async function loadBankData() {
-    let user = localStorage.getItem("user");
-    if(!user) return;
-    let snap = await getDoc(doc(db, "bank", user));
-    if(snap.exists()) {
-        const d = snap.data();
-        get("earnBankName").value = d.bank || "";
-        get("earnBankAcc").value = d.acc || "";
-        get("earnBankIfsc").value = d.ifsc || "";
-    }
-}
 
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        if(d.qr) { 
-            get("qrImage").src = d.qr; 
-            get("qrImage").style.display = "block"; 
-            get("downloadQrBtn").style.display = "inline-block";
-        }
+        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; get("downloadQrBtn").style.display = "inline-block"; }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
 }
 
 window.onload = () => {
-    const params = new URLSearchParams(window.location.search);
-    let u = localStorage.getItem("user");
-    
     onAuthStateChanged(auth, (user) => {
+        let u = localStorage.getItem("user");
         if (user && u) {
             getDoc(doc(db, "users", u)).then(s => {
-                if(s.exists()){
-                    get("auth").style.display = "none"; get("app").style.display = "block";
-                    loadUserData(s.data(), u); loadSettings(); loadBankData();
-                }
+                if(s.exists()){ get("auth").style.display = "none"; get("app").style.display = "block"; loadUserData(s.data(), u); loadSettings(); loadAllBankData(); }
             });
-        } else {
-            if(params.get("signup") === "true") window.showRegister(); else window.showLogin();
         }
     });
 };
