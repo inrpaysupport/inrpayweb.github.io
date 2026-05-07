@@ -1,138 +1,51 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(135deg,#2b0a4a,#6a11cb); color:white; overflow-x: hidden; }
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
-const app = initializeApp({
-    apiKey: "AIzaSyBh-J9LAYeCfxNoKw9C94gbCqVhELofuoo",
-    authDomain: "inrpay-44413.firebaseapp.com",
-    projectId: "inrpay-44413"
-});
+#auth { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align: center; }
 
-const db = getFirestore(app);
-const auth = getAuth(app);
-const get = id => document.getElementById(id);
-
-/* ================= UI CONTROLS ================= */
-window.showMsg = (t) => { get("msgText").innerText = t; get("msgBox").classList.add("active"); };
-window.closeMsg = () => get("msgBox").classList.remove("active");
-window.togglePass = () => { let p = get("password"); p.type = p.type === "password" ? "text" : "password"; };
-
-window.showRegister = () => {
-    get("authTitle").innerText = "Create Account";
-    get("name").style.display = "block"; 
-    get("number").style.display = "block";
-    get("email").style.display = "block"; 
-    get("referralInput").style.display = "block";
-    get("registerBtn").style.display = "block"; 
-    get("loginBtn").style.display = "none"; 
-    get("forgotText").style.display = "none";
-    get("toggleText").innerHTML = `Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button>`;
-};
-
-window.showLogin = () => {
-    get("authTitle").innerText = "Sign In";
-    // Hide unnecessary fields for Login
-    get("name").style.display = "none"; 
-    get("email").style.display = "none"; 
-    get("referralInput").style.display = "none";
-    
-    get("number").style.display = "block";
-    get("registerBtn").style.display = "none"; 
-    get("loginBtn").style.display = "block"; 
-    get("forgotText").style.display = "block";
-    get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
-};
-
-/* ================= REFERRAL & INVITE ================= */
-function checkReferralURL() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    if (refCode) {
-        showRegister();
-        if(get("referralInput")) get("referralInput").value = refCode;
-    }
+/* Sabhi inputs aur password box ko center karne ke liye */
+input, .passwordBox {
+    width: 85% !important;
+    max-width: 350px;
+    margin: 10px auto !important;
+    display: block !important;
+    border-radius: 10px;
+    border: none;
+    outline: none;
 }
 
-window.copyInviteLink = () => {
-    const u = localStorage.getItem("user");
-    const link = window.location.origin + window.location.pathname + "?ref=" + u;
-    navigator.clipboard.writeText(link).then(() => window.showMsg("Invite Link Copied!"));
-};
+input { padding: 12px; }
 
-/* ================= AUTH LOGIC ================= */
-window.register = async () => {
-    let num = get("number").value, name = get("name").value, email = get("email").value, pass = get("password").value, ref = get("referralInput").value || "none";
-    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
-    try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        await setDoc(doc(db, "users", num), { name, email, password: pass, balance: 0, referredBy: ref, uid: Math.floor(100000 + Math.random() * 900000) });
-        window.showMsg("Registration Successful!"); window.showLogin();
-    } catch (e) { window.showMsg(e.message); }
-};
-
-window.login = async () => {
-    let num = get("number").value, pass = get("password").value;
-    if(!num || !pass) return window.showMsg("Enter credentials");
-    const snap = await getDoc(doc(db, "users", num));
-    if (snap.exists()) {
-        try {
-            await signInWithEmailAndPassword(auth, snap.data().email, pass);
-            localStorage.setItem("user", num);
-            location.reload();
-        } catch (e) { window.showMsg("Wrong Password!"); }
-    } else window.showMsg("Number not registered!");
-};
-
-window.openForgotPopup = () => get("forgotBox").classList.add("active");
-window.closeForgot = () => get("forgotBox").classList.remove("active");
-window.forgotPassword = async () => {
-    let email = get("forgotEmail").value;
-    if(!email) return window.showMsg("Enter email");
-    try {
-        await sendPasswordResetEmail(auth, email);
-        window.showMsg("Reset link sent! Please check Inbox and Spam folder."); closeForgot();
-    } catch (e) { window.showMsg("User not found!"); }
-};
-
-/* ================= SETTINGS ================= */
-window.changePassword = async () => {
-    let oldP = get("oldPass").value, newP = get("newPass").value, uNum = localStorage.getItem("user");
-    try {
-        const cred = EmailAuthProvider.credential(auth.currentUser.email, oldP);
-        await reauthenticateWithCredential(auth.currentUser, cred);
-        await updatePassword(auth.currentUser, newP);
-        await updateDoc(doc(db, "users", uNum), { password: newP });
-        window.showMsg("Password Updated!");
-    } catch (e) { window.showMsg("Error: Old password incorrect"); }
-};
-
-function loadUserData(data, num) {
-    get("usernameHome").innerText = "Hello, " + data.name;
-    get("username2").innerText = data.name;
-    get("useremail").innerText = data.email;
-    get("usernumber").innerText = "Mobile: " + num;
-    get("userid").innerText = "UID: " + data.uid;
-    get("balance").innerText = "₹" + (data.balance || 0);
-    get("referralLinkText").innerText = window.location.origin + window.location.pathname + "?ref=" + num;
+.passwordBox { 
+    position: relative; 
+    padding: 0 !important; 
+    background: transparent;
 }
 
-window.showPage = (id) => {
-    document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-    get(id).style.display = "block";
-};
+.passwordBox input { 
+    width: 100% !important; 
+    margin: 0 !important; 
+}
 
-window.logout = () => { localStorage.clear(); location.reload(); };
+.eyeIcon { 
+    position: absolute; 
+    right: 12px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    cursor: pointer; 
+    color: #666; 
+    z-index: 5;
+}
 
-window.onload = () => {
-    let u = localStorage.getItem("user");
-    if(u) {
-        getDoc(doc(db, "users", u)).then(s => {
-            if(s.exists()){
-                get("auth").style.display = "none"; get("app").style.display = "block";
-                loadUserData(s.data(), u);
-            }
-        });
-    } else {
-        showLogin(); checkReferralURL();
-    }
-};
+button { width: 85%; max-width: 350px; padding:12px; border:none; border-radius:10px; cursor:pointer; margin: 10px auto; display: block; }
+.linkBtn { background:none; color:#00d4ff; width:auto; display:inline; padding:0; margin:0; font-weight:bold; }
+
+/* Baki Styles */
+.card, .account-bind-box { margin:15px; padding:15px; background:rgba(255,255,255,0.15); border-radius:12px; }
+.popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999; }
+.popup.active { display:flex; }
+.popup-box { background:white; color:black; padding:20px; border-radius:15px; width:85%; max-width:350px; }
+.bottomNav { position:fixed; bottom:0; left:0; width:100%; display:flex; justify-content:space-around; background:#111; padding:15px 0; font-size: 24px; }
+.notice { width:100%; background:rgba(0,0,0,0.5); overflow:hidden; white-space:nowrap; padding: 5px 0; }
+.notice span { display:inline-block; padding-left:100%; animation:moveText 12s linear infinite; font-size: 14px; }
+@keyframes moveText { 0%{transform:translateX(0);} 100%{transform:translateX(-100%);} }
