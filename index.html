@@ -5,40 +5,21 @@
     <title>INRPAY</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        input, .passwordBox {
-            width: 85% !important;
-            margin: 10px auto !important;
-            display: block !important;
-        }
+        /* Forcefully hiding Name/Email on Start */
+        #name, #email, #registerBtn { display: none !important; }
+        
+        input, .passwordBox { width: 85% !important; margin: 10px auto !important; display: block !important; }
         .passwordBox { position: relative; }
         .passwordBox input { width: 100% !important; margin: 0 !important; }
         .popup { z-index: 9999 !important; }
-        .bottomNav { 
-            z-index: 1000 !important; 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            display: flex; 
-            justify-content: space-around; 
-            background: #111; 
-            padding: 12px 0; 
-            text-align: center;
-        }
+        .bottomNav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; background: #111; padding: 12px 0; z-index: 1000; }
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
         .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
         .no-data-box { text-align: center; padding: 20px; color: #ccc; font-style: italic; }
-
+        .refer-box { background: linear-gradient(45deg, #6a11cb, #2575fc); border-radius: 12px; padding: 20px; margin: 15px; text-align: center; }
+        .download-btn { background: #555; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 12px; margin-bottom: 10px; cursor: pointer; }
         .flex-row { display: flex; gap: 5px; width: 90%; margin: 0 auto; }
         .flex-row input { margin: 5px 0 !important; font-size: 12px; padding: 8px; }
-        .refer-box { 
-            background: linear-gradient(45deg, #6a11cb, #2575fc); 
-            border-radius: 12px; padding: 20px; margin: 15px; text-align: center; 
-        }
-        .download-btn {
-            background: #555; color: white; border: none; padding: 8px 15px;
-            border-radius: 5px; font-size: 12px; margin-bottom: 10px; cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -47,8 +28,8 @@
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Sign In</h2>
     
-    <input id="name" placeholder="Full Name" style="display:none;">
-    <input id="email" placeholder="Email Address" style="display:none;">
+    <input id="name" placeholder="Full Name">
+    <input id="email" placeholder="Email Address">
     
     <input id="number" placeholder="Mobile Number" maxlength="10">
     <div class="passwordBox">
@@ -57,7 +38,7 @@
     </div>
 
     <button id="loginBtn" onclick="login()">Sign In</button>
-    <button id="registerBtn" onclick="register()" style="display:none;">Sign Up</button>
+    <button id="registerBtn" onclick="register()">Sign Up</button>
     
     <p id="forgotText" class="forgot-link" onclick="openForgotPopup()">Forgot Password?</p>
     <p id="toggleText">Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button></p>
@@ -69,40 +50,28 @@
     <div id="homePage" class="page">
         <h2 id="usernameHome" style="padding-left:15px;"></h2>
         <div class="card"><h1 id="balance">₹0</h1></div>
-        <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
-        </div>
-        <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🏦 Bind Bank Account</h3>
-        </div>
-        <div class="card">
-            <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
-            <div class="no-data-box">No data available</div>
-        </div>
+        <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;"><h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3></div>
+        <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;"><h3 style="margin:0; text-align:center;">🏦 Bind Bank Account</h3></div>
+        <div class="card"><h4>Recent Transactions</h4><div class="no-data-box">No data available</div></div>
     </div>
 
     <div id="earningPage" class="page" style="display:none;">
-        <div class="card" style="padding: 10px;">
-            <h3 style="text-align:center; margin: 5px 0;">🏦 Bank & Withdrawal</h3>
+        <div class="card">
+            <h3>🏦 Bank & Withdrawal</h3>
             <div class="flex-row">
-                <input id="earnBankName" placeholder="Bank Name">
+                <input id="earnBankName" placeholder="Bank">
                 <input id="earnBankAcc" placeholder="A/C No">
                 <input id="earnBankIfsc" placeholder="IFSC">
             </div>
-            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; border-radius:5px; border:none; display:block;">Update Bank Details</button>
-            
-            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 10px 0;">
-            
-            <div style="display: flex; gap: 10px; width: 90%; margin: 0 auto;">
-                <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="margin:0 !important; flex: 2;">
-                <button onclick="submitWithdraw()" style="background:#4caf50; color:white; flex: 1; margin:0 !important; border-radius:10px; border:none; font-weight:bold;">Withdraw</button>
+            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%;">Update Bank</button>
+            <div style="display: flex; gap: 10px; width: 90%; margin: 10px auto;">
+                <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="flex:2;">
+                <button onclick="submitWithdraw()" style="background:#4caf50; color:white; flex:1;">Withdraw</button>
             </div>
         </div>
-
         <div class="refer-box">
-            <h3 style="margin: 0;">🎁 Refer & Earn</h3>
-            <p style="font-size: 13px; margin: 10px 0;">Share and get ₹50 on every referral!</p>
-            <button onclick="shareReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px; padding: 12px; border: none; font-size: 16px;">📲 Share Link</button>
+            <h3>🎁 Refer & Earn</h3>
+            <button onclick="shareReferLink()" style="background:white; color:#6a11cb; width:90%; border-radius:8px; font-weight:bold;">📲 Share Link</button>
         </div>
     </div>
 
@@ -119,7 +88,7 @@
             <input id="newPass" type="password" placeholder="New Password">
             <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Update Password</button>
         </div>
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px; border:none; padding:12px; border-radius:8px;">Logout</button>
+        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px;">Logout</button>
     </div>
 
     <div class="bottomNav">
@@ -132,44 +101,37 @@
 <div id="depositBox" class="popup">
     <div class="popup-box" style="text-align:center;">
         <h2 id="amountText">₹0</h2>
-        <div id="qrContainer">
-            <img id="qrImage" src="" style="width: 200px; display: none; margin: 10px auto; border: 1px solid #eee;">
-            <br>
-            <button id="downloadQrBtn" onclick="downloadQR()" class="download-btn" style="display:none;">⬇️ Download QR Image</button>
-        </div>
-        <p id="upiText" style="font-weight:bold;"></p>
+        <img id="qrImage" src="" style="width: 200px; display: none; margin: 10px auto;">
+        <button id="downloadQrBtn" onclick="downloadQR()" class="download-btn" style="display:none;">⬇️ Download QR</button>
+        <p id="upiText"></p>
         <input id="utr" placeholder="Enter UTR Number">
-        <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit UTR</button>
-        <button onclick="closeDeposit()" style="width:100%; margin-top:5px;">Close</button>
+        <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit</button>
+        <button onclick="closeDeposit()" style="width:100%;">Close</button>
     </div>
 </div>
 
 <div id="bankBox" class="popup">
     <div class="popup-box">
-        <h3>Add Bank Account</h3>
+        <h3>Bank Details</h3>
         <input id="bankName" placeholder="Bank Name">
         <input id="bankAcc" placeholder="Account Number">
         <input id="bankIfsc" placeholder="IFSC Code">
         <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:100%;">Save</button>
-        <button onclick="closeBank()" style="width:100%; margin-top:5px;">Cancel</button>
+        <button onclick="closeBank()" style="width:100%;">Cancel</button>
     </div>
 </div>
 
 <div id="forgotBox" class="popup">
     <div class="popup-box">
-        <h3 style="text-align:center;">Reset Password</h3>
-        <p style="font-size:13px; text-align:center; color:#666;">Apna registered email daalein reset link ke liye.</p>
+        <h3>Reset Password</h3>
         <input id="forgotEmail" placeholder="Email Address">
-        <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Reset Link</button>
-        <button onclick="closeForgot()" style="width:100%; margin-top:5px; background:#eee; color:black;">Cancel</button>
+        <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Link</button>
+        <button onclick="closeForgot()" style="width:100%;">Cancel</button>
     </div>
 </div>
 
 <div id="msgBox" class="popup">
-    <div class="popup-box">
-        <p id="msgText" style="text-align:center; font-weight:bold;"></p>
-        <button onclick="closeMsg()" style="width:100%; background:#6a11cb; color:white; border:none; padding:10px; border-radius:8px;">OK</button>
-    </div>
+    <div class="popup-box"><p id="msgText" style="text-align:center;"></p><button onclick="closeMsg()" style="width:100%;">OK</button></div>
 </div>
 
 <script type="module" src="script.js"></script>
