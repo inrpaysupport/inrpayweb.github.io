@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
 const app = initializeApp({
@@ -72,7 +72,7 @@ window.forgotPassword = async () => {
     if (!email) return window.showMsg("Please enter your email");
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent! Check Inbox and Spam folder.");
+        window.showMsg("Password reset link sent to your email! Please check your Inbox and Spam folder.");
         closeForgot();
     } catch (error) { window.showMsg("Error: User not found."); }
 };
@@ -98,37 +98,21 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= WORKING PASSWORD CHANGE ================= */
+/* ================= CHANGE PASSWORD (SETTINGS) ================= */
 window.changePassword = async () => {
     let oldPass = get("oldPass").value;
     let newPass = get("newPass").value;
     let userNum = localStorage.getItem("user");
-
     if(!oldPass || !newPass) return window.showMsg("Enter both passwords");
-    if(newPass.length < 6) return window.showMsg("New password: min 6 chars");
-
     try {
-        const user = auth.currentUser;
-        if (!user) return window.showMsg("Session expired, please login again");
-
-        // Firebase re-authentication (Security requirement)
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
-
-        // Update in Auth
-        await updatePassword(user, newPass);
-
-        // Update in Firestore
         const userRef = doc(db, "users", userNum);
+        const snap = await getDoc(userRef);
+        await signInWithEmailAndPassword(auth, snap.data().email, oldPass);
+        await updatePassword(auth.currentUser, newPass);
         await updateDoc(userRef, { password: newPass });
-
         window.showMsg("Password Updated Successfully!");
-        get("oldPass").value = ""; 
-        get("newPass").value = "";
-    } catch (e) {
-        window.showMsg("Error: Old password incorrect or server error");
-        console.error(e);
-    }
+        get("oldPass").value = ""; get("newPass").value = "";
+    } catch (e) { window.showMsg("Failed: Old password incorrect."); }
 };
 
 /* ================= OTHER APP LOGIC ================= */
@@ -170,9 +154,7 @@ window.saveBank = async () => {
 };
 
 async function loadBankData() {
-    let user = localStorage.getItem("user");
-    if(!user) return;
-    let snap = await getDoc(doc(db, "bank", user));
+    let snap = await getDoc(doc(db, "bank", localStorage.getItem("user")));
     if(snap.exists()) {
         get("bankName").value = snap.data().bank || "";
         get("bankAcc").value = snap.data().acc || "";
