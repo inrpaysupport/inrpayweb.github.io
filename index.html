@@ -27,7 +27,6 @@
         }
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
         .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
-        .no-data-box { text-align: center; padding: 20px; color: #ccc; font-style: italic; }
     </style>
 </head>
 <body>
@@ -35,19 +34,23 @@
 <div id="auth">
     <h1 class="appLogo">INRPAY</h1>
     <h2 id="authTitle">Create Account</h2>
+    
     <input id="name" placeholder="Name">
     <input id="number" placeholder="Mobile Number" maxlength="10">
     <input id="email" placeholder="Email Address">
     
-    <input id="referralInput" placeholder="Referral Code (Optional)">
-
     <div class="passwordBox">
         <input id="password" type="password" placeholder="Password">
         <span onclick="togglePass()" class="eyeIcon">👁</span>
     </div>
+
+    <input id="referralInput" placeholder="Referral Code (Optional)">
+
     <button id="registerBtn" onclick="register()">Sign Up</button>
     <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
+    
     <p id="forgotText" class="forgot-link" style="display:none;" onclick="openForgotPopup()">Forgot Password?</p>
+    
     <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
 </div>
 
@@ -74,11 +77,9 @@
     <div id="earningPage" class="page" style="display:none;">
         <div class="card" style="background: linear-gradient(to right, #6a11cb, #2575fc); color: white; text-align: center;">
             <h3>🤝 Invite Friends & Earn</h3>
-            <p style="font-size: 12px;">Share your link and earn rewards!</p>
             <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px; word-break: break-all;" id="referralLinkText">Loading link...</div>
             <button onclick="copyInviteLink()" style="width: 100%; background: white; color: #6a11cb; font-weight: bold; padding: 8px; border-radius: 5px;">Copy Invite Link</button>
         </div>
-
         <div class="card">
             <h3 style="text-align:center;">Withdrawal</h3>
             <input id="withdrawAmount" type="number" placeholder="Earning (Min ₹100)">
@@ -111,17 +112,17 @@
 
 <div id="forgotBox" class="popup">
     <div class="popup-box">
-        <h3 style="text-align:center;">Reset Password</h3>
-        <input id="forgotEmail" placeholder="Enter your Email">
+        <h3>Reset Password</h3>
+        <input id="forgotEmail" placeholder="Enter Registered Email">
         <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Link</button>
-        <button onclick="closeForgot()" style="width:100%; margin-top:5px; background:#eee; color:black;">Cancel</button>
+        <button onclick="closeForgot()" style="width:100%; margin-top:5px;">Cancel</button>
     </div>
 </div>
 
 <div id="msgBox" class="popup">
     <div class="popup-box">
         <p id="msgText" style="text-align:center; font-weight:bold;"></p>
-        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white;">OK</button>
+        <button onclick="closeMsg()" style="width:100%; background:#6a11cb; color:white;">OK</button>
     </div>
 </div>
 
