@@ -18,10 +18,7 @@ window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
 };
-
-window.closeMsg = () => {
-    get("msgBox").classList.remove("active");
-};
+window.closeMsg = () => get("msgBox").classList.remove("active");
 
 window.togglePass = () => {
     let p = get("password");
@@ -49,23 +46,6 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= FORGOT PASSWORD POPUP LOGIC ================= */
-window.openForgotPopup = () => get("forgotBox").classList.add("active");
-window.closeForgotPopup = () => get("forgotBox").classList.remove("active");
-
-window.sendResetLink = async () => {
-    let email = get("forgotEmail").value;
-    if (!email) return window.showMsg("Please enter your email.");
-
-    try {
-        await sendPasswordResetEmail(auth, email);
-        closeForgotPopup();
-        window.showMsg("Password reset link sent! Please check your email and Spam folder.");
-    } catch (error) {
-        window.showMsg("Error: User not found or invalid email.");
-    }
-};
-
 /* ================= MAIN AUTH ACTIONS ================= */
 
 window.register = async () => {
@@ -85,11 +65,27 @@ window.register = async () => {
             balance: 0,
             uid: Math.floor(100000 + Math.random() * 900000)
         });
-
         window.showMsg("Account Created Successfully!");
         window.showLogin();
     } catch (error) {
         window.showMsg("Registration Error: " + error.message);
+    }
+};
+
+// Forgot Password Logic with Custom Popup
+window.openForgotPopup = () => get("forgotBox").classList.add("active");
+window.closeForgot = () => get("forgotBox").classList.remove("active");
+
+window.forgotPassword = async () => {
+    let email = get("forgotEmail").value;
+    if (!email) return window.showMsg("Please enter your email");
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        window.showMsg("Password reset link sent to your email! Please check your Inbox and Spam folder.");
+        closeForgot();
+    } catch (error) {
+        window.showMsg("Error: User not found with this email.");
     }
 };
 
@@ -99,36 +95,29 @@ window.login = async () => {
 
     if(!num || !pass) return window.showMsg("Enter Number & Password");
 
-    try {
-        const userRef = doc(db, "users", num);
-        const snap = await getDoc(userRef);
+    const userRef = doc(db, "users", num);
+    const snap = await getDoc(userRef);
 
-        if (snap.exists()) {
-            const userData = snap.data();
-            const email = userData.email;
+    if (snap.exists()) {
+        const userData = snap.data();
+        const email = userData.email;
 
-            try {
-                // Firebase Auth login
-                await signInWithEmailAndPassword(auth, email, pass);
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            await updateDoc(userRef, { password: pass });
 
-                // Update password in Firestore if it was reset
-                await updateDoc(userRef, { password: pass });
+            localStorage.setItem("user", num);
+            get("auth").style.display = "none";
+            get("app").style.display = "block";
 
-                localStorage.setItem("user", num);
-                get("auth").style.display = "none";
-                get("app").style.display = "block";
-
-                loadUserData(userData, num);
-                loadSettings();
-                loadBankData(); 
-            } catch (error) {
-                window.showMsg("Invalid Password!");
-            }
-        } else {
-            window.showMsg("Mobile number not registered!");
+            loadUserData(userData, num);
+            loadSettings();
+            loadBankData(); 
+        } catch (error) {
+            window.showMsg("Invalid Password or User!");
         }
-    } catch (err) {
-        window.showMsg("Login Error: Please check connection.");
+    } else {
+        window.showMsg("Mobile number not registered!");
     }
 };
 
