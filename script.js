@@ -248,8 +248,34 @@ function renderReferrals() { get("referralList").innerHTML = `<div class="no-dat
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
-    if (navigator.share) { await navigator.share({ title: 'INRPAY', url: link }); }
-    else { navigator.clipboard.writeText(link); window.showMsg("Link Copied!"); }
+    
+    // Updated English Message with ₹250 reward
+    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀
+
+💰 Get an instant *₹250 bonus* for every friend you refer!
+✅ Fast & Secure Withdrawals.
+✅ Trusted & Reliable Platform.
+✅ 24/7 Customer Support.
+
+Don't miss out! Use my Referral ID: *${userUID}*
+Click the link below to sign up now:
+👇👇👇`;
+
+    if (navigator.share) { 
+        try {
+            await navigator.share({ 
+                title: 'INRPAY - Earn Money Online', 
+                text: shareText,
+                url: link 
+            }); 
+        } catch (err) {
+            console.log("Share cancelled");
+        }
+    } else { 
+        const fullMessage = `${shareText}\n${link}`;
+        navigator.clipboard.writeText(fullMessage); 
+        window.showMsg("Invitation message copied to clipboard!"); 
+    }
 };
 
 async function loadAllBankData() {
