@@ -45,6 +45,28 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
+/* ================= FORGOT PASSWORD LOGIC (FIXED) ================= */
+window.openForgotPopup = () => {
+    get("forgotBox").classList.add("active");
+};
+
+window.closeForgot = () => {
+    get("forgotBox").classList.remove("active");
+};
+
+window.forgotPassword = async () => {
+    let email = get("forgotEmail").value;
+    if (!email) return window.showMsg("Please enter your email!");
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        window.showMsg("Password reset link sent to your email!");
+        closeForgot();
+    } catch (error) {
+        window.showMsg("Error: " + error.message);
+    }
+};
+
 /* ================= AUTH ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
