@@ -79,6 +79,7 @@ window.login = async () => {
             loadUserData(snap.data(), num);
             loadSettings();
             loadAllBankData();
+            renderReferrals(); // Load referral list
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -140,7 +141,24 @@ window.saveWithdrawBank = async () => {
     window.showMsg("Withdraw Bank Saved!");
 };
 
-/* ================= SHARE & REFER ================= */
+/* ================= REFERRAL LOGIC (UI ONLY) ================= */
+function renderReferrals() {
+    let list = get("referralList");
+    // Currently set to empty to show "No referrals yet" as requested
+    let referralData = []; 
+
+    if(referralData.length === 0) {
+        list.innerHTML = `<div class="no-data-box">No referrals available</div>`;
+    } else {
+        list.innerHTML = referralData.map(ref => `
+            <div class="history-item">
+                <span>👤 ${ref.name}</span>
+                <span style="color:#4caf50;">+₹${ref.amount}</span>
+            </div>
+        `).join('');
+    }
+}
+
 window.shareReferLink = async () => {
     const user = localStorage.getItem("user");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + user;
@@ -224,7 +242,7 @@ window.onload = () => {
                 if(s.exists()){ 
                     get("auth").style.display = "none"; 
                     get("app").style.display = "block"; 
-                    loadUserData(s.data(), u); loadSettings(); loadAllBankData(); 
+                    loadUserData(s.data(), u); loadSettings(); loadAllBankData(); renderReferrals();
                 }
             });
         }
