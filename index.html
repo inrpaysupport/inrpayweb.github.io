@@ -39,9 +39,12 @@
             background: #555; color: white; border: none; padding: 8px 15px;
             border-radius: 5px; font-size: 12px; margin-bottom: 10px; cursor: pointer;
         }
-        /* New Style for Referral List */
         .history-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin: 15px; }
-        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; text-align: left; }
+        
+        /* Deposit History Styling */
+        #depositHistory { max-height: 150px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
+        .dep-hist-item { font-size: 11px; text-align: left; padding: 5px; border-bottom: 1px solid #333; color: #eee; }
     </style>
 </head>
 <body>
@@ -99,21 +102,17 @@
                 <input id="earnBankIfsc" placeholder="IFSC">
             </div>
             <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; font-size:12px;">Update Withdraw Bank</button>
-
             <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 10px 0;">
-
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 90%; margin: 0 auto;">
                 <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="margin:0 !important; flex: 2;">
                 <button onclick="submitWithdraw()" style="background:#4caf50; color:white; flex: 1; margin:0 !important; padding:12px; font-weight:bold; border-radius: 10px;">Withdraw</button>
             </div>
         </div>
-
         <div class="refer-box">
             <h3 style="margin: 0;">🎁 Refer & Earn</h3>
             <p style="font-size: 13px; margin: 10px 0;">Share and get ₹50 on every referral!</p>
             <button onclick="shareReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px; padding: 12px; border: none; font-size: 16px;">📲 Share Link</button>
         </div>
-
         <div class="history-card">
             <h3 style="margin-top:0;">Referral History</h3>
             <div id="referralList">
@@ -146,17 +145,25 @@
 </div>
 
 <div id="depositBox" class="popup">
-    <div class="popup-box" style="text-align:center;">
+    <div class="popup-box" style="text-align:center; max-height: 90vh; overflow-y: auto;">
         <h2 id="amountText">₹0</h2>
         <div id="qrContainer">
-            <img id="qrImage" src="" alt="Payment QR" style="width: 200px; height: 200px; margin: 10px auto; display: none; border: 1px solid #eee;">
+            <img id="qrImage" src="" alt="Payment QR" style="width: 180px; height: 180px; margin: 10px auto; display: none; border: 1px solid #eee;">
             <br>
             <button id="downloadQrBtn" onclick="downloadQR()" class="download-btn" style="display:none;">⬇️ Download QR Image</button>
         </div>
-        <p id="upiText" style="font-weight:bold;"></p>
+        <p id="upiText" style="font-weight:bold; margin: 5px 0; font-size: 14px;"></p>
         <input id="utr" placeholder="Enter UTR Number">
         <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit UTR</button>
-        <button onclick="closeDeposit()" style="width:100%; margin-top:5px;">Close</button>
+        
+        <div id="depositHistory">
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 5px;">Your Submissions</p>
+            <div id="depositHistoryList">
+                <div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>
+            </div>
+        </div>
+
+        <button onclick="closeDeposit()" style="width:100%; margin-top:10px;">Close</button>
     </div>
 </div>
 
