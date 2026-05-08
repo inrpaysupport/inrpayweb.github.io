@@ -95,7 +95,7 @@ window.login = async () => {
             loadSettings();
             loadWithdrawBankData(); // Withdraw bank auto-fill
             renderDepositHistory(); // Firebase history load
-        } catch (e) { window.showMsg("Invalid Password!"); }
+        } catch (e) { window.showMsg("Wrong Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
 
