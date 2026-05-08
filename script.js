@@ -18,7 +18,6 @@ window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
 };
-
 window.closeMsg = () => get("msgBox").classList.remove("active");
 
 window.togglePass = () => {
@@ -94,8 +93,8 @@ window.login = async () => {
             get("app").style.display = "block";
             loadUserData(snap.data(), num);
             loadSettings();
-            loadWithdrawBankData(); 
-            renderDepositHistory(); 
+            loadWithdrawBankData(); // Withdraw bank auto-fill
+            renderDepositHistory(); // Firebase history load
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -133,6 +132,7 @@ window.submitDeposit = async () => {
     let now = new Date().toLocaleString();
 
     try {
+        // Firebase mein save ho raha hai
         await setDoc(doc(db, "deposits", Date.now().toString()), { 
             user: localStorage.getItem("user"), 
             utr: utr, 
@@ -141,7 +141,7 @@ window.submitDeposit = async () => {
         });
         window.showMsg("Submitted Successfully!");
         get("utr").value = "";
-        renderDepositHistory(); 
+        renderDepositHistory(); // Firebase se refresh
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
@@ -242,6 +242,7 @@ window.saveWithdrawBank = async () => {
     try {
         await setDoc(doc(db, "bank_earning", user), data);
         window.showMsg("Withdraw Bank Details Saved!");
+        // Boxes clear nahi honge
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
@@ -264,7 +265,16 @@ window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
 
-    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get an instant *₹250 bonus* for every friend you refer!\n✅ Fast & Secure Withdrawals.\n✅ Trusted & Reliable Platform.\n✅ 24/7 Customer Support.\n\nDon't miss out! Use my Referral ID: *${userUID}*\nClick the link below to sign up now:\n👇👇👇`;
+    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀
+
+💰 Get an instant *₹250 bonus* for every friend you refer!
+✅ Fast & Secure Withdrawals.
+✅ Trusted & Reliable Platform.
+✅ 24/7 Customer Support.
+
+Don't miss out! Use my Referral ID: *${userUID}*
+Click the link below to sign up now:
+👇👇👇`;
 
     if (navigator.share) { 
         try {
@@ -300,8 +310,6 @@ window.submitWithdraw = async () => {
     let bal = parseInt(localStorage.getItem("currentBalance"));
     if(!amt || amt < 100) return window.showMsg("Min ₹100!");
     if(amt > bal) return window.showMsg("Insufficient Balance!");
-    
-    // Admin panel ke saath sync karne ke liye 'withdrawals' use kiya hai
     await setDoc(doc(db, "withdrawals", Date.now().toString()), { 
         user: localStorage.getItem("user"), 
         amount: amt, 
@@ -327,12 +335,6 @@ async function loadSettings() {
 }
 
 window.onload = () => {
-    // Hidden Aryan Panel Redirection
-    const urlParams = new URLSearchParams(window.location.search);
-    if (window.location.pathname.endsWith('/aryan') || urlParams.has('aryan')) {
-        window.location.href = 'aryan.html';
-    }
-
     onAuthStateChanged(auth, (user) => {
         let u = localStorage.getItem("user");
         if (user && u) {
@@ -342,9 +344,9 @@ window.onload = () => {
                     get("app").style.display = "block"; 
                     loadUserData(s.data(), u); 
                     loadSettings(); 
-                    loadWithdrawBankData(); 
+                    loadWithdrawBankData(); // Auto-fill on refresh
                     renderReferrals(); 
-                    renderDepositHistory(); 
+                    renderDepositHistory(); // Load history on refresh
                 }
             });
         }
@@ -358,6 +360,7 @@ window.copyUPI = () => {
         navigator.clipboard.writeText(upiId).then(() => {
             window.showMsg("UPI ID Copied to Clipboard!");
         }).catch(() => {
+            // Fallback for older browsers
             const textArea = document.createElement("textarea");
             textArea.value = upiId;
             document.body.appendChild(textArea);
@@ -389,6 +392,7 @@ window.downloadQR = async () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
+        // Fallback: opens in new tab if download is blocked
         window.open(qrImg.src, '_blank');
         window.showMsg("Opening QR in new tab...");
     }
