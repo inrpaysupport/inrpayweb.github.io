@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
 const app = initializeApp({
@@ -11,6 +11,10 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 const auth = getAuth(app);
+
+// Set Persistence to Local (Session won't expire)
+setPersistence(auth, browserLocalPersistence);
+
 const get = id => document.getElementById(id);
 
 /* ================= UTILITY & UI ================= */
@@ -93,8 +97,8 @@ window.login = async () => {
             get("app").style.display = "block";
             loadUserData(snap.data(), num);
             loadSettings();
-            loadWithdrawBankData(); // Withdraw bank auto-fill
-            renderDepositHistory(); // Firebase history load
+            loadWithdrawBankData(); 
+            renderDepositHistory(); 
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -130,9 +134,8 @@ window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     let now = new Date().toLocaleString();
-    
+
     try {
-        // Firebase mein save ho raha hai
         await setDoc(doc(db, "deposits", Date.now().toString()), { 
             user: localStorage.getItem("user"), 
             utr: utr, 
@@ -141,7 +144,7 @@ window.submitDeposit = async () => {
         });
         window.showMsg("Submitted Successfully!");
         get("utr").value = "";
-        renderDepositHistory(); // Firebase se refresh
+        renderDepositHistory(); 
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
@@ -242,7 +245,6 @@ window.saveWithdrawBank = async () => {
     try {
         await setDoc(doc(db, "bank_earning", user), data);
         window.showMsg("Withdraw Bank Details Saved!");
-        // Boxes clear nahi honge
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
@@ -265,16 +267,7 @@ window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
 
-    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀
-
-💰 Get an instant *₹250 bonus* for every friend you refer!
-✅ Fast & Secure Withdrawals.
-✅ Trusted & Reliable Platform.
-✅ 24/7 Customer Support.
-
-Don't miss out! Use my Referral ID: *${userUID}*
-Click the link below to sign up now:
-👇👇👇`;
+    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get an instant *₹250 bonus* for every friend you refer!\n✅ Fast & Secure Withdrawals.\n✅ Trusted & Reliable Platform.\n✅ 24/7 Customer Support.\n\nDon't miss out! Use my Referral ID: *${userUID}*\nClick the link below to sign up now:\n👇👇👇`;
 
     if (navigator.share) { 
         try {
@@ -334,6 +327,7 @@ async function loadSettings() {
     }
 }
 
+// Redirect and Persistence Logic
 window.onload = () => {
     onAuthStateChanged(auth, (user) => {
         let u = localStorage.getItem("user");
@@ -344,23 +338,27 @@ window.onload = () => {
                     get("app").style.display = "block"; 
                     loadUserData(s.data(), u); 
                     loadSettings(); 
-                    loadWithdrawBankData(); // Auto-fill on refresh
+                    loadWithdrawBankData(); 
                     renderReferrals(); 
-                    renderDepositHistory(); // Load history on refresh
+                    renderDepositHistory(); 
+                } else {
+                    get("auth").style.display = "flex";
+                    showLogin();
                 }
             });
+        } else {
+            get("auth").style.display = "flex";
+            showLogin();
         }
     });
 };
 
-// Function to Copy UPI ID
 window.copyUPI = () => {
     const upiId = get("upiText").innerText;
     if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
         navigator.clipboard.writeText(upiId).then(() => {
             window.showMsg("UPI ID Copied to Clipboard!");
         }).catch(() => {
-            // Fallback for older browsers
             const textArea = document.createElement("textarea");
             textArea.value = upiId;
             document.body.appendChild(textArea);
@@ -372,18 +370,15 @@ window.copyUPI = () => {
     }
 };
 
-// Function to Download QR Code
 window.downloadQR = async () => {
     const qrImg = get("qrImage");
     if (!qrImg.src || qrImg.style.display === "none") {
         return window.showMsg("Please wait, QR loading...");
     }
-
     try {
         const response = await fetch(qrImg.src);
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
-        
         const link = document.createElement("a");
         link.href = blobUrl;
         link.download = "INRPAY_QR_" + Date.now() + ".png";
@@ -392,9 +387,7 @@ window.downloadQR = async () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
-        // Fallback: opens in new tab if download is blocked
         window.open(qrImg.src, '_blank');
         window.showMsg("Opening QR in new tab...");
     }
 };
-
