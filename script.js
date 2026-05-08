@@ -75,7 +75,7 @@ window.register = async () => {
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { window.showMsg(Email or Number already in use! Please login.); }
+    } catch (error) { window.showMsg("Error: " + error.message); }
 };
 
 window.login = async () => {
@@ -95,7 +95,7 @@ window.login = async () => {
             loadSettings();
             loadWithdrawBankData(); // Withdraw bank auto-fill
             renderDepositHistory(); // Firebase history load
-        } catch (e) { window.showMsg("Wrong Password!"); }
+        } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
 
