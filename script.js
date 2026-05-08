@@ -353,23 +353,30 @@ window.onload = () => {
     });
 };
 
-// UPI Copy Function (Logo based)
+// Function to Copy UPI ID
 window.copyUPI = () => {
     const upiId = get("upiText").innerText;
-    if (upiId && upiId !== "N/A") {
+    if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
         navigator.clipboard.writeText(upiId).then(() => {
-            window.showMsg("UPI ID Copied!");
+            window.showMsg("UPI ID Copied to Clipboard!");
         }).catch(() => {
-            window.showMsg("Failed to copy!");
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = upiId;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            window.showMsg("UPI ID Copied!");
         });
     }
 };
 
-// QR Download Function (Working)
+// Function to Download QR Code
 window.downloadQR = async () => {
     const qrImg = get("qrImage");
     if (!qrImg.src || qrImg.style.display === "none") {
-        return window.showMsg("QR not available!");
+        return window.showMsg("Please wait, QR loading...");
     }
 
     try {
@@ -379,14 +386,15 @@ window.downloadQR = async () => {
         
         const link = document.createElement("a");
         link.href = blobUrl;
-        link.download = "INRPAY_Payment_QR.png";
+        link.download = "INRPAY_QR_" + Date.now() + ".png";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
-        // Fallback for cross-origin issues
+        // Fallback: opens in new tab if download is blocked
         window.open(qrImg.src, '_blank');
-        window.showMsg("Opening image in new tab...");
+        window.showMsg("Opening QR in new tab...");
     }
 };
+
