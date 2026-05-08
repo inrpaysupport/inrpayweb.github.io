@@ -352,3 +352,41 @@ window.onload = () => {
         }
     });
 };
+
+// UPI Copy Function (Logo based)
+window.copyUPI = () => {
+    const upiId = get("upiText").innerText;
+    if (upiId && upiId !== "N/A") {
+        navigator.clipboard.writeText(upiId).then(() => {
+            window.showMsg("UPI ID Copied!");
+        }).catch(() => {
+            window.showMsg("Failed to copy!");
+        });
+    }
+};
+
+// QR Download Function (Working)
+window.downloadQR = async () => {
+    const qrImg = get("qrImage");
+    if (!qrImg.src || qrImg.style.display === "none") {
+        return window.showMsg("QR not available!");
+    }
+
+    try {
+        const response = await fetch(qrImg.src);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = "INRPAY_Payment_QR.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+        // Fallback for cross-origin issues
+        window.open(qrImg.src, '_blank');
+        window.showMsg("Opening image in new tab...");
+    }
+};
