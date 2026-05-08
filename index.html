@@ -158,12 +158,17 @@
 <div id="depositBox" class="popup">
     <div class="popup-box" style="text-align:center; max-height: 90vh; overflow-y: auto;">
         <h2 id="amountText">₹0</h2>
-        <div id="qrContainer">
-            <img id="qrImage" src="" alt="Payment QR" style="width: 180px; height: 180px; margin: 10px auto; display: none; border: 1px solid #eee;">
-            <br>
-            <button id="downloadQrBtn" onclick="downloadQR()" class="download-btn" style="display:none;">⬇️ Download QR Image</button>
+        
+        <div id="qrContainer" style="position: relative; display: inline-block;">
+            <img id="qrImage" src="" alt="Payment QR" style="width: 180px; height: 180px; margin: 10px auto; display: none; border: 1px solid #eee; border-radius: 10px;">
+            <button id="downloadQrBtn" onclick="downloadQR()" style="display:none; position: absolute; bottom: 15px; right: -10px; background: #6a11cb; color: white; border-radius: 50%; width: 40px; height: 40px; padding: 0; line-height: 40px; font-size: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">📥</button>
         </div>
-        <p id="upiText" style="font-weight:bold; margin: 5px 0; font-size: 14px;"></p>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #f0f0f0; padding: 8px; border-radius: 8px; margin: 10px auto; width: 90%;">
+            <p id="upiText" style="font-weight:bold; margin: 0; font-size: 14px; color: #333;"></p>
+            <span onclick="copyUPI()" style="cursor: pointer; font-size: 20px;" title="Copy UPI">📋</span>
+        </div>
+
         <input id="utr" placeholder="Enter UTR Number">
         <button onclick="submitDeposit()" style="background:green; color:white; width:100%;">Submit UTR</button>
 
