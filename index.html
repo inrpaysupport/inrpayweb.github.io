@@ -90,7 +90,7 @@
             <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
         </div>
         <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🏦 Bind Primary Bank</h3>
+            <h3 style="margin:0; text-align:center;">🏦 Bind Bank Account</h3>
         </div>
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -112,7 +112,7 @@
                 <input id="earnBankAcc" placeholder="A/C No">
                 <input id="earnBankIfsc" placeholder="IFSC">
             </div>
-            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; font-size:12px;">Update Withdraw Bank</button>
+            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; font-size:12px;">Update Account</button>
             <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 10px 0;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 90%; margin: 0 auto;">
                 <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="margin:0 !important; flex: 2;">
@@ -121,7 +121,7 @@
         </div>
         <div class="refer-box">
             <h3 style="margin: 0;">🎁 Refer & Earn</h3>
-            <p style="font-size: 13px; margin: 10px 0;">Share and get ₹50 on every referral!</p>
+            <p style="font-size: 13px; margin: 10px 0;">Share and get ₹250 on every referral!</p>
             <button onclick="shareReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px; padding: 12px; border: none; font-size: 16px;">📲 Share Link</button>
         </div>
         <div class="history-card">
@@ -188,14 +188,14 @@
 
 <div id="bankBox" class="popup">
     <div class="popup-box">
-        <h3>Bind Primary Bank</h3>
+        <h3>Bind Bank Account</h3>
         <input id="homeBankName" placeholder="Account Holder Name">
         <input id="homeBankAcc" placeholder="Account Number">
         <input id="homeBankIfsc" placeholder="IFSC Code">
         <button onclick="saveHomeBank()" style="background:#2b0a4a; color:white; width:100%;">Save Details</button>
 
         <div id="bankHistorySection" style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p style="font-weight:bold; font-size:14px; margin-bottom:5px;">Binding History:</p>
+            <p style="font-weight:bold; font-size:14px; margin-bottom:5px;">History:</p>
             <div id="bankHistoryList">
                 <p style="font-size:12px; color:#666;">No bank linked.</p>
             </div>
