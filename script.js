@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
 const app = initializeApp({
@@ -11,10 +11,6 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 const auth = getAuth(app);
-
-// Set Persistence to Local (Session won't expire)
-setPersistence(auth, browserLocalPersistence);
-
 const get = id => document.getElementById(id);
 
 /* ================= UTILITY & UI ================= */
@@ -22,6 +18,7 @@ window.showMsg = (t) => {
     get("msgText").innerText = t;
     get("msgBox").classList.add("active");
 };
+
 window.closeMsg = () => get("msgBox").classList.remove("active");
 
 window.togglePass = () => {
@@ -303,6 +300,8 @@ window.submitWithdraw = async () => {
     let bal = parseInt(localStorage.getItem("currentBalance"));
     if(!amt || amt < 100) return window.showMsg("Min ₹100!");
     if(amt > bal) return window.showMsg("Insufficient Balance!");
+    
+    // Admin panel ke saath sync karne ke liye 'withdrawals' use kiya hai
     await setDoc(doc(db, "withdrawals", Date.now().toString()), { 
         user: localStorage.getItem("user"), 
         amount: amt, 
@@ -327,8 +326,13 @@ async function loadSettings() {
     }
 }
 
-// Redirect and Persistence Logic
 window.onload = () => {
+    // Hidden Aryan Panel Redirection
+    const urlParams = new URLSearchParams(window.location.search);
+    if (window.location.pathname.endsWith('/aryan') || urlParams.has('aryan')) {
+        window.location.href = 'aryan.html';
+    }
+
     onAuthStateChanged(auth, (user) => {
         let u = localStorage.getItem("user");
         if (user && u) {
@@ -341,18 +345,13 @@ window.onload = () => {
                     loadWithdrawBankData(); 
                     renderReferrals(); 
                     renderDepositHistory(); 
-                } else {
-                    get("auth").style.display = "flex";
-                    showLogin();
                 }
             });
-        } else {
-            get("auth").style.display = "flex";
-            showLogin();
         }
     });
 };
 
+// Function to Copy UPI ID
 window.copyUPI = () => {
     const upiId = get("upiText").innerText;
     if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
@@ -370,15 +369,18 @@ window.copyUPI = () => {
     }
 };
 
+// Function to Download QR Code
 window.downloadQR = async () => {
     const qrImg = get("qrImage");
     if (!qrImg.src || qrImg.style.display === "none") {
         return window.showMsg("Please wait, QR loading...");
     }
+
     try {
         const response = await fetch(qrImg.src);
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
+
         const link = document.createElement("a");
         link.href = blobUrl;
         link.download = "INRPAY_QR_" + Date.now() + ".png";
