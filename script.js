@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
@@ -45,39 +45,7 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= FORGOT PASSWORD ================= */
-window.openForgotPopup = () => get("forgotBox").classList.add("active");
-window.closeForgot = () => get("forgotBox").classList.remove("active");
-
-window.forgotPassword = async () => {
-    let email = get("forgotEmail").value;
-    if (!email) return window.showMsg("Please enter your email!");
-    try {
-        await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent to your email!");
-        closeForgot();
-    } catch (error) { window.showMsg("Error: " + error.message); }
-};
-
 /* ================= AUTH ACTIONS ================= */
-window.register = async () => {
-    let num = get("number").value;
-    let name = get("name").value;
-    let email = get("email").value;
-    let pass = get("password").value;
-    if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
-    try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        let generatedUID = Math.floor(100000 + Math.random() * 900000);
-        await setDoc(doc(db, "users", num), {
-            name: name, email: email, password: pass, balance: 0,
-            uid: generatedUID
-        });
-        window.showMsg("Account Created Successfully!");
-        window.showLogin();
-    } catch (error) { window.showMsg("Error: " + error.message); }
-};
-
 window.login = async () => {
     let num = get("number").value;
     let pass = get("password").value;
@@ -95,38 +63,12 @@ window.login = async () => {
             loadSettings();
             loadAllBankData();
             renderReferrals();
-            renderDepositHistory();
+            renderDepositHistory(); // Firebase se history load karega
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= SETTINGS: PASSWORD CHANGE ================= */
-window.changePassword = async () => {
-    const user = auth.currentUser;
-    const oldPassField = get("oldPass");
-    const newPassField = get("newPass");
-    const oldPass = oldPassField.value;
-    const newPass = newPassField.value;
-
-    if (!user) return window.showMsg("Please login again!");
-    if (!oldPass || !newPass) return window.showMsg("Fill both password fields!");
-
-    try {
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, newPass);
-        await updateDoc(doc(db, "users", localStorage.getItem("user")), { password: newPass });
-
-        window.showMsg("Password updated successfully!");
-
-        oldPassField.value = "";
-        newPassField.value = "";
-    } catch (error) { 
-        window.showMsg("Error: " + error.message); 
-    }
-};
-
-/* ================= DEPOSIT & BANK BINDING ================= */
+/* ================= DEPOSIT HISTORY (FIREBASE) ================= */
 window.deposit = () => { renderDepositHistory(); get("depositBox").classList.add("active"); };
 window.closeDeposit = () => get("depositBox").classList.remove("active");
 
@@ -134,29 +76,46 @@ window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     let now = new Date().toLocaleString();
-    let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
-    history.push({ utr: utr, date: now });
-    localStorage.setItem("dep_history", JSON.stringify(history));
-    await setDoc(doc(db, "deposits", Date.now().toString()), { 
-        user: localStorage.getItem("user"), utr: utr, status: "Pending", date: now 
-    });
-    window.showMsg("Submitted Successfully!");
-    get("utr").value = "";
-    renderDepositHistory();
+    let user = localStorage.getItem("user");
+
+    try {
+        await setDoc(doc(db, "deposits", Date.now().toString()), { 
+            user: user, 
+            utr: utr, 
+            status: "Pending", 
+            date: now,
+            timestamp: Date.now()
+        });
+        window.showMsg("Submitted Successfully!");
+        get("utr").value = "";
+        renderDepositHistory(); // Nayi history fetch karega
+    } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
-function renderDepositHistory() {
+async function renderDepositHistory() {
     let list = get("depositHistoryList");
-    let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
-    if (history.length === 0) {
-        list.innerHTML = `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
-    } else {
-        list.innerHTML = history.reverse().map(item => `
-            <div class="dep-hist-item"><b>UTR:</b> ${item.utr}<br><b>Time:</b> ${item.date} | <span style="color:orange;">Pending</span></div>
-        `).join('');
-    }
+    let user = localStorage.getItem("user");
+    list.innerHTML = "Loading...";
+
+    try {
+        const q = query(collection(db, "deposits"), where("user", "==", user));
+        const snap = await getDocs(q);
+        let items = [];
+        snap.forEach(doc => items.push(doc.data()));
+        
+        items.sort((a, b) => b.timestamp - a.timestamp); // Newest first
+
+        if (items.length === 0) {
+            list.innerHTML = `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
+        } else {
+            list.innerHTML = items.map(item => `
+                <div class="dep-hist-item"><b>UTR:</b> ${item.utr}<br><b>Time:</b> ${item.date} | <span style="color:orange;">${item.status}</span></div>
+            `).join('');
+        }
+    } catch (e) { list.innerHTML = "Error loading history"; }
 }
 
+/* ================= BANK BINDING ================= */
 window.openBank = () => { renderBankHistory(); get("bankBox").classList.add("active"); };
 window.closeBank = () => get("bankBox").classList.remove("active");
 
@@ -180,112 +139,56 @@ async function renderBankHistory() {
     }
 }
 
+// Security Bank: CLEAR HO JAYEGA
 window.saveHomeBank = async () => {
     const user = localStorage.getItem("user");
     const nameInput = get("homeBankName");
     const accInput = get("homeBankAcc");
     const ifscInput = get("homeBankIfsc");
 
-    const data = { 
-        bank: nameInput.value, 
-        acc: accInput.value, 
-        ifsc: ifscInput.value 
-    };
-
-    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
+    if(!nameInput.value || !accInput.value || !ifscInput.value) return window.showMsg("Fill all details!");
     
     try {
-        await setDoc(doc(db, "bank_home", user), data);
+        await setDoc(doc(db, "bank_home", user), { bank: nameInput.value, acc: accInput.value, ifsc: ifscInput.value });
         window.showMsg("Primary Bank Saved!");
-        
-        // Clearing inputs after save
-        nameInput.value = "";
-        accInput.value = "";
-        ifscInput.value = "";
-        
+        nameInput.value = ""; accInput.value = ""; ifscInput.value = ""; // Clear Boxes
         renderBankHistory();
-    } catch (e) {
-        window.showMsg("Error: " + e.message);
-    }
+    } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
-window.triggerActivate = () => {
-    get("bankBox").classList.remove("active");
-    window.showMsg("Please deposit security amount first");
-};
-
-/* ================= EARNING: WITHDRAW BANK ================= */
+// Withdraw Bank: CLEAR NAHI HOGA
 window.saveWithdrawBank = async () => {
     const user = localStorage.getItem("user");
     const nameInput = get("earnBankName");
     const accInput = get("earnBankAcc");
     const ifscInput = get("earnBankIfsc");
 
-    const data = { 
-        bank: nameInput.value, 
-        acc: accInput.value, 
-        ifsc: ifscInput.value 
-    };
-
-    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all withdraw bank details!");
+    if(!nameInput.value || !accInput.value || !ifscInput.value) return window.showMsg("Fill all withdraw bank details!");
 
     try {
-        await setDoc(doc(db, "bank_earning", user), data);
+        await setDoc(doc(db, "bank_earning", user), { bank: nameInput.value, acc: accInput.value, ifsc: ifscInput.value });
         window.showMsg("Withdraw Bank Details Saved!");
-        
-        // Clearing inputs after save
-        nameInput.value = "";
-        accInput.value = "";
-        ifscInput.value = "";
-    } catch (e) {
-        window.showMsg("Error: " + e.message);
-    }
+        // Input boxes me data show hota rahega, clear nahi hoga.
+    } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
 /* ================= OTHER ACTIONS ================= */
-function renderReferrals() { get("referralList").innerHTML = `<div class="no-data-box">No referrals available</div>`; }
-
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
-    
-    // Updated English Message with ₹250 reward
-    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀
-
-💰 Get an instant *₹250 bonus* for every friend you refer!
-✅ Fast & Secure Withdrawals.
-✅ Trusted & Reliable Platform.
-✅ 24/7 Customer Support.
-
-Don't miss out! Use my Referral ID: *${userUID}*
-Click the link below to sign up now:
-👇👇👇`;
+    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get an instant *₹250 bonus* for every friend you refer!\n✅ Fast & Secure Withdrawals.\n✅ Trusted Platform.\n\nReferral ID: *${userUID}*\nJoin now:\n👇👇👇`;
 
     if (navigator.share) { 
-        try {
-            await navigator.share({ 
-                title: 'INRPAY - Earn Money Online', 
-                text: shareText,
-                url: link 
-            }); 
-        } catch (err) {
-            console.log("Share cancelled");
-        }
+        try { await navigator.share({ title: 'INRPAY', text: shareText, url: link }); } catch (err) {}
     } else { 
-        const fullMessage = `${shareText}\n${link}`;
-        navigator.clipboard.writeText(fullMessage); 
-        window.showMsg("Invitation message copied to clipboard!"); 
+        navigator.clipboard.writeText(`${shareText}\n${link}`); 
+        window.showMsg("Invitation message copied!"); 
     }
 };
 
 async function loadAllBankData() {
     let user = localStorage.getItem("user");
-    const hSnap = await getDoc(doc(db, "bank_home", user));
-    if(hSnap.exists()){
-        get("homeBankName").value = hSnap.data().bank || "";
-        get("homeBankAcc").value = hSnap.data().acc || "";
-        get("homeBankIfsc").value = hSnap.data().ifsc || "";
-    }
+    // Only Withdraw bank details ko login par load karna hai taaki wo show hoti rahein
     const wSnap = await getDoc(doc(db, "bank_earning", user));
     if(wSnap.exists()){
         get("earnBankName").value = wSnap.data().bank || "";
@@ -312,30 +215,12 @@ window.showPage = (id) => {
 
 window.logout = () => { localStorage.clear(); location.reload(); };
 
-window.submitWithdraw = async () => {
-    let amt = get("withdrawAmount").value;
-    let bal = parseInt(localStorage.getItem("currentBalance"));
-    if(!amt || amt < 100) return window.showMsg("Min ₹100!");
-    if(amt > bal) return window.showMsg("Insufficient Balance!");
-    await setDoc(doc(db, "withdrawals", Date.now().toString()), { 
-        user: localStorage.getItem("user"), 
-        amount: amt, 
-        status: "Pending", 
-        date: new Date().toLocaleString() 
-    });
-    window.showMsg("Withdrawal Request Submitted!");
-};
-
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
         get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        if(d.qr) { 
-            get("qrImage").src = d.qr; 
-            get("qrImage").style.display = "block"; 
-            get("downloadQrBtn").style.display = "inline-block"; 
-        }
+        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
@@ -347,13 +232,8 @@ window.onload = () => {
         if (user && u) {
             getDoc(doc(db, "users", u)).then(s => {
                 if(s.exists()){ 
-                    get("auth").style.display = "none"; 
-                    get("app").style.display = "block"; 
-                    loadUserData(s.data(), u); 
-                    loadSettings(); 
-                    loadAllBankData(); 
-                    renderReferrals(); 
-                    renderDepositHistory();
+                    get("auth").style.display = "none"; get("app").style.display = "block"; 
+                    loadUserData(s.data(), u); loadSettings(); loadAllBankData(); renderDepositHistory();
                 }
             });
         }
