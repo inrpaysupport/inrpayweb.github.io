@@ -67,8 +67,6 @@ window.register = async () => {
     let pass = get("password").value;
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
     try {
-        // Register function ke end mein is tarah likhein:
-    try {
         await createUserWithEmailAndPassword(auth, email, pass);
         let generatedUID = Math.floor(100000 + Math.random() * 900000);
         await setDoc(doc(db, "users", num), {
@@ -77,14 +75,8 @@ window.register = async () => {
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { 
-        // Yahan error check ho raha hai
-        if (error.code === 'auth/email-already-in-use') {
-            window.showMsg("Email or Number already in use! Please login."); 
-        } else {
-            window.showMsg("Error: " + error.message); 
-        }
-    }
+    } catch (error) { window.showMsg(Email or Number already in use! Please login.); }
+};
 
 window.login = async () => {
     let num = get("number").value;
