@@ -75,7 +75,7 @@ window.register = async () => {
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { window.showMsg("Error: " + error.message); }
+    } catch (error) { window.showMsg("Email or Number already in use! Please login."); }
 };
 
 window.login = async () => {
