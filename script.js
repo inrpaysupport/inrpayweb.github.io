@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 // Firebase Configuration
@@ -93,9 +93,8 @@ window.login = async () => {
             get("app").style.display = "block";
             loadUserData(snap.data(), num);
             loadSettings();
-            loadAllBankData(); // Ab yeh boxes ko auto-fill nahi karega
-            renderReferrals();
-            renderDepositHistory();
+            loadWithdrawBankData(); // Withdraw bank auto-fill
+            renderDepositHistory(); // Firebase history load
         } catch (e) { window.showMsg("Invalid Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -131,26 +130,45 @@ window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     let now = new Date().toLocaleString();
-    let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
-    history.push({ utr: utr, date: now });
-    localStorage.setItem("dep_history", JSON.stringify(history));
-    await setDoc(doc(db, "deposits", Date.now().toString()), { 
-        user: localStorage.getItem("user"), utr: utr, status: "Pending", date: now 
-    });
-    window.showMsg("Submitted Successfully!");
-    get("utr").value = "";
-    renderDepositHistory();
+    
+    try {
+        // Firebase mein save ho raha hai
+        await setDoc(doc(db, "deposits", Date.now().toString()), { 
+            user: localStorage.getItem("user"), 
+            utr: utr, 
+            status: "Pending", 
+            date: now 
+        });
+        window.showMsg("Submitted Successfully!");
+        get("utr").value = "";
+        renderDepositHistory(); // Firebase se refresh
+    } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
-function renderDepositHistory() {
+async function renderDepositHistory() {
     let list = get("depositHistoryList");
-    let history = JSON.parse(localStorage.getItem("dep_history") || "[]");
-    if (history.length === 0) {
-        list.innerHTML = `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
-    } else {
-        list.innerHTML = history.reverse().map(item => `
-            <div class="dep-hist-item"><b>UTR:</b> ${item.utr}<br><b>Time:</b> ${item.date} | <span style="color:orange;">Pending</span></div>
-        `).join('');
+    const user = localStorage.getItem("user");
+    if(!user) return;
+
+    list.innerHTML = `<div class="no-data-box" style="padding: 5px; font-size: 10px;">Loading...</div>`;
+
+    try {
+        const q = query(collection(db, "deposits"), where("user", "==", user));
+        const querySnapshot = await getDocs(q);
+        let html = "";
+
+        querySnapshot.forEach((doc) => {
+            let item = doc.data();
+            html += `
+                <div class="dep-hist-item">
+                    <b>UTR:</b> ${item.utr}<br>
+                    <b>Time:</b> ${item.date} | <span style="color:orange;">${item.status}</span>
+                </div>`;
+        });
+
+        list.innerHTML = html || `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
+    } catch (e) {
+        list.innerHTML = `<div class="no-data-box">History error</div>`;
     }
 }
 
@@ -190,16 +208,13 @@ window.saveHomeBank = async () => {
     };
 
     if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
-    
+
     try {
         await setDoc(doc(db, "bank_home", user), data);
         window.showMsg("Primary Bank Saved!");
-        
-        // Clearing inputs after save
         nameInput.value = "";
         accInput.value = "";
         ifscInput.value = "";
-        
         renderBankHistory();
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
@@ -227,13 +242,21 @@ window.saveWithdrawBank = async () => {
     try {
         await setDoc(doc(db, "bank_earning", user), data);
         window.showMsg("Withdraw Bank Details Saved!");
-        
-        // Clearing inputs after save
-        nameInput.value = "";
-        accInput.value = "";
-        ifscInput.value = "";
+        // Boxes clear nahi honge
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
+
+async function loadWithdrawBankData() {
+    const user = localStorage.getItem("user");
+    if(!user) return;
+    const snap = await getDoc(doc(db, "bank_earning", user));
+    if(snap.exists()) {
+        const d = snap.data();
+        get("earnBankName").value = d.bank || "";
+        get("earnBankAcc").value = d.acc || "";
+        get("earnBankIfsc").value = d.ifsc || "";
+    }
+}
 
 /* ================= OTHER ACTIONS ================= */
 function renderReferrals() { get("referralList").innerHTML = `<div class="no-data-box">No referrals available</div>`; }
@@ -241,7 +264,7 @@ function renderReferrals() { get("referralList").innerHTML = `<div class="no-dat
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
-    
+
     const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀
 
 💰 Get an instant *₹250 bonus* for every friend you refer!
@@ -263,12 +286,6 @@ Click the link below to sign up now:
         window.showMsg("Invitation message copied to clipboard!"); 
     }
 };
-
-async function loadAllBankData() {
-    // Is function ko sirf background execution ke liye rakha hai
-    // Purana data boxes mein auto-fill nahi hoga
-    console.log("Personal data retrieval handled.");
-}
 
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + (data.name || "User");
@@ -327,9 +344,9 @@ window.onload = () => {
                     get("app").style.display = "block"; 
                     loadUserData(s.data(), u); 
                     loadSettings(); 
-                    loadAllBankData(); 
+                    loadWithdrawBankData(); // Auto-fill on refresh
                     renderReferrals(); 
-                    renderDepositHistory();
+                    renderDepositHistory(); // Load history on refresh
                 }
             });
         }
