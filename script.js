@@ -24,7 +24,7 @@ const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
 /* ==========================================
-   2. UI & POPUP LOGIC (Fixed Global Access)
+   2. GLOBAL UI & MESSAGE SYSTEM
    ========================================== */
 window.showMsg = (text) => {
     const msgBox = get("msgBox");
@@ -53,7 +53,7 @@ window.togglePass = () => {
 };
 
 /* ==========================================
-   3. AUTHENTICATION (Login, Register, Forgot)
+   3. AUTHENTICATION (Fixed Login & Forgot)
    ========================================== */
 window.showRegister = () => {
     get("authTitle").innerText = "Create Account";
@@ -75,7 +75,7 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-// --- Login Logic with Error Fix ---
+// --- Login Fixed: No more fake invalid popups ---
 window.login = async () => {
     const num = get("number").value;
     const pass = get("password").value;
@@ -88,9 +88,11 @@ window.login = async () => {
 
         if (snap.exists()) {
             const userData = snap.data();
-            // Firebase Auth Sign In
+            
+            // Firebase Auth Login
             await signInWithEmailAndPassword(auth, userData.email, pass);
             
+            // Login successful
             localStorage.setItem("user", num);
             get("auth").style.display = "none";
             get("app").style.display = "block";
@@ -99,36 +101,37 @@ window.login = async () => {
             loadSettings();
             loadAllBankData();
             renderDepositHistory();
-            renderReferrals();
+            renderBankHistory();
+            
         } else {
-            window.showMsg("Mobile number not registered!");
+            window.showMsg("User not registered!");
         }
     } catch (e) {
-        console.error("Login Error:", e.code);
-        if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
-            window.showMsg("Invalid Password! Please try again.");
+        // Sirf tabhi error dikhayega jab sach mein galat password ho
+        if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
+            window.showMsg("Invalid Password! Try again.");
         } else {
-            window.showMsg("Login Failed: " + e.message);
+            console.error("Login Error:", e.message);
         }
     }
 };
 
 window.openForgotPopup = () => {
-    const forgotBox = get("forgotBox");
-    if(forgotBox) forgotBox.classList.add("active");
+    const box = get("forgotBox");
+    if(box) box.classList.add("active");
 };
 
 window.closeForgot = () => {
-    const forgotBox = get("forgotBox");
-    if(forgotBox) forgotBox.classList.remove("active");
+    const box = get("forgotBox");
+    if(box) box.classList.remove("active");
 };
 
 window.forgotPassword = async () => {
     const email = get("forgotEmail").value;
-    if (!email) return window.showMsg("Enter your registered email!");
+    if (!email) return window.showMsg("Enter email address!");
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent! Check your inbox.");
+        window.showMsg("Reset link sent! Check your inbox.");
         window.closeForgot();
     } catch (error) {
         window.showMsg("Error: " + error.message);
@@ -136,95 +139,87 @@ window.forgotPassword = async () => {
 };
 
 /* ==========================================
-   4. BANK BINDING (Home & Earning)
+   4. BANK BINDING (Requirements Specific)
    ========================================== */
 
 window.openBank = () => { 
     renderBankHistory(); 
-    const bankBox = get("bankBox");
-    if(bankBox) bankBox.classList.add("active");
+    const box = get("bankBox");
+    if(box) box.classList.add("active");
 };
 
 window.closeBank = () => {
-    const bankBox = get("bankBox");
-    if(bankBox) bankBox.classList.remove("active");
+    const box = get("bankBox");
+    if(box) box.classList.remove("active");
 };
 
-// Primary Bank (Security) - Clears boxes
+// Security Bank: Clears Boxes
 window.saveHomeBank = async () => {
     const user = localStorage.getItem("user");
-    const name = get("homeBankName");
-    const acc = get("homeBankAcc");
-    const ifsc = get("homeBankIfsc");
+    const name = get("homeBankName"), acc = get("homeBankAcc"), ifsc = get("homeBankIfsc");
 
     if(!name.value || !acc.value || !ifsc.value) return window.showMsg("Fill all details!");
 
     try {
         await setDoc(doc(db, "bank_home", user), {
-            bank: name.value, acc: acc.value, ifsc: ifsc.value, date: new Date().toLocaleString()
+            bank: name.value, acc: acc.value, ifsc: ifsc.value, date: Date.now()
         });
-        window.showMsg("Primary Bank Saved!");
-        name.value = ""; acc.value = ""; ifsc.value = ""; 
+        window.showMsg("Bank Details Saved!");
+        name.value = ""; acc.value = ""; ifsc.value = ""; // Clear requirements
         renderBankHistory();
-    } catch (e) { window.showMsg("Error: " + e.message); }
+    } catch (e) { window.showMsg("System Error!"); }
 };
 
 async function renderBankHistory() {
     const user = localStorage.getItem("user");
     const list = get("bankHistoryList");
-    const actBtn = get("activateAccBtn");
+    if(!list) return;
 
     const snap = await getDoc(doc(db, "bank_home", user));
     if(snap.exists()) {
         const d = snap.data();
-        list.innerHTML = `<div class="bank-history-item" style="background:#f0f0f0; color:#333; padding:10px; border-radius:8px;">
-            <b>Holder:</b> ${d.bank}<br><b>Acc:</b> ${d.acc}<br><b>IFSC:</b> ${d.ifsc}</div>`;
-        if(actBtn) actBtn.style.display = "block";
+        list.innerHTML = `<div class="bank-history-item" style="background:#f0f0f0; color:#000; padding:10px; border-radius:8px;">
+            <b>Name:</b> ${d.bank}<br><b>A/c:</b> ${d.acc}<br><b>IFSC:</b> ${d.ifsc}</div>`;
+        get("activateAccBtn").style.display = "block";
     }
 }
 
-// Withdraw Bank (Earning) - Persistent
+// Withdraw Bank: Persistent (Does not clear)
 window.saveWithdrawBank = async () => {
     const user = localStorage.getItem("user");
-    const name = get("earnBankName");
-    const acc = get("earnBankAcc");
-    const ifsc = get("earnBankIfsc");
+    const name = get("earnBankName"), acc = get("earnBankAcc"), ifsc = get("earnBankIfsc");
 
-    if(!name.value || !acc.value || !ifsc.value) return window.showMsg("Fill all bank details!");
+    if(!name.value || !acc.value || !ifsc.value) return window.showMsg("Fill all fields!");
 
     try {
         await setDoc(doc(db, "bank_earning", user), { bank: name.value, acc: acc.value, ifsc: ifsc.value });
         window.showMsg("Withdraw Details Saved!");
-    } catch (e) { window.showMsg("Error: " + e.message); }
+    } catch (e) { window.showMsg("Update Failed!"); }
 };
 
 /* ==========================================
-   5. DEPOSIT (Firebase History)
+   5. SECURITY DEPOSIT (Firebase History)
    ========================================== */
 window.deposit = () => { 
     renderDepositHistory(); 
-    const depBox = get("depositBox");
-    if(depBox) depBox.classList.add("active");
+    get("depositBox").classList.add("active");
 };
 
-window.closeDeposit = () => {
-    const depBox = get("depositBox");
-    if(depBox) depBox.classList.remove("active");
-};
+window.closeDeposit = () => get("depositBox").classList.remove("active");
 
 window.submitDeposit = async () => {
     const utr = get("utr").value;
     const user = localStorage.getItem("user");
-    if(!utr) return window.showMsg("Enter UTR Number!");
+    if(!utr) return window.showMsg("Enter UTR!");
 
     try {
         await setDoc(doc(db, "deposits", Date.now().toString()), {
             user: user, utr: utr, status: "Pending", date: new Date().toLocaleString(), timestamp: Date.now()
         });
-        window.showMsg("UTR Submitted!");
+        window.showMsg("Submitted Successfully!");
         get("utr").value = "";
         renderDepositHistory();
-    } catch (e) { window.showMsg("Error: " + e.message); }
+    } catch (e) { window.showMsg("Error!"); }
 };
 
 async function renderDepositHistory() {
@@ -240,28 +235,28 @@ async function renderDepositHistory() {
         items.sort((a, b) => b.timestamp - a.timestamp);
 
         if(items.length === 0) {
-            list.innerHTML = `<div class="no-data-box">No History</div>`;
+            list.innerHTML = `<p style="font-size:10px;">No History Found</p>`;
         } else {
-            list.innerHTML = items.map(i => `<div class="dep-hist-item" style="padding:10px; border-bottom:1px solid #444;">
-                <b>UTR:</b> ${i.utr} <br> <small>${i.date}</small> | <span style="color:orange;">${i.status}</span>
+            list.innerHTML = items.map(i => `<div class="dep-hist-item" style="padding:8px; border-bottom:1px solid #444;">
+                <b>UTR:</b> ${i.utr} | <span style="color:orange;">${i.status}</span><br><small>${i.date}</small>
             </div>`).join('');
         }
     } catch (e) { console.error(e); }
 }
 
 /* ==========================================
-   6. REFERRAL & OTHER
+   6. REFERRAL & LOAD SYSTEM
    ========================================== */
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
-    const shareText = `🚀 *Join INRPAY & Earn Daily!* 🚀\n💰 *₹250 bonus* per friend!\nUse ID: *${userUID}*\nJoin here:\n${link}`;
+    const shareText = `🚀 *Join INRPAY & Earn Daily!* 🚀\n💰 *₹250 bonus* per referral!\nJoin here: ${link}`;
 
     if (navigator.share) {
         try { await navigator.share({ title: 'INRPAY', text: shareText, url: link }); } catch (err) {}
     } else {
-        navigator.clipboard.writeText(shareText);
-        window.showMsg("Referral message copied!");
+        navigator.clipboard.writeText(`${shareText}\n${link}`);
+        window.showMsg("Copied to clipboard!");
     }
 };
 
@@ -299,7 +294,7 @@ async function loadSettings() {
 window.logout = () => { localStorage.clear(); location.reload(); };
 
 /* ==========================================
-   7. INITIALIZATION
+   7. INITIALIZATION (On Load)
    ========================================== */
 window.onload = () => {
     onAuthStateChanged(auth, (user) => {
