@@ -64,7 +64,7 @@ window.forgotPassword = async () => {
     if (!email) return window.showMsg("Please enter your email!");
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent to your email!");
+        window.showMsg("Password reset link sent to your email! if not found, please check SPAM folder.");
         closeForgot();
     } catch (error) { window.showMsg("Error: " + error.message); }
 };
