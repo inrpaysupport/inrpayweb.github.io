@@ -103,8 +103,8 @@ window.login = async () => {
             get("app").style.display = "block";
             loadUserData(snap.data(), num);
             loadSettings();
-            loadWithdrawBankData();
-            renderDepositHistory();
+            loadWithdrawBankData(); 
+            renderDepositHistory(); 
         } catch (e) { window.showMsg("Wrong Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -126,7 +126,7 @@ window.submitDeposit = async () => {
         });
         window.showMsg("Submitted Successfully!");
         get("utr").value = "";
-        renderDepositHistory();
+        renderDepositHistory(); 
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
@@ -149,7 +149,7 @@ async function renderDepositHistory() {
         });
         list.innerHTML = html || `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
     } catch (e) { list.innerHTML = `<div class="no-data-box">History error</div>`; }
-}
+};
 
 window.openBank = () => { renderBankHistory(); get("bankBox").classList.add("active"); };
 window.closeBank = () => get("bankBox").classList.remove("active");
@@ -167,7 +167,7 @@ async function renderBankHistory() {
         list.innerHTML = `<p style="font-size:12px; color:#666;">No bank bound yet.</p>`;
         actBtn.style.display = "none";
     }
-}
+};
 
 window.saveHomeBank = async () => {
     const user = localStorage.getItem("user");
@@ -206,7 +206,7 @@ async function loadWithdrawBankData() {
         get("earnBankAcc").value = d.acc || "";
         get("earnBankIfsc").value = d.ifsc || "";
     }
-}
+};
 
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + (data.name || "User");
@@ -217,7 +217,7 @@ function loadUserData(data, num) {
     get("balance").innerText = "₹" + (data.balance || 0);
     localStorage.setItem("currentBalance", data.balance || 0);
     localStorage.setItem("userUID", data.uid);
-}
+};
 
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
@@ -239,7 +239,7 @@ async function loadSettings() {
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
-}
+};
 
 /* ================= INITIALIZATION & TIMING ================= */
 window.onload = () => {
@@ -274,6 +274,40 @@ window.onload = () => {
     });
 };
 
-// Clipboard & QR helper functions...
-window.copyUPI = () => { /* same as before */ };
-window.downloadQR = async () => { /* same as before */ };
+// Helper functions (Clipboard & QR)
+window.copyUPI = () => {
+    const upiId = get("upiText").innerText;
+    if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
+        navigator.clipboard.writeText(upiId).then(() => {
+            window.showMsg("UPI ID Copied to Clipboard!");
+        }).catch(() => {
+            const textArea = document.createElement("textarea");
+            textArea.value = upiId;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            window.showMsg("UPI ID Copied!");
+        });
+    }
+};
+
+window.downloadQR = async () => {
+    const qrImg = get("qrImage");
+    if (!qrImg.src || qrImg.style.display === "none") return window.showMsg("Please wait, QR loading...");
+    try {
+        const response = await fetch(qrImg.src);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = "INRPAY_QR_" + Date.now() + ".png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+        window.open(qrImg.src, '_blank');
+        window.showMsg("Opening QR in new tab...");
+    }
+};
