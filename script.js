@@ -130,10 +130,28 @@ function setupRealtimeListeners(num) {
     });
 }
 
-/* ================= AUTO TRANSACTIONS (WITH 4% LOGIC) ================= */
+/* ================= AUTO TRANSACTIONS (WITH SCROLLING) ================= */
 function startLiveTransactions() {
     const listContainer = document.querySelector("#homePage .card h4")?.parentElement;
     if(!listContainer) return;
+
+    // 1. Scrollable Box Setup: Agar box nahi bana toh banayein
+    let scrollBox = listContainer.querySelector(".trans-scroll-box");
+    if (!scrollBox) {
+        scrollBox = document.createElement("div");
+        scrollBox.className = "trans-scroll-box";
+        // Styling: Box ki height fix kardi aur scrolling enable kar di
+        scrollBox.style.cssText = "max-height: 250px; overflow-y: auto; padding-right: 5px; margin-top: 10px;";
+        
+        // Custom Scrollbar Style inject karein
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .trans-scroll-box::-webkit-scrollbar { width: 4px; }
+            .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        `;
+        document.head.appendChild(style);
+        listContainer.appendChild(scrollBox);
+    }
 
     const run = async () => {
         const currentStatus = localStorage.getItem("accountStatus");
@@ -145,6 +163,7 @@ function startLiveTransactions() {
         const type = isDebit ? "Debit" : "Credit";
         const color = isDebit ? "#ff5252" : "#38ef7d";
 
+        // Balance Update Logic (4% Bonus)
         if (isDebit) {
             const userNum = localStorage.getItem("user");
             const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
@@ -159,21 +178,26 @@ function startLiveTransactions() {
             }
         }
 
+        // Transaction Item create karein
         const item = document.createElement("div");
-        item.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;";
-        item.innerHTML = `<span>${new Date().toLocaleTimeString()}</span><span style="color:${color}">${type}: ₹${amount}</span>`;
+        item.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;";
+        item.innerHTML = `<span>${new Date().toLocaleTimeString()}</span><span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>`;
 
-        if (listContainer.querySelector('.no-data-box')) {
-            const h4 = listContainer.querySelector('h4');
-            listContainer.innerHTML = "";
-            if(h4) listContainer.appendChild(h4);
-        }
-        listContainer.insertBefore(item, listContainer.children[1]);
-        if (listContainer.children.length > 6) listContainer.removeChild(listContainer.lastChild);
+        // "No Data" box ko remove karein agar naya data aa gaya hai
+        const noData = listContainer.querySelector('.no-data-box');
+        if (noData) noData.remove();
+
+        // Naya transaction hamesha TOP par dikhega (prepend)
+        scrollBox.prepend(item);
+
+        // Limit: History ko 50 items tak rakhein taaki page slow na ho
+        if (scrollBox.children.length > 50) scrollBox.removeChild(scrollBox.lastChild);
+
         setTimeout(run, Math.random() * 10000 + 5000);
     };
     run();
 }
+
 
 /* ================= SETTINGS: PASSWORD CHANGE ================= */
 window.changePassword = async () => {
