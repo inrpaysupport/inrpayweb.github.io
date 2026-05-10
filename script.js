@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-// App Check import add kiya gaya
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app-check.js";
 
 // Firebase Configuration
@@ -11,7 +10,7 @@ const app = initializeApp({
     projectId: "inrpay-44413"
 });
 
-// App Check Initialize karein (reCAPTCHA Site Key yahan dalein)
+// App Check Initialize
 const appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY_HERE'),
     isTokenAutoRefreshEnabled: true
@@ -21,7 +20,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= SPLASH SCREEN LOGIC (Added) ================= */
+/* ================= SPLASH SCREEN LOGIC ================= */
 window.hideSplash = () => {
     const splash = get('splash');
     if (splash) {
@@ -29,7 +28,6 @@ window.hideSplash = () => {
         setTimeout(() => splash.remove(), 800);
     }
 };
-/* ============================================================= */
 
 /* ================= UTILITY & UI ================= */
 window.showMsg = (t) => {
@@ -63,20 +61,6 @@ window.showLogin = () => {
     get("toggleText").innerHTML = `Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button>`;
 };
 
-/* ================= FORGOT PASSWORD ================= */
-window.openForgotPopup = () => get("forgotBox").classList.add("active");
-window.closeForgot = () => get("forgotBox").classList.remove("active");
-
-window.forgotPassword = async () => {
-    let email = get("forgotEmail").value;
-    if (!email) return window.showMsg("Please enter your email!");
-    try {
-        await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent to your email! please check SPAM folder.");
-        closeForgot();
-    } catch (error) { window.showMsg("Error: " + error.message); }
-};
-
 /* ================= AUTH ACTIONS ================= */
 window.register = async () => {
     let num = get("number").value;
@@ -89,12 +73,11 @@ window.register = async () => {
         let generatedUID = Math.floor(100000 + Math.random() * 900000);
         await setDoc(doc(db, "users", num), {
             name: name, email: email, password: pass, balance: 0,
-            uid: generatedUID,
-            bankStatus: "Deactivate" // Naya field bank control ke liye
+            uid: generatedUID, bankStatus: "Deactivate"
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { window.showMsg("Email or Number already in use! Please login."); }
+    } catch (error) { window.showMsg("Error: " + error.message); }
 };
 
 window.login = async () => {
@@ -104,235 +87,109 @@ window.login = async () => {
     const userRef = doc(db, "users", num);
     const snap = await getDoc(userRef);
     if (snap.exists()) {
-        const email = snap.data().email;
         try {
-            await signInWithEmailAndPassword(auth, email, pass);
+            await signInWithEmailAndPassword(auth, snap.data().email, pass);
             localStorage.setItem("user", num);
-            get("auth").style.display = "none";
-            get("app").style.display = "block";
-            loadUserData(snap.data(), num);
-            loadSettings();
-            loadWithdrawBankData(); 
-            renderDepositHistory(); 
-            startLiveTransactions(); // Login ke baad transactions shuru
-            listenBankStatus(); // Bank status monitor shuru
+            location.reload(); 
         } catch (e) { window.showMsg("Wrong Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= NEW: AUTO TRANSACTION & BANK STATUS LOGIC ================= */
-
-// 1. Random Transactions with 5% Balance Credit
-function startLiveTransactions() {
-    const list = document.querySelector("#homePage .card h4").nextElementSibling;
-    if(!list) return;
-
-    const run = async () => {
-        const amount = Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000;
-        const time = new Date().toLocaleTimeString();
-        const isCredit = Math.random() > 0.3; 
-        const type = isCredit ? "Credit" : "Debit";
-        const color = isCredit ? "#4caf50" : "#ff5252";
-
-        const item = document.createElement("div");
-        item.className = "history-item";
-        item.innerHTML = `<span>${time}</span><span style="color:${color}">${type}: ₹${amount}</span>`;
-
-        if (list.classList.contains('no-data-box')) {
-            list.innerHTML = "";
-            list.classList.remove('no-data-box');
-        }
-        list.insertBefore(item, list.firstChild);
-        if (list.children.length > 5) list.removeChild(list.lastChild);
-
-        // Naya feature: Debit ka 5% balance mein add hona
-        if (!isCredit) {
-            const user = localStorage.getItem("user");
-            if (user) {
-                const bonus = Math.floor(amount * 0.05);
-                const userRef = doc(db, "users", user);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    const currentBal = parseInt(userSnap.data().balance || 0);
-                    const newBal = currentBal + bonus;
-                    await updateDoc(userRef, { balance: newBal });
-                    get("balance").innerText = "₹" + newBal;
-                    localStorage.setItem("currentBalance", newBal);
-                }
-            }
-        }
-
-        // Random timing: 5s, 25s, 4s (as requested)
-        const times = [4000, 5000, 25000];
-        const nextTime = times[Math.floor(Math.random() * times.length)];
-        setTimeout(run, nextTime);
-    };
-    run();
-}
-
-// 2. Real-time Bank Status Sync (Admin Control)
-function listenBankStatus() {
-    const user = localStorage.getItem("user");
-    if(!user) return;
-    
-    onSnapshot(doc(db, "users", user), (docSnap) => {
+/* ================= REAL-TIME UPDATES (BANK & BALANCE) ================= */
+function setupRealtimeListeners(num) {
+    onSnapshot(doc(db, "users", num), (docSnap) => {
         if (docSnap.exists()) {
-            const status = docSnap.data().bankStatus || "Deactivate";
-            const statusBox = document.querySelector("#homePage .card span[style*='color:red']").parentElement;
-            if (status === "Active") {
-                statusBox.innerHTML = `<span>Account Bind Status</span><span id="bindStatusDisplay" style="color:#4caf50; font-weight:bold;">● <span style="color:white; font-weight:normal;">Activated</span></span>`;
-            } else {
-                statusBox.innerHTML = `<span>Account Bind Status</span><span id="bindStatusDisplay" style="color:red; font-weight:bold;">● <span style="color:white; font-weight:normal;">Deactivate</span></span>`;
+            const data = docSnap.data();
+            get("usernameHome").innerText = "Hello, " + (data.name || "User");
+            get("balance").innerText = "₹" + (data.balance || 0);
+            localStorage.setItem("currentBalance", data.balance || 0);
+            localStorage.setItem("userUID", data.uid);
+            
+            // Bank Status Update
+            const statusText = data.bankStatus === "Active" ? "Activated" : "Deactivate";
+            const statusColor = data.bankStatus === "Active" ? "#38ef7d" : "red";
+            
+            const statusContainer = document.querySelector("#homePage .card span[style*='color:red'], #homePage .card span[style*='color:#38ef7d']");
+            if(statusContainer) {
+                statusContainer.style.color = statusColor;
+                statusContainer.innerHTML = `● <span style="color:white; font-weight:normal;">${statusText}</span>`;
             }
         }
     });
 }
 
-/* ================= SETTINGS: PASSWORD CHANGE ================= */
-window.changePassword = async () => {
-    const user = auth.currentUser;
-    const oldPassField = get("oldPass");
-    const newPassField = get("newPass");
-    const oldPass = oldPassField.value;
-    const newPass = newPassField.value;
+/* ================= AUTO TRANSACTIONS SIMULATION ================= */
+function startLiveTransactions() {
+    const list = document.querySelector("#homePage .card h4")?.parentElement;
+    if(!list) return;
+    
+    const run = () => {
+        const amount = Math.floor(Math.random() * 5000) + 500;
+        const isDebit = Math.random() > 0.5;
+        const type = isDebit ? "Debit" : "Credit";
+        const color = isDebit ? "#ff5252" : "#38ef7d";
+        
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;";
+        item.innerHTML = `<span>${new Date().toLocaleTimeString()}</span><span style="color:${color}">${type}: ₹${amount}</span>`;
+        
+        if (list.querySelector('.no-data-box')) {
+            const h4 = list.querySelector('h4');
+            list.innerHTML = "";
+            if(h4) list.appendChild(h4);
+        }
+        list.insertBefore(item, list.children[1]);
+        if (list.children.length > 6) list.removeChild(list.lastChild);
+        setTimeout(run, Math.random() * 10000 + 5000);
+    };
+    run();
+}
 
-    if (!user) return window.showMsg("Please login again!");
-    if (!oldPass || !newPass) return window.showMsg("Fill both password fields!");
+/* ================= WITHDRAWAL SYSTEM ================= */
+window.submitWithdraw = async () => {
+    let amt = parseInt(get("withdrawAmount").value);
+    let num = localStorage.getItem("user");
+    let bal = parseInt(localStorage.getItem("currentBalance"));
+    
+    if(!amt || amt < 100) return window.showMsg("Min ₹100!");
+    if(amt > bal) return window.showMsg("Insufficient Balance!");
 
     try {
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, newPass);
-        await updateDoc(doc(db, "users", localStorage.getItem("user")), { password: newPass });
-
-        window.showMsg("Password updated successfully!");
-        oldPassField.value = "";
-        newPassField.value = "";
-    } catch (error) { window.showMsg("Error: " + error.message); }
+        await setDoc(doc(db, "withdrawals", Date.now().toString()), {
+            user: num, amount: amt, status: "Pending", date: new Date().toLocaleString()
+        });
+        await updateDoc(doc(db, "users", num), { balance: bal - amt });
+        window.showMsg("Withdrawal Request Submitted!");
+        get("withdrawAmount").value = "";
+    } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
-/* ================= DEPOSIT & BANK BINDING ================= */
-window.deposit = () => { renderDepositHistory(); get("depositBox").classList.add("active"); };
-window.closeDeposit = () => get("depositBox").classList.remove("active");
-
+/* ================= DEPOSIT & SETTINGS ================= */
 window.submitDeposit = async () => {
     let utr = get("utr").value;
-    if(!utr) return window.showMsg("Enter UTR!");
-    let now = new Date().toLocaleString();
-
+    if(!utr || utr.length < 12) return window.showMsg("Enter 12-digit UTR!");
     try {
         await setDoc(doc(db, "deposits", Date.now().toString()), { 
-            user: localStorage.getItem("user"), 
-            utr: utr, 
-            status: "Pending", 
-            date: now 
+            user: localStorage.getItem("user"), utr: utr, status: "Pending", date: new Date().toLocaleString() 
         });
-        window.showMsg("Submitted Successfully!");
+        window.showMsg("UTR Submitted!");
         get("utr").value = "";
-        renderDepositHistory(); 
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
-async function renderDepositHistory() {
-    let list = get("depositHistoryList");
-    const user = localStorage.getItem("user");
-    if(!user) return;
-
-    list.innerHTML = `<div class="no-data-box" style="padding: 5px; font-size: 10px;">Loading...</div>`;
-
-    try {
-        const q = query(collection(db, "deposits"), where("user", "==", user));
-        const querySnapshot = await getDocs(q);
-        let html = "";
-
-        querySnapshot.forEach((doc) => {
-            let item = doc.data();
-            html += `
-                <div class="dep-hist-item">
-                    <b>UTR:</b> ${item.utr}<br>
-                    <b>Time:</b> ${item.date} | <span style="color:orange;">${item.status}</span>
-                </div>`;
-        });
-
-        list.innerHTML = html || `<div class="no-data-box" style="padding: 5px; font-size: 10px;">No history</div>`;
-    } catch (e) {
-        list.innerHTML = `<div class="no-data-box">History error</div>`;
-    }
-}
-
-window.openBank = () => { renderBankHistory(); get("bankBox").classList.add("active"); };
-window.closeBank = () => get("bankBox").classList.remove("active");
-
-async function renderBankHistory() {
-    const user = localStorage.getItem("user");
-    const list = get("bankHistoryList");
-    const actBtn = get("activateAccBtn");
-    const snap = await getDoc(doc(db, "bank_home", user));
+async function loadSettings() {
+    let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
-        const d = snap.data();
-        list.innerHTML = `
-            <div class="bank-history-item">
-                <b>Holder Name:</b> ${d.bank}<br>
-                <b>Account No:</b> ${d.acc}<br>
-                <b>IFSC:</b> ${d.ifsc}
-            </div>`;
-        actBtn.style.display = "block";
-    } else {
-        list.innerHTML = `<p style="font-size:12px; color:#666;">No bank bound yet.</p>`;
-        actBtn.style.display = "none";
+        let d = snap.data();
+        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; }
+        get("upiText").innerText = d.upi || "N/A";
+        get("amountText").innerText = "₹" + (d.amount || "0");
     }
 }
 
-window.saveHomeBank = async () => {
-    const user = localStorage.getItem("user");
-    const nameInput = get("homeBankName");
-    const accInput = get("homeBankAcc");
-    const ifscInput = get("homeBankIfsc");
-
-    const data = { 
-        bank: nameInput.value, 
-        acc: accInput.value, 
-        ifsc: ifscInput.value 
-    };
-
-    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
-
-    try {
-        await setDoc(doc(db, "bank_home", user), data);
-        window.showMsg("Bank Account Saved!");
-        nameInput.value = "";
-        accInput.value = "";
-        ifscInput.value = "";
-        renderBankHistory();
-    } catch (e) { window.showMsg("Error: " + e.message); }
-};
-
-window.triggerActivate = () => {
-    get("bankBox").classList.remove("active");
-    window.showMsg("Please deposit security amount first");
-};
-
-/* ================= EARNING: WITHDRAW BANK ================= */
-window.saveWithdrawBank = async () => {
-    const user = localStorage.getItem("user");
-    const nameInput = get("earnBankName");
-    const accInput = get("earnBankAcc");
-    const ifscInput = get("earnBankIfsc");
-
-    const data = { 
-        bank: nameInput.value, 
-        acc: accInput.value, 
-        ifsc: ifscInput.value 
-    };
-
-    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all withdraw bank details!");
-
-    try {
-        await setDoc(doc(db, "bank_earning", user), data);
-        window.showMsg("Withdraw Bank Details Saved!");
-    } catch (e) { window.showMsg("Error: " + e.message); }
-};
-
+/* ================= BANK BINDING DATA ================= */
 async function loadWithdrawBankData() {
     const user = localStorage.getItem("user");
     if(!user) return;
@@ -345,114 +202,35 @@ async function loadWithdrawBankData() {
     }
 }
 
-/* ================= OTHER ACTIONS ================= */
-function renderReferrals() { get("referralList").innerHTML = `<div class="no-data-box">No referrals available</div>`; }
-
-window.shareReferLink = async () => {
-    const userUID = localStorage.getItem("userUID");
-    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
-
-    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get an instant *₹250 bonus* for every friend you refer!\n💸 Plus, earn 1% commission on your referred friend’s activity volume.\n⚡ Auto Deposit & Credit System.\n✅ Fast & Secure Withdrawals.\n✅ Trusted & Reliable Platform.\n✅ 24/7 Customer Support.\n\nDon't miss out! Use my Referral ID: *${userUID}*\nClick the link below to sign up now:\n👇👇👇\n`;
-
-    if (navigator.share) { 
-        try {
-            await navigator.share({ title: 'INRPAY - Earn Money Online', text: shareText, url: link }); 
-        } catch (err) { console.log("Share cancelled"); }
-    } else { 
-        const fullMessage = `${shareText}\n${link}`;
-        navigator.clipboard.writeText(fullMessage); 
-        window.showMsg("Invitation message copied to clipboard!"); 
+/* ================= APP INIT ================= */
+onAuthStateChanged(auth, (user) => {
+    let u = localStorage.getItem("user");
+    if (user && u) {
+        get("auth").style.display = "none";
+        get("app").style.display = "block";
+        setupRealtimeListeners(u);
+        loadSettings();
+        loadWithdrawBankData();
+        startLiveTransactions();
     }
-};
+    setTimeout(window.hideSplash, 2000);
+});
 
-function loadUserData(data, num) {
-    get("usernameHome").innerText = "Hello, " + (data.name || "User");
-    get("username2").innerText = data.name;
-    get("useremail").innerText = "Email: " + data.email;
-    get("usernumber").innerText = "Mobile: " + num;
-    get("userid").innerText = "UID: " + data.uid;
-    get("balance").innerText = "₹" + (data.balance || 0);
-    localStorage.setItem("currentBalance", data.balance || 0);
-    localStorage.setItem("userUID", data.uid);
-}
-
+/* ================= NAVIGATION & CONTROLS ================= */
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
 };
 
 window.logout = () => { localStorage.clear(); location.reload(); };
-
-/* ================= WITHDRAWAL HISTORY POPUP LOGIC ================= */
-window.openWithdrawHistory = () => {
-    get("withdrawHistoryBox").classList.add("active");
-};
-
-window.closeWithdrawHistory = () => {
-    get("withdrawHistoryBox").classList.remove("active");
-};
-/* ================================================================== */
-
-window.submitWithdraw = async () => {
-    let amt = get("withdrawAmount").value;
-    let bal = parseInt(localStorage.getItem("currentBalance"));
-    if(!amt || amt < 100) return window.showMsg("Min ₹100!");
-    if(amt > bal) return window.showMsg("Insufficient Balance!");
-    
-    // Updated: Only show message, no setDoc to Firebase
-    window.showMsg("Withdrawal Request Submitted!");
-    get("withdrawAmount").value = "";
-};
-
-async function loadSettings() {
-    let snap = await getDoc(doc(db, "settings", "main"));
-    if(snap.exists()) {
-        let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
-        if(d.qr) { 
-            get("qrImage").src = d.qr; 
-            get("qrImage").style.display = "block"; 
-            get("downloadQrBtn").style.display = "inline-block"; 
-        }
-        get("upiText").innerText = d.upi || "N/A";
-        get("amountText").innerText = "₹" + (d.amount || "0");
-    }
-}
-
-/* ================= UPDATED ONLOAD FOR SPLASH ================= */
-window.onload = () => {
-    const start = Date.now();
-    onAuthStateChanged(auth, (user) => {
-        let u = localStorage.getItem("user");
-        const finalize = () => {
-            const delay = Math.max(0, 3000 - (Date.now() - start));
-            setTimeout(window.hideSplash, delay);
-        };
-
-        if (user && u) {
-            getDoc(doc(db, "users", u)).then(s => {
-                if(s.exists()){ 
-                    get("auth").style.display = "none"; 
-                    get("app").style.display = "block"; 
-                    loadUserData(s.data(), u); 
-                    loadSettings(); 
-                    loadWithdrawBankData(); 
-                    renderReferrals(); 
-                    renderDepositHistory(); 
-                    startLiveTransactions(); // Auto shuru
-                    listenBankStatus(); // Auto shuru
-                }
-                finalize();
-            }).catch(finalize);
-        } else {
-            finalize();
-        }
-    });
-};
+window.openBank = () => get("bankBox").classList.add("active");
+window.closeBank = () => get("bankBox").classList.remove("active");
+window.deposit = () => get("depositBox").classList.add("active");
+window.closeDeposit = () => get("depositBox").classList.remove("active");
 
 window.copyUPI = () => {
     const upiId = get("upiText").innerText;
-    if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
+    if (navigator.clipboard) {
         navigator.clipboard.writeText(upiId).then(() => {
             window.showMsg("Copy");
         }).catch(() => {
@@ -489,11 +267,11 @@ window.downloadQR = async () => {
     }
 };
 
-/* ================= SERVICE WORKER REGISTRATION (PWA) ================= */
+/* ================= SERVICE WORKER REGISTRATION ================= */
 if ('service-worker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
             .then(reg => console.log('Service Worker Registered'))
-            .catch(err => console.log('Service Worker Failed', err));
+            .catch(err => console.log('Error:', err));
     });
 }
