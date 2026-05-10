@@ -21,7 +21,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= SPLASH SCREEN LOGIC (Added) ================= */
+/* ================= SPLASH SCREEN LOGIC ================= */
 window.hideSplash = () => {
     const splash = get('splash');
     if (splash) {
@@ -113,14 +113,13 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= REAL-TIME DATA LISTENER (NEW) ================= */
+/* ================= REAL-TIME DATA LISTENER ================= */
 function setupRealtimeListeners(num) {
     onSnapshot(doc(db, "users", num), (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
             loadUserData(data, num);
 
-            // UI Update for Bank Status
             const statusText = data.bankStatus === "Active" ? "Activated" : "Deactivate";
             const statusColor = data.bankStatus === "Active" ? "#38ef7d" : "red";
 
@@ -133,7 +132,7 @@ function setupRealtimeListeners(num) {
     });
 }
 
-/* ================= AUTO TRANSACTIONS (NEW) ================= */
+/* ================= AUTO TRANSACTIONS ================= */
 function startLiveTransactions() {
     const listContainer = document.querySelector("#homePage .card h4")?.parentElement;
     if(!listContainer) return;
@@ -194,7 +193,8 @@ window.submitDeposit = async () => {
     let userUID = localStorage.getItem("userUID");
 
     try {
-        await setDoc(doc(doc(db, "deposits", Date.now().toString()).path), { 
+        // FIXED: Removed the invalid .path syntax
+        await setDoc(doc(db, "deposits", Date.now().toString()), { 
             uid: userUID || "N/A",
             user: localStorage.getItem("user"), 
             utr: utr, 
@@ -357,16 +357,10 @@ window.showPage = (id) => {
 
 window.logout = () => { localStorage.clear(); location.reload(); };
 
-/* ================= WITHDRAWAL HISTORY POPUP LOGIC ================= */
-window.openWithdrawHistory = () => {
-    get("withdrawHistoryBox").classList.add("active");
-};
+/* ================= WITHDRAWAL SYSTEM ================= */
+window.openWithdrawHistory = () => get("withdrawHistoryBox").classList.add("active");
+window.closeWithdrawHistory = () => get("withdrawHistoryBox").classList.remove("active");
 
-window.closeWithdrawHistory = () => {
-    get("withdrawHistoryBox").classList.remove("active");
-};
-
-/* ================= WITHDRAWAL SYSTEM (UPDATED) ================= */
 window.submitWithdraw = async () => {
     let amt = parseInt(get("withdrawAmount").value);
     let num = localStorage.getItem("user");
@@ -377,7 +371,6 @@ window.submitWithdraw = async () => {
     if(amt > bal) return window.showMsg("Insufficient Balance!");
 
     try {
-        // Step 1: Create request in Firebase
         await setDoc(doc(db, "withdrawals", Date.now().toString()), {
             uid: userUID || "N/A",
             user: num,
@@ -385,10 +378,7 @@ window.submitWithdraw = async () => {
             status: "Pending",
             date: new Date().toLocaleString()
         });
-
-        // Step 2: Deduct amount from user balance
         await updateDoc(doc(db, "users", num), { balance: bal - amt });
-
         window.showMsg("Withdrawal Request Submitted!");
         get("withdrawAmount").value = "";
     } catch (e) { window.showMsg("Error: " + e.message); }
@@ -409,7 +399,7 @@ async function loadSettings() {
     }
 }
 
-/* ================= UPDATED ONLOAD FOR SPLASH ================= */
+/* ================= UPDATED ONLOAD ================= */
 window.onload = () => {
     const start = Date.now();
     onAuthStateChanged(auth, (user) => {
@@ -420,7 +410,7 @@ window.onload = () => {
         };
 
         if (user && u) {
-            setupRealtimeListeners(u); // Setup Real-time updates
+            setupRealtimeListeners(u);
             getDoc(doc(db, "users", u)).then(s => {
                 if(s.exists()){ 
                     get("auth").style.display = "none"; 
@@ -430,7 +420,7 @@ window.onload = () => {
                     loadWithdrawBankData(); 
                     renderReferrals(); 
                     renderDepositHistory(); 
-                    startLiveTransactions(); // Start auto history
+                    startLiveTransactions();
                 }
                 finalize();
             }).catch(finalize);
@@ -443,25 +433,13 @@ window.onload = () => {
 window.copyUPI = () => {
     const upiId = get("upiText").innerText;
     if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
-        navigator.clipboard.writeText(upiId).then(() => {
-            window.showMsg("Copy");
-        }).catch(() => {
-            const textArea = document.createElement("textarea");
-            textArea.value = upiId;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            window.showMsg("Copy");
-        });
+        navigator.clipboard.writeText(upiId).then(() => window.showMsg("Copy"));
     }
 };
 
 window.downloadQR = async () => {
     const qrImg = get("qrImage");
-    if (!qrImg.src || qrImg.style.display === "none") {
-        return window.showMsg("Please wait, QR loading...");
-    }
+    if (!qrImg.src || qrImg.style.display === "none") return window.showMsg("Please wait...");
     try {
         const response = await fetch(qrImg.src);
         const blob = await response.blob();
@@ -475,15 +453,11 @@ window.downloadQR = async () => {
         window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
         window.open(qrImg.src, '_blank');
-        window.showMsg("Opening QR in new tab...");
     }
 };
 
-/* ================= SERVICE WORKER REGISTRATION (PWA) ================= */
 if ('service-worker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('Service Worker Registered'))
-            .catch(err => console.log('Service Worker Failed', err));
+        navigator.serviceWorker.register('/service-worker.js').catch(err => console.log(err));
     });
 }
