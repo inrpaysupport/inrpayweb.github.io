@@ -13,7 +13,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const get = id => document.getElementById(id);
 
-/* ================= SPLASH SCREEN LOGIC ================= */
+/* ================= SPLASH SCREEN LOGIC (Added) ================= */
 window.hideSplash = () => {
     const splash = get('splash');
     if (splash) {
@@ -21,6 +21,7 @@ window.hideSplash = () => {
         setTimeout(() => splash.remove(), 800);
     }
 };
+/* ============================================================= */
 
 /* ================= UTILITY & UI ================= */
 window.showMsg = (t) => {
@@ -63,7 +64,7 @@ window.forgotPassword = async () => {
     if (!email) return window.showMsg("Please enter your email!");
     try {
         await sendPasswordResetEmail(auth, email);
-        window.showMsg("Password reset link sent! Check your email/spam folder.");
+        window.showMsg("Password reset link sent to your email! please check SPAM folder.");
         window.closeForgot();
     } catch (error) { window.showMsg("Error: " + error.message); }
 };
@@ -76,6 +77,7 @@ window.register = async () => {
     let pass = get("password").value;
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
 
+    // Referral Tracking (Bina character remove kiye add kiya gaya)
     const urlParams = new URLSearchParams(window.location.search);
     const refBy = urlParams.get('ref') || "Direct";
 
@@ -94,7 +96,7 @@ window.register = async () => {
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
-    } catch (error) { window.showMsg("Email or Number already in use!"); }
+    } catch (error) { window.showMsg("Email or Number already in use! Please login."); }
 };
 
 window.login = async () => {
@@ -110,6 +112,7 @@ window.login = async () => {
             localStorage.setItem("user", num);
             get("auth").style.display = "none";
             get("app").style.display = "block";
+            loadUserData(snap.data(), num);
             syncAppData(); 
         } catch (e) { window.showMsg("Wrong Password!"); }
     } else { window.showMsg("Not registered!"); }
@@ -118,19 +121,23 @@ window.login = async () => {
 /* ================= SETTINGS: PASSWORD CHANGE ================= */
 window.changePassword = async () => {
     const user = auth.currentUser;
-    const oldPass = get("oldPass").value;
-    const newPass = get("newPass").value;
+    const oldPassField = get("oldPass");
+    const newPassField = get("newPass");
+    const oldPass = oldPassField.value;
+    const newPass = newPassField.value;
 
     if (!user) return window.showMsg("Please login again!");
-    if (!oldPass || !newPass) return window.showMsg("Fill both fields!");
+    if (!oldPass || !newPass) return window.showMsg("Fill both password fields!");
 
     try {
         const credential = EmailAuthProvider.credential(user.email, oldPass);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPass);
         await updateDoc(doc(db, "users", localStorage.getItem("user")), { password: newPass });
-        window.showMsg("Password updated!");
-        get("oldPass").value = ""; get("newPass").value = "";
+
+        window.showMsg("Password updated successfully!");
+        oldPassField.value = "";
+        newPassField.value = "";
     } catch (error) { window.showMsg("Error: " + error.message); }
 };
 
@@ -139,13 +146,14 @@ async function syncAppData() {
     const u = localStorage.getItem("user");
     if(!u) return;
 
+    // Account data sync (Status, Balance, etc.)
     onSnapshot(doc(db, "users", u), (s) => {
         if(s.exists()){
             const d = s.data();
             get("balance").innerText = "₹" + (d.balance || 0);
             get("usernameHome").innerText = "Hello, " + (d.name || "User");
             get("username2").innerText = d.name;
-            get("useremail").innerText = d.email;
+            get("useremail").innerText = "Email: " + d.email;
             get("usernumber").innerText = "Mobile: " + u;
             get("userid").innerText = "UID: " + d.uid;
             
@@ -168,100 +176,221 @@ async function syncAppData() {
     loadWithdrawBankData();
 }
 
-/* ================= DEPOSIT & WITHDRAWAL ================= */
-window.deposit = () => get("depositBox").classList.add("active");
+/* ================= DEPOSIT & BANK BINDING ================= */
+window.deposit = () => { renderDepositHistory(); get("depositBox").classList.add("active"); };
 window.closeDeposit = () => get("depositBox").classList.remove("active");
 
 window.submitDeposit = async () => {
     let utr = get("utr").value;
-    if(utr.length < 12) return window.showMsg("Enter valid 12-Digit UTR!");
-    await setDoc(doc(db, "deposits", Date.now().toString()), { 
-        user: localStorage.getItem("user"), utr: utr, status: "Pending", date: new Date().toLocaleString() 
-    });
-    window.showMsg("UTR Submitted!");
-    get("utr").value = "";
-    window.closeDeposit();
-    renderDepositHistory();
+    if(!utr) return window.showMsg("Enter UTR!");
+    let now = new Date().toLocaleString();
+
+    try {
+        await setDoc(doc(db, "deposits", Date.now().toString()), { 
+            user: localStorage.getItem("user"), 
+            utr: utr, 
+            status: "Pending", 
+            date: now 
+        });
+        window.showMsg("Submitted Successfully!");
+        get("utr").value = "";
+        renderDepositHistory(); 
+    } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
 async function renderDepositHistory() {
-    let list = get("liveTransactions");
-    const u = localStorage.getItem("user");
-    const q = query(collection(db, "deposits"), where("user", "==", u));
-    const snap = await getDocs(q);
-    let html = "";
-    snap.forEach(doc => {
-        let item = doc.data();
-        html += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;">
-                    <b>₹${item.utr}</b> - <span style="color:orange;">${item.status}</span>
-                 </div>`;
-    });
-    list.innerHTML = html || '<div class="no-data-box">No transactions yet</div>';
+    let list = get("liveTransactions"); // Map history to transaction list
+    const user = localStorage.getItem("user");
+    if(!user || !list) return;
+
+    try {
+        const q = query(collection(db, "deposits"), where("user", "==", user));
+        const querySnapshot = await getDocs(q);
+        let html = "";
+
+        querySnapshot.forEach((doc) => {
+            let item = doc.data();
+            html += `
+                <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;">
+                    <b>UTR:</b> ${item.utr}<br>
+                    <small>${item.date} | <span style="color:orange;">${item.status}</span></small>
+                </div>`;
+        });
+
+        list.innerHTML = html || `<div class="no-data-box">No deposit history</div>`;
+    } catch (e) { console.log(e); }
 }
+
+window.openBank = () => { renderBankHistory(); get("bankBox").classList.add("active"); };
+window.closeBank = () => get("bankBox").classList.remove("active");
+
+async function renderBankHistory() {
+    const user = localStorage.getItem("user");
+    const list = get("bankHistoryList");
+    const actBtn = get("activateAccBtn");
+    if(!list) return;
+
+    const snap = await getDoc(doc(db, "bank_home", user));
+    if(snap.exists()) {
+        const d = snap.data();
+        list.innerHTML = `
+            <div class="bank-history-item">
+                <b>Holder:</b> ${d.bank}<br>
+                <b>A/C:</b> ${d.acc}<br>
+                <b>IFSC:</b> ${d.ifsc}
+            </div>`;
+        if(actBtn) actBtn.style.display = "block";
+    } else {
+        list.innerHTML = `<p style="font-size:12px; color:#666;">No bank linked.</p>`;
+        if(actBtn) actBtn.style.display = "none";
+    }
+}
+
+window.saveHomeBank = async () => {
+    const user = localStorage.getItem("user");
+    const data = { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value };
+
+    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
+
+    try {
+        await setDoc(doc(db, "bank_home", user), data);
+        window.showMsg("Primary Bank Saved!");
+        renderBankHistory();
+    } catch (e) { window.showMsg("Error!"); }
+};
+
+window.triggerActivate = () => {
+    get("bankBox").classList.remove("active");
+    window.showMsg("Please deposit security amount first");
+};
+
+/* ================= REFERRAL LOGIC ================= */
+async function renderReferrals() {
+    const list = get("referralList");
+    const myUID = localStorage.getItem("userUID");
+    if(!list || !myUID) return;
+    
+    try {
+        const q = query(collection(db, "users"), where("referredBy", "==", myUID.toString()));
+        const snap = await getDocs(q);
+        let html = "";
+        snap.forEach(doc => {
+            html += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between;">
+                        <span>👤 ${doc.data().name}</span>
+                        <span style="color:#4caf50;">+₹250</span>
+                    </div>`;
+        });
+        list.innerHTML = html || `<div class="no-data-box">No referrals yet</div>`;
+    } catch(e) { console.log(e); }
+}
+
+window.shareReferLink = async () => {
+    const userUID = localStorage.getItem("userUID");
+    const link = window.location.origin + window.location.pathname + "?ref=" + userUID;
+    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get ₹250 bonus!\nClick here to join:\n`;
+
+    if (navigator.share) { 
+        try { await navigator.share({ title: 'INRPAY', text: shareText, url: link }); } catch (err) {}
+    } else { 
+        navigator.clipboard.writeText(shareText + link); 
+        window.showMsg("Link Copied!"); 
+    }
+};
 
 /* ================= LIVE TRANSACTION ENGINE ================= */
 let currentLiveBalance = 0;
 function startLiveTransactions() {
-    const listEl = get("liveTransactions"); // Using common history container
+    const listEl = get("liveTransactionList");
     if(!listEl) return;
+    
+    listEl.innerHTML = "";
     currentLiveBalance = parseInt(localStorage.getItem("currentBalance")) || 0;
 
     const generateTx = () => {
         const types = ['Credit', 'Debit'];
         const type = types[Math.floor(Math.random() * types.length)];
         const amount = Math.floor(Math.random() * (12000 - 800 + 1)) + 800;
+        const color = type === 'Credit' ? '#4caf50' : '#ff5252';
 
         if(type === 'Debit') {
             currentLiveBalance += (amount * 0.02);
             get("balance").innerText = "₹" + Math.floor(currentLiveBalance);
             localStorage.setItem("currentBalance", Math.floor(currentLiveBalance));
         }
+
+        const html = `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px;">
+                <span>${type} Order #${Math.floor(Math.random()*9000)+1000}</span>
+                <span style="color:${color}; font-weight:bold;">₹${amount}</span>
+            </div>`;
+        
+        listEl.insertAdjacentHTML('afterbegin', html);
+        if(listEl.children.length > 5) listEl.lastElementChild.remove();
+
         setTimeout(generateTx, Math.random() * (7000 - 5000) + 5000);
     };
     generateTx();
 }
 
-/* ================= REFERRAL & BANKING ================= */
-async function renderReferrals() {
-    const list = get("referralList");
-    const myUID = localStorage.getItem("userUID");
-    if(!myUID || !list) return;
-    const q = query(collection(db, "users"), where("referredBy", "==", myUID.toString()));
-    const snap = await getDocs(q);
-    let html = "";
-    snap.forEach(doc => {
-        html += `<div class="history-item"><span>👤 ${doc.data().name}</span><span style="color:#4caf50;">+₹250</span></div>`;
-    });
-    list.innerHTML = html || `<div class="no-data-box">No referrals yet</div>`;
+/* ================= WITHDRAWAL LOGIC ================= */
+window.saveWithdrawBank = async () => {
+    const user = localStorage.getItem("user");
+    const data = { bank: get("earnBankName").value, acc: get("earnBankAcc").value, ifsc: get("earnBankIfsc").value };
+    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
+
+    try {
+        await setDoc(doc(db, "bank_earning", user), data);
+        window.showMsg("Withdraw Bank Details Saved!");
+    } catch (e) { window.showMsg("Error!"); }
+};
+
+async function loadWithdrawBankData() {
+    const user = localStorage.getItem("user");
+    if(!user) return;
+    const snap = await getDoc(doc(db, "bank_earning", user));
+    if(snap.exists()) {
+        const d = snap.data();
+        get("earnBankName").value = d.bank || "";
+        get("earnBankAcc").value = d.acc || "";
+        get("earnBankIfsc").value = d.ifsc || "";
+    }
 }
 
-window.shareReferLink = async () => {
-    const userUID = localStorage.getItem("userUID");
-    const link = window.location.origin + window.location.pathname + "?ref=" + userUID;
-    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get ₹250 bonus!\nJoin: `;
-    if (navigator.share) { await navigator.share({ title: 'INRPAY', text: shareText, url: link }); }
-    else { navigator.clipboard.writeText(shareText + link); window.showMsg("Link Copied!"); }
+window.submitWithdraw = async () => {
+    let amt = get("withdrawAmount").value;
+    let bal = parseInt(localStorage.getItem("currentBalance"));
+    if(!amt || amt < 100) return window.showMsg("Min ₹100!");
+    if(amt > bal) return window.showMsg("Insufficient Balance!");
+    await setDoc(doc(db, "withdrawals", Date.now().toString()), { 
+        user: localStorage.getItem("user"), 
+        amount: amt, 
+        status: "Pending", 
+        date: new Date().toLocaleString() 
+    });
+    window.showMsg("Withdrawal Request Submitted!");
 };
 
-window.openBank = () => get("bankBox").classList.add("active");
-window.closeBank = () => get("bankBox").classList.remove("active");
+function loadUserData(data, num) {
+    get("usernameHome").innerText = "Hello, " + (data.name || "User");
+    get("username2").innerText = data.name;
+    get("useremail").innerText = "Email: " + data.email;
+    get("usernumber").innerText = "Mobile: " + num;
+    get("userid").innerText = "UID: " + data.uid;
+    get("balance").innerText = "₹" + (data.balance || 0);
+    localStorage.setItem("currentBalance", data.balance || 0);
+    localStorage.setItem("userUID", data.uid);
+}
 
-window.saveHomeBank = async () => {
-    const user = localStorage.getItem("user");
-    const data = { bank: get("homeBankName").value, acc: get("homeBankAcc").value, ifsc: get("homeBankIfsc").value };
-    if(!data.bank || !data.acc || !data.ifsc) return window.showMsg("Fill all details!");
-    await setDoc(doc(db, "bank_home", user), data);
-    window.showMsg("Bank Saved!");
-    window.closeBank();
-};
-
-/* ================= SYSTEM ================= */
 async function loadSettings() {
     let snap = await getDoc(doc(db, "settings", "main"));
     if(snap.exists()) {
         let d = snap.data();
-        get("scrollingNotice").innerText = d.notice || "Welcome";
-        if(d.qr) { get("qrImage").src = d.qr; get("qrImage").style.display = "block"; get("downloadQrBtn").style.display = "inline-block"; }
+        get("scrollingNotice").innerText = d.notice || "Welcome to INRPAY";
+        if(d.qr) { 
+            get("qrImage").src = d.qr; 
+            get("qrImage").style.display = "block"; 
+            get("downloadQrBtn").style.display = "inline-block"; 
+        }
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
@@ -274,22 +403,54 @@ window.showPage = (id) => {
 
 window.logout = () => { localStorage.clear(); location.reload(); };
 
+/* ================= UPDATED ONLOAD ================= */
 window.onload = () => {
+    const start = Date.now();
     onAuthStateChanged(auth, (user) => {
-        if (user && localStorage.getItem("user")) {
-            get("auth").style.display = "none";
-            get("app").style.display = "block";
-            syncAppData();
+        let u = localStorage.getItem("user");
+        const finalize = () => {
+            const delay = Math.max(0, 3000 - (Date.now() - start));
+            setTimeout(window.hideSplash, delay);
+        };
+
+        if (user && u) {
+            getDoc(doc(db, "users", u)).then(s => {
+                if(s.exists()){ 
+                    get("auth").style.display = "none"; 
+                    get("app").style.display = "block"; 
+                    loadUserData(s.data(), u); 
+                    syncAppData();
+                }
+                finalize();
+            }).catch(finalize);
+        } else {
+            finalize();
         }
-        setTimeout(window.hideSplash, 2500);
     });
 };
 
 window.copyUPI = () => {
-    navigator.clipboard.writeText(get("upiText").innerText).then(() => window.showMsg("UPI Copied!"));
+    const upiId = get("upiText").innerText;
+    if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
+        navigator.clipboard.writeText(upiId).then(() => {
+            window.showMsg("UPI ID Copied!");
+        });
+    }
 };
 
 window.downloadQR = async () => {
     const qrImg = get("qrImage");
-    if (qrImg.src) window.open(qrImg.src, '_blank');
+    if (!qrImg.src || qrImg.style.display === "none") return;
+    try {
+        const response = await fetch(qrImg.src);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = "INRPAY_QR_" + Date.now() + ".png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (e) { window.open(qrImg.src, '_blank'); }
 };
