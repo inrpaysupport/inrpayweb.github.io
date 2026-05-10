@@ -27,34 +27,7 @@
         }
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
         .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
-        .no-data-box { text-align: center; padding: 20px; color: #ccc; font-style: italic; }
-
-        .flex-row { display: flex; gap: 5px; width: 90%; margin: 0 auto; }
-        .flex-row input { margin: 5px 0 !important; font-size: 12px; padding: 8px; }
-        .refer-box { 
-            background: linear-gradient(45deg, #6a11cb, #2575fc); 
-            border-radius: 12px; padding: 20px; margin: 15px; text-align: center; 
-        }
-        .download-btn {
-            background: #555; color: white; border: none; padding: 8px 15px;
-            border-radius: 5px; font-size: 12px; margin-bottom: 10px; cursor: pointer;
-        }
-        .history-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin: 15px; }
-        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; text-align: left; }
-
-        #depositHistory { max-height: 150px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
-        .dep-hist-item { font-size: 11px; text-align: left; padding: 5px; border-bottom: 1px solid #333; color: #eee; }
-
-        .bank-history-item { 
-            background: #f4f4f4; 
-            color: #333; 
-            padding: 10px; 
-            border-radius: 8px; 
-            margin-top: 10px; 
-            font-size: 12px; 
-            text-align: left;
-            line-height: 1.6;
-        }
+        .no-data-box { text-align: center; padding: 20px; color: #888; font-size: 14px; background: rgba(255,255,255,0.05); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -67,413 +40,166 @@
     <div class="splash-content">
         <div class="splash-logo">INRPAY</div>
         <div class="splash-loader">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
+            <div class="loader-bar"></div>
         </div>
-        <div class="splash-text">
-            <p class="fade-in-text">Fast & Secure</p>
-            <p class="fade-in-text delay-1">High Volume High Earning</p>
-        </div>
+        <p class="splash-text">Fast • Secure • Reliable</p>
     </div>
 </div>
-<div id="auth">
-    <h1 class="appLogo">INRPAY</h1>
-    <h2 id="authTitle">Create Account</h2>
-    <input id="name" placeholder="Name">
-    <input id="number" placeholder="Mobile Number" maxlength="10">
-    <input id="email" placeholder="Email Address">
-    <div class="passwordBox">
-        <input id="password" type="password" placeholder="Password">
-        <span onclick="togglePass()" class="eyeIcon">👁</span>
+
+<div id="auth" class="page">
+    <div class="auth-box">
+        <h2 id="authTitle">Sign In</h2>
+        <input id="name" placeholder="Full Name" style="display:none;">
+        <input id="email" placeholder="Email Address" style="display:none;">
+        <input id="number" placeholder="Mobile Number" type="number">
+        <div class="passwordBox">
+            <input id="password" placeholder="Password" type="password">
+            <span onclick="togglePass()" style="position:absolute; right:10px; top:12px; color:white; cursor:pointer;">👁️</span>
+        </div>
+        <button id="loginBtn" onclick="login()">Login</button>
+        <button id="registerBtn" onclick="register()" style="display:none;">Register</button>
+        <p id="forgotText" class="forgot-link" onclick="openForgotPopup()">Forgot Password?</p>
+        <p id="toggleText">Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button></p>
     </div>
-    <button id="registerBtn" onclick="register()">Sign Up</button>
-    <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
-    <p id="forgotText" class="forgot-link" style="display:none;" onclick="openForgotPopup()">Forgot Password?</p>
-    <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
 </div>
 
-<div id="app" style="display:none;">
-    <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
-
-    <div style="text-align: center; margin: 10px 0;">
-        <button onclick="window.open('https://t.me/inrpay_representative')" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
+<div id="app" class="page" style="display:none;">
+    <div class="header">
+        <div id="usernameHome">Hello, User</div>
+        <div class="header-icons">
+            <span onclick="showPage('notificationPage')">🔔</span>
+            <span onclick="showPage('profilePage')">👤</span>
+        </div>
     </div>
 
     <div id="homePage" class="page">
-        <h2 id="usernameHome" style="padding-left:15px;"></h2>
-        <div class="card"><h1 id="balance">₹0.00</h1></div>
-        <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
+        <div class="notice">
+            <span id="scrollingNotice">Welcome to INRPAY! Real-time earning platform.</span>
         </div>
-        <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🏦 Bind Bank Account</h3>
-        </div>
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Account Bind Status</span>
-                <span style="color:lime; font-weight:bold;">● <span style="color:white; font-weight:normal;">Active</span></span>
+
+        <div class="balance-card">
+            <p>Main Balance</p>
+            <h2 id="balance">₹0</h2>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="deposit()" style="flex:1; background:white; color:#6a11cb; padding:10px; border-radius:8px; border:none; font-weight:bold;">Deposit</button>
+                <button onclick="showPage('earningPage')" style="flex:1; background:rgba(255,255,255,0.2); color:white; padding:10px; border-radius:8px; border:none; font-weight:bold;">Withdraw</button>
             </div>
         </div>
-        <div class="card">
-            <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
-            <div id="fakeTransactionHistory">
-                <div class="no-data-box">Loading transactions...</div>
+
+        <div class="grid">
+            <div class="grid-item" onclick="openBank()">🏦<span>Bind Bank</span></div>
+            <div class="grid-item" onclick="showPage('referPage')">👥<span>Refer & Earn</span></div>
+            <div class="grid-item" onclick="showPage('historyPage')">📜<span>History</span></div>
+            <div class="grid-item" onclick="showPage('supportPage')">🎧<span>Support</span></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 80px;">
+            <h3 style="font-size:16px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">Recent Transactions</h3>
+            <div id="liveTransactionList">
+                <div class="no-data-box">Connecting to server...</div>
             </div>
         </div>
     </div>
 
     <div id="earningPage" class="page" style="display:none;">
-        <div class="card" style="padding: 10px;">
-            <h3 style="text-align:center; margin: 5px 0;">💰 Withdrawal Bank</h3>
-            <div class="flex-row">
-                <input id="earnBankName" placeholder="Name">
-                <input id="earnBankAcc" placeholder="A/C No">
-                <input id="earnBankIfsc" placeholder="IFSC">
+        <div class="card">
+            <h3>Withdraw Funds</h3>
+            <p style="font-size:12px; margin-bottom:10px; opacity:0.8;">Min withdrawal: ₹100</p>
+            <input id="withdrawAmount" type="number" placeholder="Enter Amount">
+            
+            <div class="account-bind-box" style="margin:10px 0; background:rgba(0,0,0,0.2);">
+                <p style="font-size:13px; font-weight:bold; margin-bottom:8px;">Bank for Withdrawal:</p>
+                <input id="earnBankName" placeholder="Bank Name / Holder Name">
+                <input id="earnBankAcc" placeholder="Account Number">
+                <input id="earnBankIfsc" placeholder="IFSC Code">
+                <button onclick="saveWithdrawBank()" style="font-size:12px; padding:8px; background:#444;">Update Withdrawal Bank</button>
             </div>
-            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; font-size:12px;">Update Account</button>
-            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 10px 0;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 90%; margin: 0 auto;">
-                <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="margin:0 !important; flex: 2;">
-                <button onclick="submitWithdraw()" style="background:#4caf50; color:white; flex: 1; margin:0 !important; padding:12px; font-weight:bold; border-radius: 10px;">Withdraw</button>
-            </div>
+
+            <button onclick="submitWithdraw()" style="background:#6a11cb; color:white; width:100%; margin-top:10px;">Submit Request</button>
         </div>
-        <div class="refer-box">
-            <h3 style="margin: 0;">🎁 Refer & Earn</h3>
-            <p style="font-size: 13px; margin: 10px 0;">Share and get ₹250 on every referral!</p>
-            <button onclick="shareReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px; padding: 12px; border: none; font-size: 16px;">📲 Share Link</button>
+    </div>
+
+    <div id="referPage" class="page" style="display:none; padding-bottom: 80px;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:50px;">🎁</div>
+            <h3>Refer Friends</h3>
+            <p>Earn ₹250 for every active referral!</p>
+            <button onclick="shareReferLink()" style="background:#ff9800; color:white; padding:12px 30px; border-radius:25px; border:none; font-weight:bold; margin-top:15px;">Invite Now</button>
         </div>
-        <div class="history-card">
-            <h3 style="margin-top:0;">Referral History</h3>
+        <div class="card">
+            <h3>My Referrals</h3>
             <div id="referralList">
                 <div class="no-data-box">No referrals yet</div>
             </div>
         </div>
     </div>
 
-    <div id="settingsPage" class="page" style="display:none; text-align:center;">
-        <div class="card">
-            <p id="username2" style="font-weight:bold;"></p>
-            <p id="useremail" style="color:#00d4ff;"></p>
-            <p id="usernumber"></p>
-            <p id="userid"></p>
+    <div id="profilePage" class="page" style="display:none; padding-bottom: 80px;">
+        <div class="card" style="text-align:center;">
+            <div style="width:80px; height:80px; background:#6a11cb; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:30px;">👤</div>
+            <h3 id="username2">User Name</h3>
+            <p id="useremail" style="font-size:12px; opacity:0.8;"></p>
+            <p id="usernumber" style="font-size:12px; opacity:0.8;"></p>
+            <p id="userid" style="font-weight:bold; color:#ff9800; margin-top:5px;"></p>
         </div>
         <div class="card">
-            <h4>Change Password</h4>
+            <h3>Change Password</h3>
             <input id="oldPass" type="password" placeholder="Old Password">
             <input id="newPass" type="password" placeholder="New Password">
-            <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Update Password</button>
+            <button onclick="changePassword()" style="background:#444; color:white; width:100%;">Update Password</button>
         </div>
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px; border:none; padding:12px; border-radius:8px;">Logout</button>
+        <button onclick="logout()" style="background:#ff5252; color:white; width:90%; display:block; margin:20px auto; border:none; padding:12px; border-radius:10px; font-weight:bold;">Logout</button>
+    </div>
+
+    <div id="supportPage" class="page" style="display:none;">
+        <div class="card" style="text-align:center;">
+            <h3>Customer Support</h3>
+            <p>Need help? Contact us 24/7</p>
+            <a href="https://t.me/your_telegram" style="display:block; background:#0088cc; color:white; padding:12px; text-decoration:none; border-radius:10px; margin-top:15px; font-weight:bold;">Telegram Support</a>
+        </div>
     </div>
 
     <div class="bottomNav">
         <div onclick="showPage('homePage')">🏠<br>Home</div>
-        <div onclick="showPage('earningPage')">💰<br>Earning</div>
-        <div onclick="showPage('settingsPage')">⚙️<br>Settings</div>
+        <div onclick="showPage('earningPage')">💰<br>Earn</div>
+        <div onclick="showPage('referPage')">🎁<br>Refer</div>
+        <div onclick="showPage('profilePage')">👤<br>Profile</div>
     </div>
 </div>
 
 <div id="depositBox" class="popup">
-    <div class="popup-box" style="text-align:center; max-height: 90vh; overflow-y: auto; position: relative;">
-        <h2 id="amountText" style="color: #6a11cb; margin-bottom: 5px;">₹0</h2>
-        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Scan QR to Pay</p>
-        <div id="qrContainer" style="position: relative; display: inline-block; background: #f9f9f9; padding: 10px; border-radius: 15px; border: 1px solid #eee;">
-            <img id="qrImage" src="" alt="Payment QR" style="width: 180px; height: 180px; display: none; border-radius: 8px;">
-            <button id="downloadQrBtn" onclick="downloadQR()" style="display:none; position: absolute; bottom: -10px; right: -10px; background: #2575fc; color: white; border-radius: 50%; width: 45px; height: 45px; border: 3px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
-        </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; background: #f1f3f4; padding: 12px 15px; border-radius: 10px; margin: 20px auto 10px; width: 90%; border: 1px dashed #bbb;">
-            <span id="upiText" style="font-weight: 600; font-size: 14px; color: #444; overflow: hidden; text-overflow: ellipsis;">Loading...</span>
-            <div onclick="copyUPI()" style="cursor: pointer; color: #6a11cb; display: flex; align-items: center;" title="Copy UPI">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            </div>
-        </div>
-        <input id="utr" placeholder="Enter 12-Digit UTR Number" style="border: 1px solid #ddd !important;">
-        <button onclick="submitDeposit()" style="background: linear-gradient(to right, #11998e, #38ef7d); color:white; width:100%; font-weight: bold; margin-top: 5px;">Verify Payment</button>
-        <div id="depositHistory"><div id="depositHistoryList"></div></div>
-        <button onclick="closeDeposit()" style="width:100%; margin-top:10px; background: #eee; color: #333;">Back</button>
-    </div>
-</div>
-
-<div id="bankBox" class="popup">
-    <div class="popup-box">
-        <h3>Bind Bank Account</h3>
-        <input id="homeBankName" placeholder="Account Holder Name">
-        <input id="homeBankAcc" placeholder="Account Number">
-        <input id="homeBankIfsc" placeholder="IFSC Code">
-        <button onclick="saveHomeBank()" style="background:#2b0a4a; color:white; width:100%;">Save Details</button>
-        <div id="bankHistorySection" style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p style="font-weight:bold; font-size:14px; margin-bottom:5px;">History:</p>
-            <div id="bankHistoryList"><p style="font-size:12px; color:#666;">No bank linked.</p></div>
-            <button id="activateAccBtn" onclick="triggerActivate()" style="display:none; background:green; color:white; width:100%; margin-top:10px;">Activate Account</button>
-        </div>
-        <button onclick="closeBank()" style="width:100%; margin-top:10px;">Cancel</button>
-    </div>
-</div>
-
-<div id="forgotBox" class="popup">
-    <div class="popup-box">
-        <h3 style="text-align:center;">Reset Password</h3>
-        <input id="forgotEmail" placeholder="Email Address">
-        <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Reset Link</button>
-        <button onclick="closeForgot()" style="width:100%; margin-top:5px;">Cancel</button>
-    </div>
-</div>
-
-<div id="msgBox" class="popup">
-    <div class="popup-box">
-        <p id="msgText" style="text-align:center; font-weight:bold;"></p>
-        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white; border:none; border-radius:8px;">OK</button>
-    </div>
-</div>
-
-<!-- Fake Transaction & Persistence Logic -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let currentBalance = parseFloat(localStorage.getItem('inrpay_balance')) || 0.00;
-        let lastSyncTime = parseInt(localStorage.getItem('inrpay_last_time')) || Date.now();
-        const balanceEl = document.getElementById('balance');
-        const historyEl = document.getElementById('fakeTransactionHistory');
-
-        function updateUI() {
-            balanceEl.innerText = `₹${currentBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-            localStorage.setItem('inrpay_balance', currentBalance.toFixed(2));
-            localStorage.setItem('inrpay_last_time', Date.now());
-        }
-
-        function createTransaction(type = null, amount = null, isCatchup = false) {
-            const types = ['Credit', 'Debit'];
-            const chosenType = type || types[Math.floor(Math.random() * types.length)];
-            const chosenAmount = amount || Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
-            const timeStr = isCatchup ? "Earlier today" : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            if (chosenType === 'Debit') {
-                currentBalance += (chosenAmount * 0.05); // 5% added to balance
-            }
-
-            const color = chosenType === 'Credit' ? '#4caf50' : '#f44336';
-            const sign = chosenType === 'Credit' ? '+' : '-';
-
-            const html = `
-                <div class="history-item">
-                    <div>
-                        <span style="display:block; font-weight:bold; color:${color}">${chosenType}</span>
-                        <small style="color:#aaa;">${timeStr} | Success</small>
-                    </div>
-                    <div style="text-align:right;">
-                        <span style="font-weight:bold; color:${color}">${sign} ₹${chosenAmount}</span>
-                        <small style="display:block; color:#00d4ff; font-size:10px;">ID: ${Math.floor(Math.random()*1000000000)}</small>
-                    </div>
-                </div>
-            `;
-
-            if (historyEl.querySelector('.no-data-box')) historyEl.innerHTML = '';
-            historyEl.insertAdjacentHTML('afterbegin', html);
-            if (historyEl.children.length > 8) historyEl.removeChild(historyEl.lastChild);
-            
-            updateUI();
-        }
-
-        // Offline Catch-up logic (Check if app was closed)
-        const diff = Date.now() - lastSyncTime;
-        const missedCounts = Math.min(Math.floor(diff / 45000), 5); // Max 5 missed to avoid lag
-        for(let i=0; i < missedCounts; i++) {
-            createTransaction(null, null, true);
-        }
-
-        // Real-time loop
-        function startLoop() {
-            createTransaction();
-            const nextDelay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000; // 30s to 60s
-            setTimeout(startLoop, nextDelay);
-        }
-
-        updateUI();
-        setTimeout(startLoop, 3000); // Start after 3s
-    });
-</script>
-
-<script type="module" src="script.js"></script>
-</body>
-</html>
-                                                                                                                                                                      }
-        .download-btn {
-            background: #555; color: white; border: none; padding: 8px 15px;
-            border-radius: 5px; font-size: 12px; margin-bottom: 10px; cursor: pointer;
-        }
-        .history-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin: 15px; }
-        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; text-align: left; }
-
-        #depositHistory { max-height: 150px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
-        .dep-hist-item { font-size: 11px; text-align: left; padding: 5px; border-bottom: 1px solid #333; color: #eee; }
-
-        /* Bank History Styling */
-        .bank-history-item { 
-            background: #f4f4f4; 
-            color: #333; 
-            padding: 10px; 
-            border-radius: 8px; 
-            margin-top: 10px; 
-            font-size: 12px; 
-            text-align: left;
-            line-height: 1.6;
-        }
-    </style>
-</head>
-<body>
-
-<div id="splash">
-    <div class="splash-bg-blobs">
-        <div class="blob"></div>
-        <div class="blob"></div>
-    </div>
-    <div class="splash-content">
-        <div class="splash-logo">INRPAY</div>
-        <div class="splash-loader">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-        </div>
-        <div class="splash-text">
-            <p class="fade-in-text">Fast & Secure</p>
-            <p class="fade-in-text delay-1">High Volume High Earning</p>
-        </div>
-    </div>
-</div>
-<div id="auth">
-    <h1 class="appLogo">INRPAY</h1>
-    <h2 id="authTitle">Create Account</h2>
-    <input id="name" placeholder="Name">
-    <input id="number" placeholder="Mobile Number" maxlength="10">
-    <input id="email" placeholder="Email Address">
-    <div class="passwordBox">
-        <input id="password" type="password" placeholder="Password">
-        <span onclick="togglePass()" class="eyeIcon">👁</span>
-    </div>
-    <button id="registerBtn" onclick="register()">Sign Up</button>
-    <button id="loginBtn" onclick="login()" style="display:none;">Sign In</button>
-    <p id="forgotText" class="forgot-link" style="display:none;" onclick="openForgotPopup()">Forgot Password?</p>
-    <p id="toggleText">Already have account? <button class="linkBtn" onclick="showLogin()">Sign In</button></p>
-</div>
-
-<div id="app" style="display:none;">
-    <div class="notice"><span id="scrollingNotice">Loading notice...</span></div>
-
-    <div style="text-align: center; margin: 10px 0;">
-        <button onclick="window.open('https://t.me/inrpay_representative')" class="support-btn" style="background:#ff9800; color:white; width:90%; padding:10px; border-radius:8px; border:none;">🎧 Customer Support</button>
-    </div>
-
-    <div id="homePage" class="page">
-        <h2 id="usernameHome" style="padding-left:15px;"></h2>
-        <div class="card"><h1 id="balance">₹0</h1></div>
-        <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
-        </div>
-        <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
-            <h3 style="margin:0; text-align:center;">🏦 Bind Bank Account</h3>
-        </div>
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Account Bind Status</span>
-                <span style="color:lime; font-weight:bold;">● <span style="color:white; font-weight:normal;">Active</span></span>
-            </div>
-        </div>
-        <div class="card">
-            <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
-            <div class="no-data-box">No data available</div>
-        </div>
-    </div>
-
-    <div id="earningPage" class="page" style="display:none;">
-        <div class="card" style="padding: 10px;">
-            <h3 style="text-align:center; margin: 5px 0;">💰 Withdrawal Bank</h3>
-            <div class="flex-row">
-                <input id="earnBankName" placeholder="Name">
-                <input id="earnBankAcc" placeholder="A/C No">
-                <input id="earnBankIfsc" placeholder="IFSC">
-            </div>
-            <button onclick="saveWithdrawBank()" style="background:#2b0a4a; color:white; width:90%; padding:8px; margin: 5px auto; font-size:12px;">Update Account</button>
-            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 10px 0;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 90%; margin: 0 auto;">
-                <input id="withdrawAmount" type="number" placeholder="Min ₹100" style="margin:0 !important; flex: 2;">
-                <button onclick="submitWithdraw()" style="background:#4caf50; color:white; flex: 1; margin:0 !important; padding:12px; font-weight:bold; border-radius: 10px;">Withdraw</button>
-            </div>
-        </div>
-        <div class="refer-box">
-            <h3 style="margin: 0;">🎁 Refer & Earn</h3>
-            <p style="font-size: 13px; margin: 10px 0;">Share and get ₹250 on every referral!</p>
-            <button onclick="shareReferLink()" style="background: white; color: #6a11cb; font-weight: bold; width: 90%; border-radius: 8px; padding: 12px; border: none; font-size: 16px;">📲 Share Link</button>
-        </div>
-        <div class="history-card">
-            <h3 style="margin-top:0;">Referral History</h3>
-            <div id="referralList">
-                <div class="no-data-box">No referrals yet</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="settingsPage" class="page" style="display:none; text-align:center;">
-        <div class="card">
-            <p id="username2" style="font-weight:bold;"></p>
-            <p id="useremail" style="color:#00d4ff;"></p>
-            <p id="usernumber"></p>
-            <p id="userid"></p>
-        </div>
-        <div class="card">
-            <h4>Change Password</h4>
-            <input id="oldPass" type="password" placeholder="Old Password">
-            <input id="newPass" type="password" placeholder="New Password">
-            <button onclick="changePassword()" style="background:#6a11cb; color:white; width:90%;">Update Password</button>
-        </div>
-        <button onclick="logout()" style="background:red; color:white; width:90%; margin-top:20px; border:none; padding:12px; border-radius:8px;">Logout</button>
-    </div>
-
-    <div class="bottomNav">
-        <div onclick="showPage('homePage')">🏠<br>Home</div>
-        <div onclick="showPage('earningPage')">💰<br>Earning</div>
-        <div onclick="showPage('settingsPage')">⚙️<br>Settings</div>
-    </div>
-</div>
-
-<div id="depositBox" class="popup">
-    <div class="popup-box" style="text-align:center; max-height: 90vh; overflow-y: auto; position: relative;">
-        <h2 id="amountText" style="color: #6a11cb; margin-bottom: 5px;">₹0</h2>
-        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Scan QR to Pay</p>
-
-        <div id="qrContainer" style="position: relative; display: inline-block; background: #f9f9f9; padding: 10px; border-radius: 15px; border: 1px solid #eee;">
-            <img id="qrImage" src="" alt="Payment QR" style="width: 180px; height: 180px; display: none; border-radius: 8px;">
-
-            <button id="downloadQrBtn" onclick="downloadQR()" style="display:none; position: absolute; bottom: -10px; right: -10px; background: #2575fc; color: white; border-radius: 50%; width: 45px; height: 45px; border: 3px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
+    <div class="popup-box" style="max-height: 90vh; overflow-y: auto;">
+        <h3 style="text-align:center;">Deposit Money</h3>
+        <p style="font-size:12px; text-align:center; margin-bottom:10px;">Send exactly: <b id="amountText">₹0</b></p>
+        
+        <div style="text-align:center; background:#f4f4f4; padding:10px; border-radius:10px;">
+            <img id="qrImage" src="" style="width:150px; height:150px; display:none; margin:0 auto;">
+            <button id="downloadQrBtn" onclick="downloadQR()" style="display:none; font-size:10px; padding:5px; margin-top:5px;">Download QR</button>
+            <p id="upiText" style="font-weight:bold; margin-top:10px; font-size:14px;">Loading...</p>
+            <button onclick="copyUPI()" style="font-size:10px; padding:5px; background:#ddd;">Copy UPI ID</button>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; background: #f1f3f4; padding: 12px 15px; border-radius: 10px; margin: 20px auto 10px; width: 90%; border: 1px dashed #bbb;">
-            <span id="upiText" style="font-weight: 600; font-size: 14px; color: #444; overflow: hidden; text-overflow: ellipsis;">Loading...</span>
-            <div onclick="copyUPI()" style="cursor: pointer; color: #6a11cb; display: flex; align-items: center;" title="Copy UPI">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            </div>
-        </div>
-
-        <input id="utr" placeholder="Enter 12-Digit UTR Number" style="border: 1px solid #ddd !important;">
-        <button onclick="submitDeposit()" style="background: linear-gradient(to right, #11998e, #38ef7d); color:white; width:100%; font-weight: bold; margin-top: 5px;">Verify Payment</button>
-
-        <div id="depositHistory">
+        <input id="utr" placeholder="Enter 12 Digit UTR/Ref No" type="number">
+        <button onclick="submitDeposit()" style="background:#2b0a4a; color:white; width:100%;">I Have Paid</button>
+        
+        <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
+            <p style="font-weight:bold; font-size:14px; margin-bottom:5px;">Deposit History:</p>
             <div id="depositHistoryList"></div>
         </div>
 
-        <button onclick="closeDeposit()" style="width:100%; margin-top:10px; background: #eee; color: #333;">Back</button>
+        <button onclick="closeDeposit()" style="width:100%; margin-top:10px;">Cancel</button>
     </div>
 </div>
 
 <div id="bankBox" class="popup">
     <div class="popup-box">
-        <h3>Bind Bank Account</h3>
-        <input id="homeBankName" placeholder="Account Holder Name">
+        <h3 style="text-align:center;">Link Bank Account</h3>
+        <p style="font-size:11px; color:red; margin-bottom:10px;">Important: Enter correct details for verification.</p>
+        
+        <input id="homeBankName" placeholder="Bank Name / Holder Name">
         <input id="homeBankAcc" placeholder="Account Number">
         <input id="homeBankIfsc" placeholder="IFSC Code">
+        
         <button onclick="saveHomeBank()" style="background:#2b0a4a; color:white; width:100%;">Save Details</button>
 
         <div id="bankHistorySection" style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
@@ -499,12 +225,11 @@
 
 <div id="msgBox" class="popup">
     <div class="popup-box">
-        <p id="msgText" style="text-align:center; font-weight:bold;"></p>
-        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#6a11cb; color:white; border:none; border-radius:8px;">OK</button>
+        <p id="msgText" style="text-align:center;"></p>
+        <button onclick="closeMsg()" style="width:100%; background:#6a11cb; color:white;">Okay</button>
     </div>
 </div>
 
 <script type="module" src="script.js"></script>
 </body>
-                </html>
-        
+</html>
