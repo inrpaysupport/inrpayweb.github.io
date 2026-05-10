@@ -38,100 +38,57 @@
 .splash-logo {
     font-size: 3.5rem;
     font-weight: 900;
-    background: linear-gradient(to right, #fff, #00d4ff);
+    letter-spacing: -2px;
+    background: linear-gradient(to right, #fff, #a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
-    letter-spacing: 4px;
+    margin-bottom: 20px;
 }
 
-.splash-text p { 
-    margin: 5px 0; 
-    font-size: 14px; 
-    color: #ccc; 
-    letter-spacing: 1px; 
-}
-
-.fade-in-text { 
-    opacity: 0; 
-    transform: translateY(10px); 
-    animation: fadeInUpSplash 0.8s forwards; 
-}
-
-.delay-1 { animation-delay: 0.5s; }
-
-@keyframes fadeInUpSplash { 
-    to { opacity: 1; transform: translateY(0); } 
-}
-
-.splash-loader { 
-    display: flex; 
-    gap: 5px; 
-    justify-content: center; 
-    margin: 20px 0; 
-}
-
-.splash-loader .bar {
-    width: 4px; height: 15px;
-    background: #00d4ff;
-    animation: growSplash 1s infinite ease-in-out;
-}
-
-.bar:nth-child(2) { animation-delay: 0.1s; }
-.bar:nth-child(3) { animation-delay: 0.2s; }
-
-@keyframes growSplash { 
-    0%, 100% { transform: scaleY(1); } 
-    50% { transform: scaleY(2); } 
-}
-
-#splash.hide-splash { 
-    opacity: 0; 
-    pointer-events: none; 
-}
-/* --- END OF SPLASH SCREEN --- */
-
-/* --- YOUR EXISTING CSS (UNCHANGED) --- */
-body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(135deg,#2b0a4a,#6a11cb); color:white; overflow-x: hidden; }
-* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-
-#auth { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align: center; }
-
-/* Sabhi inputs aur password box ko center karne ke liye */
-input, .passwordBox {
-    width: 85% !important;
-    max-width: 350px;
-    margin: 10px auto !important;
-    display: block !important;
+.splash-loader {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    border: none;
-    outline: none;
+    margin: 20px auto;
+    overflow: hidden;
 }
 
-input { padding: 12px; }
-
-.passwordBox { 
-    position: relative; 
-    padding: 0 !important; 
-    background: transparent;
+.loader-bar {
+    width: 0%;
+    height: 100%;
+    background: #6a11cb;
+    animation: loadProgress 2.5s ease-in-out forwards;
 }
 
-.passwordBox input { 
-    width: 100% !important; 
-    margin: 0 !important; 
+@keyframes loadProgress {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
 }
 
-.eyeIcon { 
-    position: absolute; 
-    right: 12px; 
-    top: 50%; 
-    transform: translateY(-50%); 
-    cursor: pointer; 
-    color: #666; 
-    z-index: 5;
+.splash-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
-button { width: 85%; max-width: 350px; padding:12px; border:none; border-radius:10px; cursor:pointer; margin: 10px auto; display: block; }
+.hide-splash {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- PURANA CODE (BINA KUCH HATAYE) --- */
+body { margin:0; font-family: sans-serif; background:#1a0533; color:white; overflow-x:hidden; }
+.page { width:100%; min-height:100vh; }
+.header { padding:20px; display:flex; justify-content:space-between; align-items:center; }
+.balance-card { margin:20px; padding:20px; background:linear-gradient(to right, #6a11cb, #2575fc); border-radius:15px; text-align:center; }
+.grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; padding:20px; }
+.grid-item { background:rgba(255,255,255,0.1); padding:20px; border-radius:10px; text-align:center; cursor:pointer; }
+.grid-item span { display:block; margin-top:5px; font-size:12px; }
+input { width:80%; padding:10px; margin:10px auto; border-radius:10px; border:none; display: block;}
+button { width:80%; padding:12px; border:none; border-radius:10px; cursor:pointer; margin: 10px auto; display: block; }
 .linkBtn { background:none; color:#00d4ff; width:auto; display:inline; padding:0; margin:0; font-weight:bold; }
 
 /* Baki Styles */
@@ -141,26 +98,43 @@ button { width: 85%; max-width: 350px; padding:12px; border:none; border-radius:
 .popup-box { background:white; color:black; padding:20px; border-radius:15px; width:85%; max-width:350px; }
 .bottomNav { position:fixed; bottom:0; left:0; width:100%; display:flex; justify-content:space-around; background:#111; padding:15px 0; font-size: 24px; }
 .notice { width:100%; background:rgba(0,0,0,0.5); overflow:hidden; white-space:nowrap; padding: 5px 0; }
-.notice span { display:inline-block; padding-left:100%; animation:moveText 12s linear infinite; font-size: 14px; }
-@keyframes moveText { 0%{transform:translateX(0);} 100%{transform:translateX(-100%);} }
+.notice span { display:inline-block; padding-left:100%; animation: scroll 15s linear infinite; }
+@keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-/* --- Security Deposit History Fix --- */
-#depositHistory { 
-    max-height: 150px; 
-    overflow-y: auto; 
-    margin-top: 10px; 
-    border-top: 1px solid #ddd; 
-    padding-top: 10px; 
+/* --- NAYA CODE (ONLY ADDED - FOR LIVE TRANSACTIONS & REFERRALS) --- */
+
+#liveTransactionList, #referralList {
+    padding: 5px 0;
 }
 
-.dep-hist-item { 
-    font-size: 11px; 
-    text-align: left; 
-    padding: 8px; 
-    border-bottom: 1px solid #eee; 
-    color: #333 !important;
+.dep-hist-item, .bank-history-item, .history-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border-left: 4px solid #6a11cb;
+    font-size: 13px;
+    line-height: 1.6;
+    animation: fadeInItem 0.5s ease;
 }
 
-.dep-hist-item b {
-    color: #6a11cb;
+@keyframes fadeInItem {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left-color: #4caf50; 
+}
+
+.no-data-box {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
 }
