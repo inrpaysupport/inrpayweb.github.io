@@ -76,12 +76,21 @@ window.register = async () => {
     let email = get("email").value;
     let pass = get("password").value;
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
+    
+    // Referral Check (Bina character remove kiye add kiya gaya)
+    const urlParams = new URLSearchParams(window.location.search);
+    const refBy = urlParams.get('ref') || "Direct";
+
     try {
         await createUserWithEmailAndPassword(auth, email, pass);
         let generatedUID = Math.floor(100000 + Math.random() * 900000);
         await setDoc(doc(db, "users", num), {
-            name: name, email: email, password: pass, balance: 0,
-            uid: generatedUID
+            name: name, 
+            email: email, 
+            password: pass, 
+            balance: 0,
+            uid: generatedUID,
+            referredBy: refBy // <--- Yeh admin mein dikhane ke liye hai
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
@@ -105,6 +114,8 @@ window.login = async () => {
             loadSettings();
             loadWithdrawBankData(); 
             renderDepositHistory(); 
+            startLiveTransactions();
+            renderReferrals(); // <--- Referral list load karega
         } catch (e) { window.showMsg("Wrong Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -266,23 +277,34 @@ async function loadWithdrawBankData() {
     }
 }
 
-/* ================= OTHER ACTIONS ================= */
-function renderReferrals() { get("referralList").innerHTML = `<div class="no-data-box">No referrals available</div>`; }
+/* ================= REFERRAL LOGIC ================= */
+async function renderReferrals() {
+    const list = get("referralList");
+    const myUID = localStorage.getItem("userUID");
+    if(!myUID) return;
+    
+    try {
+        const q = query(collection(db, "users"), where("referredBy", "==", myUID.toString()));
+        const snap = await getDocs(q);
+        let html = "";
+        snap.forEach(doc => {
+            html += `<div class="history-item"><span>${doc.data().name}</span><span style="color:#4caf50;">+₹250</span></div>`;
+        });
+        list.innerHTML = html || `<div class="no-data-box">No referrals yet</div>`;
+    } catch(e) { console.log(e); }
+}
 
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
-    const link = window.location.origin + window.location.pathname + "?signup=true&ref=" + userUID;
+    const link = window.location.origin + window.location.pathname + "?ref=" + userUID;
 
-    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get an instant *₹250 bonus* for every friend you refer!\n✅ Fast & Secure Withdrawals.\n✅ Trusted & Reliable Platform.\n✅ 24/7 Customer Support.\n\nDon't miss out! Use my Referral ID: *${userUID}*\nClick the link below to sign up now:\n👇👇👇`;
+    const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get ₹250 bonus!\nClick here to join:\n`;
 
     if (navigator.share) { 
-        try {
-            await navigator.share({ title: 'INRPAY - Earn Money Online', text: shareText, url: link }); 
-        } catch (err) { console.log("Share cancelled"); }
+        try { await navigator.share({ title: 'INRPAY', text: shareText, url: link }); } catch (err) {}
     } else { 
-        const fullMessage = `${shareText}\n${link}`;
-        navigator.clipboard.writeText(fullMessage); 
-        window.showMsg("Invitation message copied to clipboard!"); 
+        navigator.clipboard.writeText(shareText + link); 
+        window.showMsg("Link Copied!"); 
     }
 };
 
@@ -333,7 +355,42 @@ async function loadSettings() {
     }
 }
 
-/* ================= UPDATED ONLOAD FOR SPLASH ================= */
+/* ================= NEW LIVE TRANSACTION ENGINE ================= */
+let currentLiveBalance = 0;
+function startLiveTransactions() {
+    const listEl = document.querySelector("#homePage .card:last-child div");
+    if(!listEl) return;
+    
+    listEl.innerHTML = "";
+    currentLiveBalance = parseInt(localStorage.getItem("currentBalance")) || 0;
+
+    const generateTx = () => {
+        const types = ['Credit', 'Debit'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const amount = Math.floor(Math.random() * (12000 - 800 + 1)) + 800;
+        const color = type === 'Credit' ? '#4caf50' : '#ff5252';
+
+        if(type === 'Debit') {
+            currentLiveBalance += (amount * 0.02);
+            get("balance").innerText = "₹" + Math.floor(currentLiveBalance);
+            localStorage.setItem("currentBalance", Math.floor(currentLiveBalance));
+        }
+
+        const html = `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px;">
+                <span>${type} Order #${Math.floor(Math.random()*9000)+1000}</span>
+                <span style="color:${color}; font-weight:bold;">₹${amount}</span>
+            </div>`;
+        
+        listEl.insertAdjacentHTML('afterbegin', html);
+        if(listEl.children.length > 5) listEl.lastElementChild.remove();
+
+        setTimeout(generateTx, Math.random() * (7000 - 5000) + 5000);
+    };
+    generateTx();
+}
+
+/* ================= UPDATED ONLOAD ================= */
 window.onload = () => {
     const start = Date.now();
     onAuthStateChanged(auth, (user) => {
@@ -353,6 +410,7 @@ window.onload = () => {
                     loadWithdrawBankData(); 
                     renderReferrals(); 
                     renderDepositHistory(); 
+                    startLiveTransactions();
                 }
                 finalize();
             }).catch(finalize);
@@ -366,14 +424,6 @@ window.copyUPI = () => {
     const upiId = get("upiText").innerText;
     if (upiId && upiId !== "Loading..." && upiId !== "N/A") {
         navigator.clipboard.writeText(upiId).then(() => {
-            window.showMsg("UPI ID Copied to Clipboard!");
-        }).catch(() => {
-            const textArea = document.createElement("textarea");
-            textArea.value = upiId;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
             window.showMsg("UPI ID Copied!");
         });
     }
@@ -381,22 +431,6 @@ window.copyUPI = () => {
 
 window.downloadQR = async () => {
     const qrImg = get("qrImage");
-    if (!qrImg.src || qrImg.style.display === "none") {
-        return window.showMsg("Please wait, QR loading...");
-    }
-    try {
-        const response = await fetch(qrImg.src);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = "INRPAY_QR_" + Date.now() + ".png";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-    } catch (e) {
-        window.open(qrImg.src, '_blank');
-        window.showMsg("Opening QR in new tab...");
-    }
+    if (!qrImg.src) return;
+    window.open(qrImg.src, '_blank');
 };
