@@ -65,11 +65,13 @@
             text-align: left;
             line-height: 1.6;
         }
-
-        /* Recent Transactions Scroll styling */
-        #recentTransactionsList {
-            max-height: 150px;
-            overflow-y: auto;
+        /* Live Transaction Styling */
+        .live-txn-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px;
         }
     </style>
 </head>
@@ -118,7 +120,7 @@
     </div>
 
     <div id="homePage" class="page">
-        <h2 id="usernameHome" style="padding-left:15px;"></h2>
+        <h2 id="usernameHome" style="padding-left:15px;">Hello, User</h2>
         <div class="card"><h1 id="balance">₹0</h1></div>
         <div class="card" onclick="deposit()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
             <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
@@ -126,16 +128,18 @@
         <div class="card" onclick="openBank()" style="background: rgba(255,255,255,0.1); cursor:pointer;">
             <h3 style="margin:0; text-align:center;">🏦 Bind Bank Account</h3>
         </div>
+        
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Account Bind Status</span>
-                <span id="bindStatusDisplay" style="color:red; font-weight:bold;">● <span style="color:white; font-weight:normal;">Deactivate</span></span>
+                <span id="bankStatusContainer" style="color:red; font-weight:bold;">● <span style="color:white; font-weight:normal;">Deactivate</span></span>
             </div>
         </div>
+
         <div class="card">
             <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
-            <div id="recentTransactionsList">
-                <div class="no-data-box">Waiting for transactions...</div>
+            <div id="liveTransactionList">
+                <div class="no-data-box">No data available</div>
             </div>
         </div>
     </div>
@@ -255,7 +259,7 @@
 <div id="withdrawHistoryBox" class="popup">
     <div class="popup-box">
         <h3 style="text-align:center; color:#6a11cb;">Withdrawal History</h3>
-        <div class="no-data-box" style="color: #666;">No history available</div>
+        <div id="withdrawHistoryList" class="no-data-box" style="color: #666; max-height: 200px; overflow-y: auto;">No history available</div>
         <button onclick="closeWithdrawHistory()" style="width:100%; margin-top:20px; background:#6a11cb; color:white; border:none; padding:10px; border-radius:8px;">Close</button>
     </div>
 </div>
