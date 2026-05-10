@@ -161,7 +161,7 @@ function startLiveTransactions() {
         const amount = Math.round(rawAmount / 100) * 100; 
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
-        const color = isDebit ? "#ff5252" : "#38ef7d";
+        const color = isDebit ? "#FF3D00" : "#00C853";
 
         // Balance Update Logic (4% Bonus)
         if (isDebit) {
