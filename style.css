@@ -34,161 +34,170 @@
 }
 
 .splash-content { text-align: center; }
-.splash-logo { font-size: 3.5rem; font-weight: 900; color: white; margin-bottom: 10px; }
 
-/* --- MAIN LAYOUT --- */
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background: #0f0c29;
-    color: white;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+.splash-logo {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(to right, #fff, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    letter-spacing: 4px;
 }
 
-.page { display: none; padding-bottom: 80px; }
-
-/* --- CARDS & BOXES --- */
-.card {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    margin: 15px;
-    padding: 20px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+.splash-text p { 
+    margin: 5px 0; 
+    font-size: 14px; 
+    color: #ccc; 
+    letter-spacing: 1px; 
 }
 
-.balance-card {
-    text-align: center;
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+.fade-in-text { 
+    opacity: 0; 
+    transform: translateY(10px); 
+    animation: fadeInUpSplash 0.8s forwards; 
 }
 
-.balance-card h2 { font-size: 2.5rem; margin: 10px 0; }
+.delay-1 { animation-delay: 0.5s; }
 
-/* --- LIVE TRANSACTIONS UI --- */
-#liveTxList {
-    max-height: 250px;
-    overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-}
-#liveTxList::-webkit-scrollbar { display: none; } /* Chrome/Safari */
-
-.history-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    animation: slideIn 0.5s ease-out;
+@keyframes fadeInUpSplash { 
+    to { opacity: 1; transform: translateY(0); } 
 }
 
-@keyframes slideIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+.splash-loader { 
+    display: flex; 
+    gap: 5px; 
+    justify-content: center; 
+    margin: 20px 0; 
 }
 
-/* --- BUTTONS --- */
-button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
+.splash-loader .bar {
+    width: 4px; height: 15px;
+    background: #00d4ff;
+    animation: growSplash 1s infinite ease-in-out;
+}
+
+.bar:nth-child(2) { animation-delay: 0.1s; }
+.bar:nth-child(3) { animation-delay: 0.2s; }
+
+@keyframes growSplash { 
+    0%, 100% { transform: scaleY(1); } 
+    50% { transform: scaleY(2); } 
+}
+
+#splash.hide-splash { 
+    opacity: 0; 
+    pointer-events: none; 
+}
+
+/* --- BASE STYLES --- */
+body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(135deg,#2b0a4a,#6a11cb); color:white; overflow-x: hidden; }
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+#auth { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align: center; }
+
+input, .passwordBox {
+    width: 85% !important;
+    max-width: 350px;
+    margin: 10px auto !important;
+    display: block !important;
+    border-radius: 10px;
     border: none;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
+    outline: none;
+}
+
+input { padding: 12px; }
+
+.passwordBox { 
+    position: relative; 
+    padding: 0 !important; 
+    background: transparent;
+}
+
+.passwordBox input { 
+    width: 100% !important; 
+    margin: 0 !important; 
+}
+
+.eyeIcon { 
+    position: absolute; 
+    right: 12px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    cursor: pointer; 
+    color: #666; 
+    z-index: 5;
+}
+
+button { width: 85%; max-width: 350px; padding:12px; border:none; border-radius:10px; cursor:pointer; margin: 10px auto; display: block; }
+.linkBtn { background:none; color:#00d4ff; width:auto; display:inline; padding:0; margin:0; font-weight:bold; }
+
+.card, .account-bind-box { margin:15px; padding:15px; background:rgba(255,255,255,0.15); border-radius:12px; }
+.popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:9999; }
+.popup.active { display:flex; }
+.popup-box { background:white; color:black; padding:20px; border-radius:15px; width:85%; max-width:350px; }
+
+.bottomNav { position:fixed; bottom:0; left:0; width:100%; display:flex; justify-content:space-around; background:#111; padding:15px 0; font-size: 24px; z-index: 1000; }
+
+.notice { width:100%; background:rgba(0,0,0,0.5); overflow:hidden; white-space:nowrap; padding: 5px 0; }
+.notice span { display:inline-block; padding-left:100%; animation:moveText 12s linear infinite; font-size: 14px; }
+@keyframes moveText { 0%{transform:translateX(0);} 100%{transform:translateX(-100%);} }
+
+/* --- BANK STATUS DOT ANIMATION --- */
+#bankStatusContainer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.status-dot {
+    font-size: 18px;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+/* --- LIVE TRANSACTION LIST --- */
+#liveTransactionList {
+    max-height: 200px;
+    overflow-y: auto;
     margin-top: 10px;
 }
 
-.primary-btn { background: #6a11cb; color: white; }
-.secondary-btn { background: rgba(255, 255, 255, 0.2); color: white; }
-.logout-btn { background: #ff4b2b; color: white; width: 90%; margin: 20px auto; display: block; }
-
-/* --- NAVIGATION --- */
-.bottomNav {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: rgba(15, 12, 41, 0.95);
-    backdrop-filter: blur(10px);
+.live-txn-item {
     display: flex;
-    justify-content: space-around;
-    padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 1000;
-}
-
-.nav-item { color: #888; font-size: 20px; transition: 0.3s; }
-.nav-item.active { color: #00d4ff; transform: translateY(-5px); }
-
-/* --- POPUPS --- */
-.popup {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    z-index: 9999;
-    backdrop-filter: blur(5px);
-}
-.popup.active { display: flex; }
-
-.popup-box {
-    background: #fff;
-    color: #333;
-    width: 85%;
-    max-width: 350px;
-    padding: 25px;
-    border-radius: 20px;
-    text-align: center;
-}
-
-.popup-box input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
-
-/* --- DEPOSIT HISTORY --- */
-.dep-hist-item {
-    background: #f9f9f9;
-    color: #333;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    text-align: left;
-    border-left: 4px solid #6a11cb;
-}
-
-/* --- STATUS INDICATORS --- */
-.status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 100%;
-    border-radius: 50%;
-    margin-right: 5px;
-}
-
-/* --- NOTICE BAR --- */
-.notice {
-    background: rgba(0,0,0,0.3);
-    padding: 8px;
-    overflow: hidden;
-    white-space: nowrap;
+    padding: 12px 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     font-size: 13px;
 }
-.notice span {
-    display: inline-block;
-    animation: scrollNotice 15s linear infinite;
+
+.txn-amount { color: #4caf50; font-weight: bold; }
+.txn-date { color: #aaa; font-size: 11px; }
+
+/* --- DEPOSIT & WITHDRAW HISTORY --- */
+#depositHistory { max-height: 150px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px; }
+.dep-hist-item { font-size: 11px; text-align: left; padding: 8px; border-bottom: 1px solid #eee; color: #333 !important; }
+.dep-hist-item b { color: #6a11cb; }
+
+.withdraw-item {
+    background: #f9f9f9;
+    color: #333;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    text-align: left;
+    border-left: 4px solid #6a11cb;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-@keyframes scrollNotice {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-}
+/* --- CUSTOM SCROLLBAR --- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+::-webkit-scrollbar-thumb { background: #6a11cb; border-radius: 10px; }
