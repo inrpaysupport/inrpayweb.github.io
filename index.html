@@ -3,233 +3,73 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>INRPAY</title>
+    <script src="https://alwingulla.com/88/prm/tagma.js?tag=YOUR_TAG_ID" async></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        input, .passwordBox {
-            width: 85% !important;
-            margin: 10px auto !important;
-            display: block !important;
-        }
-        .passwordBox { position: relative; }
-        .passwordBox input { width: 100% !important; margin: 0 !important; }
+        input, .passwordBox { width: 85% !important; margin: 10px auto !important; display: block !important; }
         .popup { z-index: 9999 !important; }
-        .bottomNav { 
-            z-index: 1000 !important; 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            display: flex; 
-            justify-content: space-around; 
-            background: #111; 
-            padding: 12px 0; 
-            text-align: center;
-        }
+        .bottomNav { z-index: 1000 !important; position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; background: #111; padding: 12px 0; text-align: center; }
         .bottomNav div { cursor: pointer; color: white; font-size: 12px; }
-        .forgot-link { color: white; font-size: 14px; text-decoration: none; margin-top: 10px; display: block; text-align: center; cursor: pointer; }
-        .no-data-box { text-align: center; padding: 20px; color: #888; font-size: 14px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .no-data-box { text-align: center; padding: 20px; color: #ccc; font-style: italic; font-size: 12px; }
+        .status-active { color: #4caf50 !important; }
+        .status-deactive { color: #ff4d4d !important; }
+        .history-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin: 15px; }
+        #liveTransactions, #referralList { max-height: 180px; overflow-y: auto; font-size: 12px; }
     </style>
 </head>
 <body>
-
 <div id="splash">
-    <div class="splash-bg-blobs">
-        <div class="blob"></div>
-        <div class="blob"></div>
-    </div>
+    <div class="splash-bg-blobs"><div class="blob"></div><div class="blob"></div></div>
     <div class="splash-content">
         <div class="splash-logo">INRPAY</div>
-        <div class="splash-loader">
-            <div class="loader-bar"></div>
-        </div>
-        <p class="splash-text">Fast • Secure • Reliable</p>
+        <div class="splash-loader"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        <div class="splash-text"><p class="fade-in-text">Fast & Secure</p></div>
     </div>
 </div>
 
-<div id="auth" class="page">
-    <div class="auth-box">
-        <h2 id="authTitle">Sign In</h2>
-        <input id="name" placeholder="Full Name" style="display:none;">
-        <input id="email" placeholder="Email Address" style="display:none;">
-        <input id="number" placeholder="Mobile Number" type="number">
-        <div class="passwordBox">
-            <input id="password" placeholder="Password" type="password">
-            <span onclick="togglePass()" style="position:absolute; right:10px; top:12px; color:white; cursor:pointer;">👁️</span>
-        </div>
-        <button id="loginBtn" onclick="login()">Login</button>
-        <button id="registerBtn" onclick="register()" style="display:none;">Register</button>
-        <p id="forgotText" class="forgot-link" onclick="openForgotPopup()">Forgot Password?</p>
-        <p id="toggleText">Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button></p>
-    </div>
+<div id="auth">
+    <h1 class="appLogo">INRPAY</h1>
+    <h2 id="authTitle">Sign In</h2>
+    <input id="number" placeholder="Mobile Number" maxlength="10">
+    <div class="passwordBox"><input id="password" type="password" placeholder="Password"><span onclick="togglePass()" class="eyeIcon">👁</span></div>
+    <button id="loginBtn" onclick="login()">Sign In</button>
+    <p id="toggleText">Don't have an account? <button class="linkBtn" onclick="showRegister()">Sign Up</button></p>
 </div>
 
-<div id="app" class="page" style="display:none;">
-    <div class="header">
-        <div id="usernameHome">Hello, User</div>
-        <div class="header-icons">
-            <span onclick="showPage('notificationPage')">🔔</span>
-            <span onclick="showPage('profilePage')">👤</span>
-        </div>
-    </div>
-
+<div id="app" style="display:none;">
+    <div class="notice"><span id="scrollingNotice">Welcome to INRPAY</span></div>
     <div id="homePage" class="page">
-        <div class="notice">
-            <span id="scrollingNotice">Welcome to INRPAY! Real-time earning platform.</span>
+        <h2 id="usernameHome" style="padding-left:15px;"></h2>
+        <div class="card"><h1 id="balance">₹0</h1></div>
+        <div class="card" onclick="triggerAd('Security')" style="background: rgba(255,255,255,0.1); cursor:pointer;">
+            <h3 style="margin:0; text-align:center;">🛡️ Security Deposit</h3>
         </div>
-
-        <div class="balance-card">
-            <p>Main Balance</p>
-            <h2 id="balance">₹0</h2>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button onclick="deposit()" style="flex:1; background:white; color:#6a11cb; padding:10px; border-radius:8px; border:none; font-weight:bold;">Deposit</button>
-                <button onclick="showPage('earningPage')" style="flex:1; background:rgba(255,255,255,0.2); color:white; padding:10px; border-radius:8px; border:none; font-weight:bold;">Withdraw</button>
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Account Bind Status</span>
+                <span id="accStatusWrap" class="status-deactive" style="font-weight:bold;">● <span id="accStatusText" style="color:white; font-weight:normal;">Deactivate</span></span>
             </div>
         </div>
-
-        <div class="grid">
-            <div class="grid-item" onclick="openBank()">🏦<span>Bind Bank</span></div>
-            <div class="grid-item" onclick="showPage('referPage')">👥<span>Refer & Earn</span></div>
-            <div class="grid-item" onclick="showPage('historyPage')">📜<span>History</span></div>
-            <div class="grid-item" onclick="showPage('supportPage')">🎧<span>Support</span></div>
-        </div>
-
-        <div class="card" style="margin-bottom: 80px;">
-            <h3 style="font-size:16px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">Recent Transactions</h3>
-            <div id="liveTransactionList">
-                <div class="no-data-box">Connecting to server...</div>
-            </div>
+        <div class="card">
+            <h4 style="margin:0 0 10px 0;">Recent Transactions</h4>
+            <div id="liveTransactions"><div class="no-data-box">No data available</div></div>
         </div>
     </div>
 
     <div id="earningPage" class="page" style="display:none;">
-        <div class="card">
-            <h3>Withdraw Funds</h3>
-            <p style="font-size:12px; margin-bottom:10px; opacity:0.8;">Min withdrawal: ₹100</p>
-            <input id="withdrawAmount" type="number" placeholder="Enter Amount">
-            
-            <div class="account-bind-box" style="margin:10px 0; background:rgba(0,0,0,0.2);">
-                <p style="font-size:13px; font-weight:bold; margin-bottom:8px;">Bank for Withdrawal:</p>
-                <input id="earnBankName" placeholder="Bank Name / Holder Name">
-                <input id="earnBankAcc" placeholder="Account Number">
-                <input id="earnBankIfsc" placeholder="IFSC Code">
-                <button onclick="saveWithdrawBank()" style="font-size:12px; padding:8px; background:#444;">Update Withdrawal Bank</button>
-            </div>
-
-            <button onclick="submitWithdraw()" style="background:#6a11cb; color:white; width:100%; margin-top:10px;">Submit Request</button>
-        </div>
-    </div>
-
-    <div id="referPage" class="page" style="display:none; padding-bottom: 80px;">
-        <div class="card" style="text-align:center;">
-            <div style="font-size:50px;">🎁</div>
-            <h3>Refer Friends</h3>
-            <p>Earn ₹250 for every active referral!</p>
-            <button onclick="shareReferLink()" style="background:#ff9800; color:white; padding:12px 30px; border-radius:25px; border:none; font-weight:bold; margin-top:15px;">Invite Now</button>
-        </div>
-        <div class="card">
-            <h3>My Referrals</h3>
-            <div id="referralList">
-                <div class="no-data-box">No referrals yet</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="profilePage" class="page" style="display:none; padding-bottom: 80px;">
-        <div class="card" style="text-align:center;">
-            <div style="width:80px; height:80px; background:#6a11cb; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:30px;">👤</div>
-            <h3 id="username2">User Name</h3>
-            <p id="useremail" style="font-size:12px; opacity:0.8;"></p>
-            <p id="usernumber" style="font-size:12px; opacity:0.8;"></p>
-            <p id="userid" style="font-weight:bold; color:#ff9800; margin-top:5px;"></p>
-        </div>
-        <div class="card">
-            <h3>Change Password</h3>
-            <input id="oldPass" type="password" placeholder="Old Password">
-            <input id="newPass" type="password" placeholder="New Password">
-            <button onclick="changePassword()" style="background:#444; color:white; width:100%;">Update Password</button>
-        </div>
-        <button onclick="logout()" style="background:#ff5252; color:white; width:90%; display:block; margin:20px auto; border:none; padding:12px; border-radius:10px; font-weight:bold;">Logout</button>
-    </div>
-
-    <div id="supportPage" class="page" style="display:none;">
-        <div class="card" style="text-align:center;">
-            <h3>Customer Support</h3>
-            <p>Need help? Contact us 24/7</p>
-            <a href="https://t.me/your_telegram" style="display:block; background:#0088cc; color:white; padding:12px; text-decoration:none; border-radius:10px; margin-top:15px; font-weight:bold;">Telegram Support</a>
+        <div class="history-card">
+            <h3 style="margin-top:0;">Referral History</h3>
+            <div id="referralList"><div class="no-data-box">No referrals yet</div></div>
         </div>
     </div>
 
     <div class="bottomNav">
         <div onclick="showPage('homePage')">🏠<br>Home</div>
-        <div onclick="showPage('earningPage')">💰<br>Earn</div>
-        <div onclick="showPage('referPage')">🎁<br>Refer</div>
-        <div onclick="showPage('profilePage')">👤<br>Profile</div>
+        <div onclick="showPage('earningPage')">💰<br>Earning</div>
     </div>
 </div>
 
-<div id="depositBox" class="popup">
-    <div class="popup-box" style="max-height: 90vh; overflow-y: auto;">
-        <h3 style="text-align:center;">Deposit Money</h3>
-        <p style="font-size:12px; text-align:center; margin-bottom:10px;">Send exactly: <b id="amountText">₹0</b></p>
-        
-        <div style="text-align:center; background:#f4f4f4; padding:10px; border-radius:10px;">
-            <img id="qrImage" src="" style="width:150px; height:150px; display:none; margin:0 auto;">
-            <button id="downloadQrBtn" onclick="downloadQR()" style="display:none; font-size:10px; padding:5px; margin-top:5px;">Download QR</button>
-            <p id="upiText" style="font-weight:bold; margin-top:10px; font-size:14px;">Loading...</p>
-            <button onclick="copyUPI()" style="font-size:10px; padding:5px; background:#ddd;">Copy UPI ID</button>
-        </div>
-
-        <input id="utr" placeholder="Enter 12 Digit UTR/Ref No" type="number">
-        <button onclick="submitDeposit()" style="background:#2b0a4a; color:white; width:100%;">I Have Paid</button>
-        
-        <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p style="font-weight:bold; font-size:14px; margin-bottom:5px;">Deposit History:</p>
-            <div id="depositHistoryList"></div>
-        </div>
-
-        <button onclick="closeDeposit()" style="width:100%; margin-top:10px;">Cancel</button>
-    </div>
-</div>
-
-<div id="bankBox" class="popup">
-    <div class="popup-box">
-        <h3 style="text-align:center;">Link Bank Account</h3>
-        <p style="font-size:11px; color:red; margin-bottom:10px;">Important: Enter correct details for verification.</p>
-        
-        <input id="homeBankName" placeholder="Bank Name / Holder Name">
-        <input id="homeBankAcc" placeholder="Account Number">
-        <input id="homeBankIfsc" placeholder="IFSC Code">
-        
-        <button onclick="saveHomeBank()" style="background:#2b0a4a; color:white; width:100%;">Save Details</button>
-
-        <div id="bankHistorySection" style="margin-top:15px; border-top:1px solid #ddd; padding-top:10px;">
-            <p style="font-weight:bold; font-size:14px; margin-bottom:5px;">History:</p>
-            <div id="bankHistoryList">
-                <p style="font-size:12px; color:#666;">No bank linked.</p>
-            </div>
-            <button id="activateAccBtn" onclick="triggerActivate()" style="display:none; background:green; color:white; width:100%; margin-top:10px;">Activate Account</button>
-        </div>
-
-        <button onclick="closeBank()" style="width:100%; margin-top:10px;">Cancel</button>
-    </div>
-</div>
-
-<div id="forgotBox" class="popup">
-    <div class="popup-box">
-        <h3 style="text-align:center;">Reset Password</h3>
-        <input id="forgotEmail" placeholder="Email Address">
-        <button onclick="forgotPassword()" style="background:#6a11cb; color:white; width:100%;">Send Reset Link</button>
-        <button onclick="closeForgot()" style="width:100%; margin-top:5px;">Cancel</button>
-    </div>
-</div>
-
-<div id="msgBox" class="popup">
-    <div class="popup-box">
-        <p id="msgText" style="text-align:center;"></p>
-        <button onclick="closeMsg()" style="width:100%; background:#6a11cb; color:white;">Okay</button>
-    </div>
-</div>
-
+<div id="msgBox" class="popup"><div class="popup-box"><p id="msgText"></p><button onclick="closeMsg()">OK</button></div></div>
 <script type="module" src="script.js"></script>
 </body>
 </html>
