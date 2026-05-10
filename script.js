@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+// App Check import add kiya gaya
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app-check.js";
 
 // Firebase Configuration
@@ -10,7 +11,7 @@ const app = initializeApp({
     projectId: "inrpay-44413"
 });
 
-// App Check Initialize
+// App Check Initialize karein
 const appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY_HERE'),
     isTokenAutoRefreshEnabled: true
@@ -95,7 +96,7 @@ window.login = async () => {
     } else { window.showMsg("Not registered!"); }
 };
 
-/* ================= REAL-TIME UPDATES (BANK & BALANCE) ================= */
+/* ================= NEW: REAL-TIME BANK & BALANCE LISTENERS ================= */
 function setupRealtimeListeners(num) {
     onSnapshot(doc(db, "users", num), (docSnap) => {
         if (docSnap.exists()) {
@@ -103,9 +104,8 @@ function setupRealtimeListeners(num) {
             get("usernameHome").innerText = "Hello, " + (data.name || "User");
             get("balance").innerText = "₹" + (data.balance || 0);
             localStorage.setItem("currentBalance", data.balance || 0);
-            localStorage.setItem("userUID", data.uid);
             
-            // Bank Status Update
+            // Bank Status Check (Red/Green Dot Logic)
             const statusText = data.bankStatus === "Active" ? "Activated" : "Deactivate";
             const statusColor = data.bankStatus === "Active" ? "#38ef7d" : "red";
             
@@ -118,10 +118,10 @@ function setupRealtimeListeners(num) {
     });
 }
 
-/* ================= AUTO TRANSACTIONS SIMULATION ================= */
+/* ================= NEW: AUTO TRANSACTIONS SIMULATION ================= */
 function startLiveTransactions() {
-    const list = document.querySelector("#homePage .card h4")?.parentElement;
-    if(!list) return;
+    const listContainer = document.querySelector("#homePage .card h4")?.parentElement;
+    if(!listContainer) return;
     
     const run = () => {
         const amount = Math.floor(Math.random() * 5000) + 500;
@@ -130,23 +130,22 @@ function startLiveTransactions() {
         const color = isDebit ? "#ff5252" : "#38ef7d";
         
         const item = document.createElement("div");
-        item.className = "history-item";
         item.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;";
         item.innerHTML = `<span>${new Date().toLocaleTimeString()}</span><span style="color:${color}">${type}: ₹${amount}</span>`;
         
-        if (list.querySelector('.no-data-box')) {
-            const h4 = list.querySelector('h4');
-            list.innerHTML = "";
-            if(h4) list.appendChild(h4);
+        if (listContainer.querySelector('.no-data-box')) {
+            const h4 = listContainer.querySelector('h4');
+            listContainer.innerHTML = "";
+            if(h4) listContainer.appendChild(h4);
         }
-        list.insertBefore(item, list.children[1]);
-        if (list.children.length > 6) list.removeChild(list.lastChild);
+        listContainer.insertBefore(item, listContainer.children[1]);
+        if (listContainer.children.length > 6) listContainer.removeChild(listContainer.lastChild);
         setTimeout(run, Math.random() * 10000 + 5000);
     };
     run();
 }
 
-/* ================= WITHDRAWAL SYSTEM ================= */
+/* ================= NEW: FUNCTIONAL WITHDRAWAL ================= */
 window.submitWithdraw = async () => {
     let amt = parseInt(get("withdrawAmount").value);
     let num = localStorage.getItem("user");
@@ -165,7 +164,7 @@ window.submitWithdraw = async () => {
     } catch (e) { window.showMsg("Error: " + e.message); }
 };
 
-/* ================= DEPOSIT & SETTINGS ================= */
+/* ================= ORIGINAL SETTINGS & DEPOSIT LOGIC ================= */
 window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr || utr.length < 12) return window.showMsg("Enter 12-digit UTR!");
@@ -189,7 +188,6 @@ async function loadSettings() {
     }
 }
 
-/* ================= BANK BINDING DATA ================= */
 async function loadWithdrawBankData() {
     const user = localStorage.getItem("user");
     if(!user) return;
@@ -202,7 +200,7 @@ async function loadWithdrawBankData() {
     }
 }
 
-/* ================= APP INIT ================= */
+/* ================= ORIGINAL APP INIT & NAV ================= */
 onAuthStateChanged(auth, (user) => {
     let u = localStorage.getItem("user");
     if (user && u) {
@@ -216,7 +214,6 @@ onAuthStateChanged(auth, (user) => {
     setTimeout(window.hideSplash, 2000);
 });
 
-/* ================= NAVIGATION & CONTROLS ================= */
 window.showPage = (id) => {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
     get(id).style.display = "block";
@@ -228,6 +225,7 @@ window.closeBank = () => get("bankBox").classList.remove("active");
 window.deposit = () => get("depositBox").classList.add("active");
 window.closeDeposit = () => get("depositBox").classList.remove("active");
 
+/* ================= ORIGINAL UTILITY FUNCTIONS ================= */
 window.copyUPI = () => {
     const upiId = get("upiText").innerText;
     if (navigator.clipboard) {
@@ -267,7 +265,7 @@ window.downloadQR = async () => {
     }
 };
 
-/* ================= SERVICE WORKER REGISTRATION ================= */
+/* ================= ORIGINAL SERVICE WORKER (PWA) ================= */
 if ('service-worker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
