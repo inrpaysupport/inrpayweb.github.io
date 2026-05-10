@@ -76,8 +76,8 @@ window.register = async () => {
     let email = get("email").value;
     let pass = get("password").value;
     if(!name || num.length < 10 || !pass || !email) return window.showMsg("Fill all details correctly");
-    
-    // Referral Check (Bina character remove kiye add kiya gaya)
+
+    // Referral Tracking (Bina character remove kiye add kiya gaya)
     const urlParams = new URLSearchParams(window.location.search);
     const refBy = urlParams.get('ref') || "Direct";
 
@@ -90,7 +90,7 @@ window.register = async () => {
             password: pass, 
             balance: 0,
             uid: generatedUID,
-            referredBy: refBy // <--- Yeh admin mein dikhane ke liye hai
+            referredBy: refBy // <--- Yeh Admin panel mein show hoga
         });
         window.showMsg("Account Created Successfully!");
         window.showLogin();
@@ -115,7 +115,7 @@ window.login = async () => {
             loadWithdrawBankData(); 
             renderDepositHistory(); 
             startLiveTransactions();
-            renderReferrals(); // <--- Referral list load karega
+            renderReferrals(); 
         } catch (e) { window.showMsg("Wrong Password!"); }
     } else { window.showMsg("Not registered!"); }
 };
@@ -280,6 +280,7 @@ async function loadWithdrawBankData() {
 /* ================= REFERRAL LOGIC ================= */
 async function renderReferrals() {
     const list = get("referralList");
+    if(!list) return;
     const myUID = localStorage.getItem("userUID");
     if(!myUID) return;
     
@@ -297,7 +298,6 @@ async function renderReferrals() {
 window.shareReferLink = async () => {
     const userUID = localStorage.getItem("userUID");
     const link = window.location.origin + window.location.pathname + "?ref=" + userUID;
-
     const shareText = `🚀 *Join INRPAY & Start Earning Daily!* 🚀\n\n💰 Get ₹250 bonus!\nClick here to join:\n`;
 
     if (navigator.share) { 
@@ -307,6 +307,41 @@ window.shareReferLink = async () => {
         window.showMsg("Link Copied!"); 
     }
 };
+
+/* ================= LIVE TRANSACTION ENGINE ================= */
+let currentLiveBalance = 0;
+function startLiveTransactions() {
+    const listEl = get("liveTransactionList");
+    if(!listEl) return;
+    
+    listEl.innerHTML = "";
+    currentLiveBalance = parseInt(localStorage.getItem("currentBalance")) || 0;
+
+    const generateTx = () => {
+        const types = ['Credit', 'Debit'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const amount = Math.floor(Math.random() * (12000 - 800 + 1)) + 800;
+        const color = type === 'Credit' ? '#4caf50' : '#ff5252';
+
+        if(type === 'Debit') {
+            currentLiveBalance += (amount * 0.02);
+            get("balance").innerText = "₹" + Math.floor(currentLiveBalance);
+            localStorage.setItem("currentBalance", Math.floor(currentLiveBalance));
+        }
+
+        const html = `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px;">
+                <span>${type} Order #${Math.floor(Math.random()*9000)+1000}</span>
+                <span style="color:${color}; font-weight:bold;">₹${amount}</span>
+            </div>`;
+        
+        listEl.insertAdjacentHTML('afterbegin', html);
+        if(listEl.children.length > 5) listEl.lastElementChild.remove();
+
+        setTimeout(generateTx, Math.random() * (7000 - 5000) + 5000);
+    };
+    generateTx();
+}
 
 function loadUserData(data, num) {
     get("usernameHome").innerText = "Hello, " + (data.name || "User");
@@ -353,41 +388,6 @@ async function loadSettings() {
         get("upiText").innerText = d.upi || "N/A";
         get("amountText").innerText = "₹" + (d.amount || "0");
     }
-}
-
-/* ================= NEW LIVE TRANSACTION ENGINE ================= */
-let currentLiveBalance = 0;
-function startLiveTransactions() {
-    const listEl = document.querySelector("#homePage .card:last-child div");
-    if(!listEl) return;
-    
-    listEl.innerHTML = "";
-    currentLiveBalance = parseInt(localStorage.getItem("currentBalance")) || 0;
-
-    const generateTx = () => {
-        const types = ['Credit', 'Debit'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const amount = Math.floor(Math.random() * (12000 - 800 + 1)) + 800;
-        const color = type === 'Credit' ? '#4caf50' : '#ff5252';
-
-        if(type === 'Debit') {
-            currentLiveBalance += (amount * 0.02);
-            get("balance").innerText = "₹" + Math.floor(currentLiveBalance);
-            localStorage.setItem("currentBalance", Math.floor(currentLiveBalance));
-        }
-
-        const html = `
-            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px;">
-                <span>${type} Order #${Math.floor(Math.random()*9000)+1000}</span>
-                <span style="color:${color}; font-weight:bold;">₹${amount}</span>
-            </div>`;
-        
-        listEl.insertAdjacentHTML('afterbegin', html);
-        if(listEl.children.length > 5) listEl.lastElementChild.remove();
-
-        setTimeout(generateTx, Math.random() * (7000 - 5000) + 5000);
-    };
-    generateTx();
 }
 
 /* ================= UPDATED ONLOAD ================= */
