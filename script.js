@@ -119,11 +119,11 @@ function setupRealtimeListeners(num) {
         if (docSnap.exists()) {
             const data = docSnap.data();
             loadUserData(data, num);
-            
+
             // UI Update for Bank Status
             const statusText = data.bankStatus === "Active" ? "Activated" : "Deactivate";
             const statusColor = data.bankStatus === "Active" ? "#38ef7d" : "red";
-            
+
             const statusContainer = document.querySelector("#homePage .card span[style*='color:red'], #homePage .card span[style*='color:#38ef7d']");
             if(statusContainer) {
                 statusContainer.style.color = statusColor;
@@ -137,17 +137,17 @@ function setupRealtimeListeners(num) {
 function startLiveTransactions() {
     const listContainer = document.querySelector("#homePage .card h4")?.parentElement;
     if(!listContainer) return;
-    
+
     const run = () => {
         const amount = Math.floor(Math.random() * 5000) + 500;
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
         const color = isDebit ? "#ff5252" : "#38ef7d";
-        
+
         const item = document.createElement("div");
         item.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px;";
         item.innerHTML = `<span>${new Date().toLocaleTimeString()}</span><span style="color:${color}">${type}: ₹${amount}</span>`;
-        
+
         if (listContainer.querySelector('.no-data-box')) {
             const h4 = listContainer.querySelector('h4');
             listContainer.innerHTML = "";
@@ -191,9 +191,11 @@ window.submitDeposit = async () => {
     let utr = get("utr").value;
     if(!utr) return window.showMsg("Enter UTR!");
     let now = new Date().toLocaleString();
+    let userUID = localStorage.getItem("userUID");
 
     try {
-        await setDoc(doc(db, "deposits", Date.now().toString()), { 
+        await setDoc(doc(doc(db, "deposits", Date.now().toString()).path), { 
+            uid: userUID || "N/A",
             user: localStorage.getItem("user"), 
             utr: utr, 
             status: "Pending", 
@@ -369,22 +371,24 @@ window.submitWithdraw = async () => {
     let amt = parseInt(get("withdrawAmount").value);
     let num = localStorage.getItem("user");
     let bal = parseInt(localStorage.getItem("currentBalance"));
-    
+    let userUID = localStorage.getItem("userUID");
+
     if(!amt || amt < 100) return window.showMsg("Min ₹100!");
     if(amt > bal) return window.showMsg("Insufficient Balance!");
 
     try {
         // Step 1: Create request in Firebase
         await setDoc(doc(db, "withdrawals", Date.now().toString()), {
+            uid: userUID || "N/A",
             user: num,
             amount: amt,
             status: "Pending",
             date: new Date().toLocaleString()
         });
-        
+
         // Step 2: Deduct amount from user balance
         await updateDoc(doc(db, "users", num), { balance: bal - amt });
-        
+
         window.showMsg("Withdrawal Request Submitted!");
         get("withdrawAmount").value = "";
     } catch (e) { window.showMsg("Error: " + e.message); }
