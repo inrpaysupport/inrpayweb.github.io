@@ -191,12 +191,13 @@ window.submitDeposit = async () => {
     if(!utr) return window.showMsg("Enter UTR!");
     let now = new Date().toLocaleString();
     let userUID = localStorage.getItem("userUID");
+    let userNum = localStorage.getItem("user");
 
     try {
-        // FIXED: Removed the invalid .path syntax
+        // FIXED: Using direct document reference to avoid syntax errors
         await setDoc(doc(db, "deposits", Date.now().toString()), { 
             uid: userUID || "N/A",
-            user: localStorage.getItem("user"), 
+            user: userNum, 
             utr: utr, 
             status: "Pending", 
             date: now 
