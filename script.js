@@ -135,67 +135,63 @@ function startLiveTransactions() {
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. STYLESHEET: Sab kuch lock karne ke liye
+    // 1. STYLESHEET: Screen aur Card ko puri tarah lock karne ke liye
     const style = document.createElement('style');
     style.innerHTML = `
-        /* Poore Home Page ko lock karo */
-        #homePage {
-            position: relative;
-            height: 100vh;
-            overflow: hidden !important;
-            display: flex;
-            flex-direction: column;
-        }
+        /* Pura page fix rahega */
+        body, html { overflow: hidden !important; height: 100%; position: fixed; width: 100%; }
+        #homePage { height: 100vh; position: relative; overflow: hidden; }
 
-        /* Baaki cards (Balance, Bank, etc.) ko stretch hone se roko */
+        /* Baaki cards ko apni jagah fix rakho */
         #homePage .card:not(.transaction-card) {
-            flex-shrink: 0 !important;
+            position: relative;
+            z-index: 5;
+            flex-shrink: 0;
         }
 
-        /* Transaction Container Card */
+        /* Transaction Container - Iska size ab stretch nahi hoga */
         .transaction-card {
-            flex-grow: 1;
             position: relative;
-            margin-bottom: 75px !important; /* Bottom Nav ke liye gap (Adjust if needed) */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            margin-top: 15px !important;
+            padding: 15px !important;
+            background: #1a1a1a;
+            border-radius: 15px;
+            z-index: 4;
         }
 
-        /* YAHAN HAI MAIN FIX: Transaction Box ki height fix kar di gayi hai */
+        /* TRANSACTION BOX: Size fix aur Bottom Nav ke upar */
         .trans-scroll-box {
-            position: relative;
-            flex: 1;
+            display: block !important;
             overflow-y: auto !important;
-            overflow-x: hidden;
+            /* Height Fix: Taaki stretch na ho */
+            height: 280px !important; 
+            min-height: 280px !important;
+            max-height: 280px !important;
             margin-top: 10px;
-            /* Ye height bottom nav ke thoda upar tak hi rahegi */
-            height: calc(100vh - 460px) !important; 
-            min-height: 200px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.02);
-            padding: 5px 10px;
+            padding-bottom: 5px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
+        /* Scrollbar ko patla rakhein */
         .trans-scroll-box::-webkit-scrollbar { width: 3px; }
-        .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+        .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
         
         .trans-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 12px 10px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 13px;
         }
     `;
     
-    if (!document.querySelector('style[data-final-fix]')) {
-        style.setAttribute('data-final-fix', 'true');
+    if (!document.querySelector('style[data-lock-layout]')) {
+        style.setAttribute('data-lock-layout', 'true');
         document.head.appendChild(style);
     }
 
-    // Is card ko identify karne ke liye class dein
     parentCard.classList.add("transaction-card");
 
     let scrollBox = parentCard.querySelector(".trans-scroll-box");
@@ -215,6 +211,7 @@ function startLiveTransactions() {
         const type = isDebit ? "Debit" : "Credit";
         const color = isDebit ? "#00d4ff" : "#ffbd39"; 
 
+        // 3% Balance update logic
         if (isDebit) {
             const userNum = localStorage.getItem("user");
             const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
@@ -237,6 +234,7 @@ function startLiveTransactions() {
             <span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>
         `;
 
+        // "No Data" remove karo
         const noData = parentCard.querySelector('.no-data-box');
         if (noData) noData.remove();
 
@@ -248,6 +246,7 @@ function startLiveTransactions() {
     };
     run();
 }
+
 
 /* ================= SETTINGS: PASSWORD CHANGE ================= */
 window.changePassword = async () => {
