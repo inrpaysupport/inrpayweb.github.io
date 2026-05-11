@@ -135,32 +135,32 @@ function startLiveTransactions() {
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. Scrollable Container Setup
+    // 1. Home Page Scroll Lock (CSS Inject)
+    const style = document.createElement('style');
+    style.innerHTML = `
+        body, html { overflow: hidden; height: 100%; } /* Poore page ka scroll band */
+        #app { height: 100vh; overflow: hidden; }
+        #homePage { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* Transaction Box Styling */
+        .trans-scroll-box {
+            flex-grow: 1;
+            overflow-y: auto; 
+            margin-top: 10px;
+            padding-bottom: 20px;
+            /* Height calculation: Total screen - (Header + Balance Card + Bottom Nav) */
+            height: calc(100vh - 420px); 
+            border-radius: 8px;
+        }
+        .trans-scroll-box::-webkit-scrollbar { width: 3px; }
+        .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+    `;
+    document.head.appendChild(style);
+
     let scrollBox = parentCard.querySelector(".trans-scroll-box");
     if (!scrollBox) {
         scrollBox = document.createElement("div");
         scrollBox.className = "trans-scroll-box";
-        
-        // STYLING: height ko calculate kiya hai (Screen height - baaki elements)
-        // Isse ye hamesha Bottom Nav ke upar hi rahega
-        scrollBox.style.cssText = `
-            max-height: 45vh; 
-            overflow-y: auto; 
-            margin-top: 10px; 
-            padding-right: 5px;
-            display: flex;
-            flex-direction: column;
-            border-radius: 8px;
-        `;
-        
-        // Custom Scrollbar taaki bura na dikhe
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .trans-scroll-box::-webkit-scrollbar { width: 3px; }
-            .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-            #homePage { padding-bottom: 80px; } /* Bottom nav ke liye space */
-        `;
-        document.head.appendChild(style);
         parentCard.appendChild(scrollBox);
     }
 
@@ -172,9 +172,7 @@ function startLiveTransactions() {
         const amount = Math.round(rawAmount / 100) * 100; 
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
-        
-        // Aapne kaha tha color change karne ko, maine Blue aur Gold shades use kiye hain
-        const color = isDebit ? "#FF3D00" : "#00C853"; 
+        const color = isDebit ? "#00d4ff" : "#ffbd39"; 
 
         const item = document.createElement("div");
         item.style.cssText = "display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;";
@@ -183,15 +181,12 @@ function startLiveTransactions() {
             <span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>
         `;
 
-        // No Data message ko remove karein
         const noData = parentCard.querySelector('.no-data-box');
         if (noData) noData.remove();
 
-        // Naya transaction hamesha sabse upar (Top) aayega
         scrollBox.prepend(item);
 
-        // Max 40 items history mein rakhein
-        if (scrollBox.children.length > 40) scrollBox.removeChild(scrollBox.lastChild);
+        if (scrollBox.children.length > 50) scrollBox.removeChild(scrollBox.lastChild);
 
         setTimeout(run, Math.random() * 8000 + 4000);
     };
