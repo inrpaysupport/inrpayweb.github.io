@@ -135,55 +135,53 @@ function startLiveTransactions() {
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. CSS Injection for Layout Control
+    // 1. CSS Injection for absolute Layout Control
     const style = document.createElement('style');
     style.innerHTML = `
-        body, html { overflow: hidden; height: 100%; margin: 0; }
-        #app { height: 100vh; overflow: hidden; }
-        
-        /* Home page ko flex banaya taaki elements size na badlein */
-        #homePage { 
-            height: 100vh; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column;
+        /* Poore page ko hilaane se rokne ke liye */
+        body, html { overflow: hidden !important; height: 100%; position: fixed; width: 100%; }
+        #app, #homePage { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* Baaki saare boxes (Balance, Bank, etc.) ki size lock karne ke liye */
+        #homePage .card:not(.transaction-card) {
+            flex-shrink: 0 !important;
+            height: auto !important;
         }
 
-        /* Baaki sabhi boxes (Balance, Bank etc.) ki size fix rakhne ke liye */
-        #homePage > .card:not(:last-child), 
-        #homePage > div:not(.transaction-container) {
-            flex-shrink: 0; 
-        }
-
-        /* Transaction Box Styling */
+        /* Transaction Box Styling - Fixed Size */
         .trans-scroll-box {
-            flex-grow: 1;
-            overflow-y: auto; 
+            display: block !important;
+            overflow-y: auto !important;
+            overflow-x: hidden;
             margin-top: 10px;
-            /* Bottom nav se 80px uper tak hi dikhega */
-            height: calc(100vh - 450px); 
+            /* Yahan height fix ki gayi hai taaki niche se bada dikhe aur stretch na ho */
+            height: 320px !important; 
+            min-height: 320px !important;
+            max-height: 320px !important;
             border-radius: 8px;
             background: rgba(255,255,255,0.02);
             padding: 5px 10px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .trans-scroll-box::-webkit-scrollbar { width: 3px; }
-        .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+        .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
         
-        /* Ensure items don't stretch the parent */
         .trans-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 13px;
-            flex-shrink: 0;
         }
     `;
-    if (!document.querySelector('style[data-layout-fix]')) {
-        style.setAttribute('data-layout-fix', 'true');
+    if (!document.querySelector('style[data-layout-v3]')) {
+        style.setAttribute('data-layout-v3', 'true');
         document.head.appendChild(style);
     }
+
+    // Transaction Card ko ek special class de dein taaki wo stretch na ho
+    parentCard.classList.add("transaction-card");
 
     let scrollBox = parentCard.querySelector(".trans-scroll-box");
     if (!scrollBox) {
@@ -213,7 +211,7 @@ function startLiveTransactions() {
                         balance: Number(newBalance.toFixed(2)) 
                     });
                     localStorage.setItem("currentBalance", newBalance.toFixed(2));
-                } catch (e) { console.log("Update Error"); }
+                } catch (e) { console.error("Balance Update Failed"); }
             }
         }
 
