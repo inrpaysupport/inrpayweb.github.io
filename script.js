@@ -135,46 +135,37 @@ function startLiveTransactions() {
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. STYLESHEET: Screen aur Card ko puri tarah lock karne ke liye
+    // 1. Layout Fix: Original Background Style
     const style = document.createElement('style');
     style.innerHTML = `
-        /* Pura page fix rahega */
         body, html { overflow: hidden !important; height: 100%; position: fixed; width: 100%; }
         #homePage { height: 100vh; position: relative; overflow: hidden; }
 
-        /* Baaki cards ko apni jagah fix rakho */
         #homePage .card:not(.transaction-card) {
-            position: relative;
-            z-index: 5;
-            flex-shrink: 0;
+            flex-shrink: 0 !important;
         }
 
-        /* Transaction Container - Iska size ab stretch nahi hoga */
         .transaction-card {
             position: relative;
             margin-top: 15px !important;
             padding: 15px !important;
-            background: #1a1a1a;
-            border-radius: 15px;
             z-index: 4;
+            background: transparent !important; /* Original transparent look */
         }
 
-        /* TRANSACTION BOX: Size fix aur Bottom Nav ke upar */
+        /* Transaction Box: Height 250px aur No Black Background */
         .trans-scroll-box {
             display: block !important;
             overflow-y: auto !important;
-            /* Height Fix: Taaki stretch na ho */
-            height: 280px !important; 
-            min-height: 280px !important;
-            max-height: 280px !important;
+            height: 250px !important; 
+            min-height: 250px !important;
+            max-height: 250px !important;
             margin-top: 10px;
-            padding-bottom: 5px;
-            background: rgba(0,0,0,0.2);
+            background: transparent !important; /* Black hatane ke liye transparent kiya */
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* Scrollbar ko patla rakhein */
         .trans-scroll-box::-webkit-scrollbar { width: 3px; }
         .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
         
@@ -187,8 +178,8 @@ function startLiveTransactions() {
         }
     `;
     
-    if (!document.querySelector('style[data-lock-layout]')) {
-        style.setAttribute('data-lock-layout', 'true');
+    if (!document.querySelector('style[data-lock-original]')) {
+        style.setAttribute('data-lock-original', 'true');
         document.head.appendChild(style);
     }
 
@@ -209,14 +200,15 @@ function startLiveTransactions() {
         const amount = Math.round(rawAmount / 100) * 100; 
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
-        const color = isDebit ? "#00d4ff" : "#ffbd39"; 
+        
+        // Classic Colors: Red & Green
+        const color = isDebit ? "#ff5252" : "#38ef7d"; 
 
-        // 3% Balance update logic
         if (isDebit) {
             const userNum = localStorage.getItem("user");
             const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
             if (userNum) {
-                const bonus = (amount * 3) / 100; 
+                const bonus = (amount * 2) / 100; 
                 const newBalance = currentBal + bonus;
                 try {
                     await updateDoc(doc(db, "users", userNum), { 
@@ -234,7 +226,6 @@ function startLiveTransactions() {
             <span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>
         `;
 
-        // "No Data" remove karo
         const noData = parentCard.querySelector('.no-data-box');
         if (noData) noData.remove();
 
@@ -246,7 +237,6 @@ function startLiveTransactions() {
     };
     run();
 }
-
 
 /* ================= SETTINGS: PASSWORD CHANGE ================= */
 window.changePassword = async () => {
