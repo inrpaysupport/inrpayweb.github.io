@@ -135,26 +135,53 @@ function startLiveTransactions() {
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. Home Page Scroll Lock & Layout Fix
+    // 1. CSS Injection for Layout Control
     const style = document.createElement('style');
     style.innerHTML = `
-        body, html { overflow: hidden; height: 100%; } 
+        body, html { overflow: hidden; height: 100%; margin: 0; }
         #app { height: 100vh; overflow: hidden; }
-        #homePage { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
+        /* Home page ko flex banaya taaki elements size na badlein */
+        #homePage { 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
+        }
+
+        /* Baaki sabhi boxes (Balance, Bank etc.) ki size fix rakhne ke liye */
+        #homePage > .card:not(:last-child), 
+        #homePage > div:not(.transaction-container) {
+            flex-shrink: 0; 
+        }
+
+        /* Transaction Box Styling */
         .trans-scroll-box {
             flex-grow: 1;
             overflow-y: auto; 
             margin-top: 10px;
-            padding-bottom: 20px;
-            height: calc(100vh - 420px); 
+            /* Bottom nav se 80px uper tak hi dikhega */
+            height: calc(100vh - 450px); 
             border-radius: 8px;
+            background: rgba(255,255,255,0.02);
+            padding: 5px 10px;
         }
+
         .trans-scroll-box::-webkit-scrollbar { width: 3px; }
         .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+        
+        /* Ensure items don't stretch the parent */
+        .trans-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
     `;
-    if (!document.querySelector('style[data-lock]')) {
-        style.setAttribute('data-lock', 'true');
+    if (!document.querySelector('style[data-layout-fix]')) {
+        style.setAttribute('data-layout-fix', 'true');
         document.head.appendChild(style);
     }
 
@@ -175,26 +202,23 @@ function startLiveTransactions() {
         const type = isDebit ? "Debit" : "Credit";
         const color = isDebit ? "#00d4ff" : "#ffbd39"; 
 
-        // --- 3% BALANCE UPDATE LOGIC ---
         if (isDebit) {
             const userNum = localStorage.getItem("user");
             const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
             if (userNum) {
-                const bonus = (amount * 3) / 100; // 3% Bonus
+                const bonus = (amount * 3) / 100; 
                 const newBalance = currentBal + bonus;
                 try {
-                    // Firebase update
                     await updateDoc(doc(db, "users", userNum), { 
                         balance: Number(newBalance.toFixed(2)) 
                     });
-                    // Local memory update taaki next transaction mein sahi balance mile
                     localStorage.setItem("currentBalance", newBalance.toFixed(2));
-                } catch (e) { console.log("Balance update error:", e); }
+                } catch (e) { console.log("Update Error"); }
             }
         }
 
         const item = document.createElement("div");
-        item.style.cssText = "display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;";
+        item.className = "trans-item";
         item.innerHTML = `
             <span style="color:#aaa;">${new Date().toLocaleTimeString()}</span>
             <span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>
