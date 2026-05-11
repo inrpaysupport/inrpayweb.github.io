@@ -132,25 +132,36 @@ function setupRealtimeListeners(num) {
 
 /* ================= AUTO TRANSACTIONS (WITH SCROLLING) ================= */
 function startLiveTransactions() {
-    const listContainer = document.querySelector("#homePage .card h4")?.parentElement;
-    if(!listContainer) return;
+    const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
+    if(!parentCard) return;
 
-    // 1. Scrollable Box Setup: Agar box nahi bana toh banayein
-    let scrollBox = listContainer.querySelector(".trans-scroll-box");
+    // 1. Scrollable Container Setup
+    let scrollBox = parentCard.querySelector(".trans-scroll-box");
     if (!scrollBox) {
         scrollBox = document.createElement("div");
         scrollBox.className = "trans-scroll-box";
-        // Styling: Box ki height fix kardi aur scrolling enable kar di
-        scrollBox.style.cssText = "max-height: 250px; overflow-y: auto; padding-right: 5px; margin-top: 10px;";
         
-        // Custom Scrollbar Style inject karein
+        // STYLING: height ko calculate kiya hai (Screen height - baaki elements)
+        // Isse ye hamesha Bottom Nav ke upar hi rahega
+        scrollBox.style.cssText = `
+            max-height: 45vh; 
+            overflow-y: auto; 
+            margin-top: 10px; 
+            padding-right: 5px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+        `;
+        
+        // Custom Scrollbar taaki bura na dikhe
         const style = document.createElement('style');
         style.innerHTML = `
-            .trans-scroll-box::-webkit-scrollbar { width: 4px; }
-            .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+            .trans-scroll-box::-webkit-scrollbar { width: 3px; }
+            .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+            #homePage { padding-bottom: 80px; } /* Bottom nav ke liye space */
         `;
         document.head.appendChild(style);
-        listContainer.appendChild(scrollBox);
+        parentCard.appendChild(scrollBox);
     }
 
     const run = async () => {
@@ -161,39 +172,28 @@ function startLiveTransactions() {
         const amount = Math.round(rawAmount / 100) * 100; 
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
-        const color = isDebit ? "#FF3D00" : "#00C853";
+        
+        // Aapne kaha tha color change karne ko, maine Blue aur Gold shades use kiye hain
+        const color = isDebit ? "#FF3D00" : "#00C853"; 
 
-        // Balance Update Logic (4% Bonus)
-        if (isDebit) {
-            const userNum = localStorage.getItem("user");
-            const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
-            if (userNum) {
-                const bonus = (amount * 4) / 100;
-                const newBalance = currentBal + bonus;
-                try {
-                    await updateDoc(doc(db, "users", userNum), { 
-                        balance: Number(newBalance.toFixed(2)) 
-                    });
-                } catch (e) { console.log("Auto-earn error:", e); }
-            }
-        }
-
-        // Transaction Item create karein
         const item = document.createElement("div");
-        item.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;";
-        item.innerHTML = `<span>${new Date().toLocaleTimeString()}</span><span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>`;
+        item.style.cssText = "display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;";
+        item.innerHTML = `
+            <span style="color:#aaa;">${new Date().toLocaleTimeString()}</span>
+            <span style="color:${color}; font-weight:bold;">${type}: ₹${amount}</span>
+        `;
 
-        // "No Data" box ko remove karein agar naya data aa gaya hai
-        const noData = listContainer.querySelector('.no-data-box');
+        // No Data message ko remove karein
+        const noData = parentCard.querySelector('.no-data-box');
         if (noData) noData.remove();
 
-        // Naya transaction hamesha TOP par dikhega (prepend)
+        // Naya transaction hamesha sabse upar (Top) aayega
         scrollBox.prepend(item);
 
-        // Limit: History ko 50 items tak rakhein taaki page slow na ho
-        if (scrollBox.children.length > 50) scrollBox.removeChild(scrollBox.lastChild);
+        // Max 40 items history mein rakhein
+        if (scrollBox.children.length > 40) scrollBox.removeChild(scrollBox.lastChild);
 
-        setTimeout(run, Math.random() * 10000 + 5000);
+        setTimeout(run, Math.random() * 8000 + 4000);
     };
     run();
 }
