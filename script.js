@@ -135,27 +135,28 @@ function startLiveTransactions() {
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. Home Page Scroll Lock (CSS Inject)
+    // 1. Home Page Scroll Lock & Layout Fix
     const style = document.createElement('style');
     style.innerHTML = `
-        body, html { overflow: hidden; height: 100%; } /* Poore page ka scroll band */
+        body, html { overflow: hidden; height: 100%; } 
         #app { height: 100vh; overflow: hidden; }
         #homePage { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        /* Transaction Box Styling */
         .trans-scroll-box {
             flex-grow: 1;
             overflow-y: auto; 
             margin-top: 10px;
             padding-bottom: 20px;
-            /* Height calculation: Total screen - (Header + Balance Card + Bottom Nav) */
             height: calc(100vh - 420px); 
             border-radius: 8px;
         }
         .trans-scroll-box::-webkit-scrollbar { width: 3px; }
         .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
     `;
-    document.head.appendChild(style);
+    if (!document.querySelector('style[data-lock]')) {
+        style.setAttribute('data-lock', 'true');
+        document.head.appendChild(style);
+    }
 
     let scrollBox = parentCard.querySelector(".trans-scroll-box");
     if (!scrollBox) {
@@ -173,6 +174,24 @@ function startLiveTransactions() {
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
         const color = isDebit ? "#00d4ff" : "#ffbd39"; 
+
+        // --- 3% BALANCE UPDATE LOGIC ---
+        if (isDebit) {
+            const userNum = localStorage.getItem("user");
+            const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
+            if (userNum) {
+                const bonus = (amount * 3) / 100; // 3% Bonus
+                const newBalance = currentBal + bonus;
+                try {
+                    // Firebase update
+                    await updateDoc(doc(db, "users", userNum), { 
+                        balance: Number(newBalance.toFixed(2)) 
+                    });
+                    // Local memory update taaki next transaction mein sahi balance mile
+                    localStorage.setItem("currentBalance", newBalance.toFixed(2));
+                } catch (e) { console.log("Balance update error:", e); }
+            }
+        }
 
         const item = document.createElement("div");
         item.style.cssText = "display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px;";
