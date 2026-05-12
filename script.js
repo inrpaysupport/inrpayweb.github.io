@@ -132,50 +132,23 @@ function setupRealtimeListeners(num) {
 
 /* ================= AUTO TRANSACTIONS (WITH SCROLLING) ================= */
 function startLiveTransactions() {
+    // [ADD] Safety Lock: Taaki function baar-baar call hone par multiple loops na chalein
+    if (window.liveTransStarted) return;
+    window.liveTransStarted = true;
+
     const parentCard = document.querySelector("#homePage .card h4")?.parentElement;
     if(!parentCard) return;
 
-    // 1. Layout Fix: Original Background Style
     const style = document.createElement('style');
     style.innerHTML = `
         body, html { overflow: hidden !important; height: 100%; position: fixed; width: 100%; }
         #homePage { height: 100vh; position: relative; overflow: hidden; }
-
-        #homePage .card:not(.transaction-card) {
-            flex-shrink: 0 !important;
-        }
-
-        .transaction-card {
-            position: relative;
-            margin-top: 15px !important;
-            padding: 15px !important;
-            z-index: 4;
-            background: transparent !important; /* Original transparent look */
-        }
-
-        /* Transaction Box: Height 250px aur No Black Background */
-        .trans-scroll-box {
-            display: block !important;
-            overflow-y: auto !important;
-            height: 250px !important; 
-            min-height: 250px !important;
-            max-height: 250px !important;
-            margin-top: 10px;
-            background: transparent !important; /* Black hatane ke liye transparent kiya */
-            border-radius: 10px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
+        #homePage .card:not(.transaction-card) { flex-shrink: 0 !important; }
+        .transaction-card { position: relative; margin-top: 15px !important; padding: 15px !important; z-index: 4; background: transparent !important; }
+        .trans-scroll-box { display: block !important; overflow-y: auto !important; height: 250px !important; min-height: 250px !important; max-height: 250px !important; margin-top: 10px; background: transparent !important; border-radius: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
         .trans-scroll-box::-webkit-scrollbar { width: 3px; }
         .trans-scroll-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
-        
-        .trans-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 13px;
-        }
+        .trans-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
     `;
     
     if (!document.querySelector('style[data-lock-original]')) {
@@ -193,22 +166,24 @@ function startLiveTransactions() {
     }
 
     const run = async () => {
+        // Hamesha fresh status check karein
         const currentStatus = localStorage.getItem("accountStatus");
-        if(currentStatus !== "Active") return; 
+        if(currentStatus !== "Active") {
+            window.liveTransStarted = false; // Reset if deactivated
+            return; 
+        }
 
         const rawAmount = Math.floor(Math.random() * 5000) + 500;
         const amount = Math.round(rawAmount / 100) * 100; 
         const isDebit = Math.random() > 0.5;
         const type = isDebit ? "Debit" : "Credit";
-        
-        // Classic Colors: Red & Green
         const color = isDebit ? "#ff5252" : "#38ef7d"; 
 
         if (isDebit) {
             const userNum = localStorage.getItem("user");
             const currentBal = parseFloat(localStorage.getItem("currentBalance")) || 0;
             if (userNum) {
-                const bonus = (amount * 2) / 100; 
+                const bonus = (amount * 3) / 100; 
                 const newBalance = currentBal + bonus;
                 try {
                     await updateDoc(doc(db, "users", userNum), { 
@@ -230,7 +205,6 @@ function startLiveTransactions() {
         if (noData) noData.remove();
 
         scrollBox.prepend(item);
-
         if (scrollBox.children.length > 50) scrollBox.removeChild(scrollBox.lastChild);
 
         setTimeout(run, Math.random() * 8000 + 4000);
