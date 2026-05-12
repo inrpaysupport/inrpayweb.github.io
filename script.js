@@ -443,3 +443,12 @@ window.downloadQR = async () => {
         link.click(); document.body.removeChild(link);
     } catch (e) { window.open(qrImg.src, '_blank'); }
 };
+
+/* ================= SERVICE WORKER REGISTRATION (PWA) ================= */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('PWA Registered Successfully'))
+            .catch(err => console.log('PWA Registration Failed', err));
+    });
+}
