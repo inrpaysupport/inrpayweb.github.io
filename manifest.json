@@ -1,0 +1,22 @@
+{
+  "name": "INRPAY - Fast & Secure",
+  "short_name": "INRPAY",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a0533",
+  "theme_color": "#6a11cb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
