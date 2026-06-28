@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MIXOWIN - Premium Multi-Game Hub</title>
+    <style>
+        :root { --bg: #05060f; --panel: #0d0f22; --border: #1b1e3d; --accent: #b15eff; --text: #e0e0fc; --muted: #7378a8; --green: #00ff88; --red: #ff3366; }
+        * { box-sizing: border-box; touch-action: manipulation; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin:0; padding:0; display:flex; height: 100vh; overflow: hidden; }
+        
+        /* RESPONSIVE LAYOUT FRAMEWORK */
+        .app-wrapper { display: flex; width: 100%; height: 100%; }
+        
+        /* SIDEBAR (DESKTOP) */
+        aside { width: 260px; background-color: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; z-index: 100; }
+        .logo-area { padding: 0 25px; font-size: 24px; font-weight: 900; background: linear-gradient(45deg, var(--accent), #ff5e97); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
+        .nav-list { list-style: none; padding: 0; margin: 30px 0 0 0; }
+        .nav-list li button { width: 100%; background: none; border: none; color: var(--muted); text-align: left; padding: 15px 25px; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .nav-list li.active button, .nav-list li button:hover { color: #fff; background: linear-gradient(90deg, rgba(177,94,255,0.12), transparent); border-left: 4px solid var(--accent); }
+        .profile-footer { padding: 15px 25px; border-top: 1px solid var(--border); }
+        .wallet-card { font-size: 18px; font-weight: 800; color: var(--green); margin-top: 5px; }
+
+        /* VIEWPORT CORE CONTROLLER */
+        main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; padding-bottom: 80px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 15px 20px; border-bottom: 1px solid var(--border); }
+        .view-frame { padding: 20px; width: 100%; max-width: 1100px; margin: 0 auto; display: none; }
+        .view-frame.active-frame { display: block; }
+
+        /* 🏠 HOME HUB COMPONENT WORK */
+        .slider-wrapper { position: relative; width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-bottom: 25px; border: 1px solid var(--border); }
+        .slide-banner { width: 100%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 20px; background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800'); text-decoration: none; }
+        .slide-banner h2 { margin: 0; color: #fff; font-size: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); background: rgba(5,6,15,0.6); padding: 5px 12px; border-radius: 6px; }
+        
+        .game-grid-selection { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .game-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; cursor: pointer; text-align: center; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .game-card .icon-placeholder { font-size: 40px; margin-bottom: 15px; display: block; }
+        .game-card h4 { margin: 0; font-size: 18px; color: #fff; }
+        .game-card p { margin: 5px 0 0 0; font-size: 13px; color: var(--muted); }
+
+        /* 🚀 CRASH SYSTEM COMPONENT WORK */
+        .crash-matrix { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+        .canvas-monitor { background: #070915; border: 1px solid var(--border); height: 350px; border-radius: 16px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); }
+        .canvas-monitor::before { content:''; position:absolute; width:100%; height:100%; background-image:linear-gradient(rgba(27,30,61,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(27,30,61,0.2) 1px, transparent 1px); background-size:30px 30px; transform:perspective(300px) rotateX(45deg); bottom:-20px; }
+        .ticker-val { font-size: 64px; font-weight: 900; color: var(--accent); text-shadow: 0 0 25px rgba(177,94,255,0.5); z-index: 2; font-variant-numeric: tabular-nums; }
+        .ticker-status { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 10px; z-index:2; }
+        .bet-dock { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .input-wrap { background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; align-items: center; margin-bottom: 15px; }
+        .input-wrap span { color: var(--muted); font-weight: bold; margin-right: 10px; }
+        .input-wrap input { background: none; border: none; color: #fff; font-size: 20px; font-weight: bold; width: 100%; outline: none; }
+        .btn-fire { width:100%; background: linear-gradient(135deg, var(--accent), #8a2be2); border: none; color: white; padding: 16px; font-size: 18px; font-weight: 800; border-radius: 10px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(177,94,255,0.3); }
+
+        /* 💣 MINES INTERACTIVE COMPONENT WORK */
+        .mines-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .grid-mesh { display: grid; grid-template-columns: repeat(5, 55px); gap: 10px; background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .grid-cell { width: 55px; height: 55px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.1s; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .grid-cell:hover { border-color: var(--accent); }
+
+        /* MOBILE FLOATING INTERFACE SWITCHBAR */
+        .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--panel); border-top: 1px solid var(--border); grid-template-columns: repeat(4, 1fr); z-index: 999; }
+        .mobile-nav button { background: none; border: none; color: var(--muted); padding: 12px 5px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .mobile-nav button.active-m { color: var(--accent); }
+        .mobile-nav button span { font-size: 20px; display: block; }
+
+        /* MOBILE MEDIA RESPONSIVE INTERCEPTORS */
+        @media (max-width: 768px) {
+            aside { display: none; }
+            main { padding-bottom: 70px; }
+            .mobile-nav { display: grid; }
+            .crash-matrix { grid-template-columns: 1fr; }
+            .canvas-monitor { height: 260px; }
+            .ticker-val { font-size: 48px; }
+            .view-frame { padding: 12px; }
+            .slider-wrapper { height: 130px; }
+            .slide-banner h2 { font-size: 15px; }
+            .game-grid-selection { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .game-card { padding: 15px; }
+            .game-card .icon-placeholder { font-size: 32px; }
+            .game-card h4 { font-size: 15px; }
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <aside>
+            <div>
+                <div class="logo-area" id="branding-logo">MIXOWIN</div>
+                <ul class="nav-list">
+                    <li class="active" id="nav-home" onclick="navigate('home-frame', this)"><button>🏠 Home Hub</button></li>
+                    <li id="nav-crash" onclick="navigate('crash-frame', this)"><button>🚀 Crash Engine</button></li>
+                    <li id="nav-mines" onclick="navigate('mines-frame', this)"><button>💣 Mines Grid</button></li>
+                </ul>
+            </div>
+            <div class="profile-footer">
+                <div style="font-size:12px; color:var(--muted)">ID: Vikram_99</div>
+                <div class="wallet-card" id="balance-view">₹5,000.00</div>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <div style="font-weight: bold; font-size: 14px;" id="header-brand-title">MIXOWIN OFFICIAL ARCADE</div>
+                <div style="font-size: 12px; background:#181b36; padding:5px 12px; border-radius:20px;" id="geo-currency-label">🇮🇳 INR (₹) Active</div>
+            </header>
+
+            <div id="home-frame" class="view-frame active-frame">
+                <div class="slider-wrapper">
+                    <a href="#deposit" class="slide-banner" id="banner-anchor">
+                        <h2 id="banner-title">Loading Dynamic Campaign Promos...</h2>
+                    </a>
+                </div>
+                
+                <h3 style="margin-top:0; color:#fff;">Available Interactive Suites</h3>
+                <div class="game-grid-selection">
+                    <div class="game-card" onclick="navigate('crash-frame', document.getElementById('nav-crash'))">
+                        <span class="icon-placeholder">🚀</span>
+                        <h4>Crash Multiplier</h4>
+                        <p>High-Yield Flight Simulator</p>
+                    </div>
+                    <div class="game-card" onclick="navigate('mines-frame', document.getElementById('nav-mines'))">
+                        <span class="icon-placeholder">💣</span>
+                        <h4>Mines Sweeper</h4>
+                        <p>5x5 Strategic Hidden Grid</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="crash-frame" class="view-frame">
+                <div class="crash-matrix">
+                    <div class="canvas-monitor">
+                        <div class="ticker-val" id="crash-ticker">1.00x</div>
+                        <div class="ticker-status" id="crash-status">System Initializing...</div>
+                    </div>
+                    <div class="bet-dock">
+                        <div>
+                            <div style="font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:bold;">ENTER STAKE</div>
+                            <div class="input-wrap">
+                                <span>₹</span>
+                                <input type="number" id="bet-amt" value="200">
+                            </div>
+                        </div>
+                        <button class="btn-fire" onclick="actionBet()">Place Rocket Bet</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mines-frame" class="view-frame">
+                <div class="mines-wrapper">
+                    <div style="text-align:center;">
+                        <h3 style="margin:0 0 5px 0;">Mines Multiplier Engine</h3>
+                        <p style="margin:0; font-size:13px; color:var(--muted);">Avoid the hidden network mines to cashout multiplier points.</p>
+                    </div>
+                    <div class="grid-mesh" id="mines-board"></div>
+                    <button class="btn-fire" style="max-width:200px;" onclick="resetMinesBoard()">Reset Matrix</button>
+                </div>
+            </div>
+        </main>
+
+        <div class="mobile-nav">
+            <button class="active-m" id="m-home" onclick="navigate('home-frame', document.getElementById('nav-home')); setMobileActive(this)"><span>🏠</span>Home</button>
+            <button id="m-crash" onclick="navigate('crash-frame', document.getElementById('nav-crash')); setMobileActive(this)"><span>🚀</span>Crash</button>
+            <button id="m-mines" onclick="navigate('mines-frame', document.getElementById('nav-mines')); setMobileActive(this)"><span>💣</span>Mines</button>
+            <button onclick="alert('Wallet Section Coming Soon')"><span style="color:var(--green)">🪙</span>Balance</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let bannersPool = [];
+
+        function navigate(frameId, sidebarLi) {
+            document.querySelectorAll('.view-frame').forEach(f => f.classList.remove('active-frame'));
+            document.querySelectorAll('.nav-list li').forEach(li => li.classList.remove('active'));
+            
+            document.getElementById(frameId).classList.add('active-frame');
+            if(sidebarLi) sidebarLi.classList.add('active');
+
+            // Sync Mobile Menu Bar Highlighting concurrently
+            document.querySelectorAll('.mobile-nav button').forEach(b => b.classList.remove('active-m'));
+            if(frameId === 'home-frame') document.getElementById('m-home').classList.add('active-m');
+            if(frameId === 'crash-frame') document.getElementById('m-crash').classList.add('active-m');
+            if(frameId === 'mines-frame') document.getElementById('m-mines').classList.add('active-m');
+        }
+
+        function setMobileActive(btn) {
+            document.querySelectorAll('.mobile-nav button').forEach(b => b.classList.remove('active-m'));
+            btn.classList.add('active-m');
+        }
+
+        // DYNAMIC CONTENT LOGO & SLIDER DATA EMISSION INTERCEPTOR
+        socket.on('init-global', (data) => {
+            document.getElementById('branding-logo').innerText = data.logoText;
+            document.getElementById('header-brand-title').innerText = `${data.appName} OFFICIAL HUB`;
+            bannersPool = data.banners;
+            if(bannersPool.length > 0) {
+                document.getElementById('banner-anchor').style.backgroundImage = `url('${bannersPool[0].img}')`;
+                document.getElementById('banner-anchor').href = bannersPool[0].link;
+                document.getElementById('banner-title').innerText = bannersPool[0].title;
+            }
+        });
+
+        socket.on('global-settings-sync', (data) => {
+            document.getElementById('branding-logo').innerText = data.logoText;
+            document.getElementById('header-brand-title').innerText = `${data.appName} OFFICIAL HUB`;
+        });
+
+        // LIVE REAL-TIME ENGINE SYNCHRONIZATION TICKER
+        socket.on('game-state', (data) => {
+            const ticker = document.getElementById('crash-ticker');
+            const status = document.getElementById('crash-status');
+            
+            if(data.status === "WAITING") {
+                ticker.innerText = `${data.countdown}s`;
+                ticker.style.color = "var(--muted)";
+                status.innerText = "Next flight engine warming up...";
+            } else if (data.status === "RUNNING") {
+                ticker.innerText = `${data.multiplier}x`;
+                ticker.style.color = "var(--green)";
+                status.innerText = "Rocket altitude climbing live!";
+            } else if (data.status === "CRASHED") {
+                ticker.innerText = "BUSTED";
+                ticker.style.color = "var(--red)";
+                status.innerText = `Lethal separation triggered at ${data.multiplier}x`;
+            }
+        });
+
+        // GENERATE MINES ARCHITECTURE GRID MODULE
+        function buildMinesUI() {
+            const board = document.getElementById('mines-board');
+            board.innerHTML = "";
+            for(let i=0; i<25; i++) {
+                let cell = document.createElement('div');
+                cell.className = "grid-cell";
+                cell.innerText = "💎";
+                cell.onclick = function() {
+                    if(Math.random() > 0.8) { cell.innerText = "💥"; cell.style.background = "rgba(255,51,102,0.2)"; alert("Busted! Mine Detonated."); }
+                    else { cell.innerText = "⭐"; cell.style.background = "rgba(0,255,136,0.2)"; }
+                };
+                board.appendChild(cell);
+            }
+        }
+        function resetMinesBoard() { buildMinesUI(); }
+        buildMinesUI();
+
+        function actionBet() { alert("Bet Command Vector Submitted to Queue."); }
+    </script>
+</body>
+</html>
