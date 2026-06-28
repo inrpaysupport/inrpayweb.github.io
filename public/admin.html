@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mixowin - Command Control Dashboard</title>
+    <style>
+        :root { --bg: #05060f; --panel: #111329; --border: #22254f; --accent: #b15eff; --text: #e0e0fc; --green: #5af78e; --red: #ff4757; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; margin:0; }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 25px; }
+        
+        aside { background-color: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid var(--border); height: max-content; }
+        aside h2 { margin: 0 0 20px 0; font-size: 20px; color: #fff; text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        aside button { display: block; width: 100%; text-align: left; background: none; border: none; color: #9292c5; padding: 12px 15px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-bottom: 5px; }
+        aside button.active, aside button:hover { background-color: var(--accent); color: white; }
+
+        .analytics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-box { background-color: var(--panel); border: 1px solid var(--border); padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-box h4 { margin: 0; font-size: 13px; color: #9292c5; text-transform: uppercase; }
+        .stat-box p { margin: 10px 0 0 0; font-size: 26px; font-weight: bold; color: var(--green); }
+        .stat-box.negative p { color: var(--red); }
+
+        .main-workspace { background-color: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 25px; min-height: 500px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        h3 { margin-top: 0; font-size: 20px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; color: #9292c5; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 10px; background-color: var(--bg); border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { background-color: var(--accent); border: none; padding: 12px 25px; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
+        th { color: #9292c5; }
+        .chat-container { display: grid; grid-template-columns: 1fr; gap: 15px; background: var(--bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
+        .chat-box { height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { background: var(--panel); padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--accent); }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <aside>
+            <h2>COMMAND HQ</h2>
+            <button class="active" onclick="switchView('game-tab', this)">🚀 Game Algos</button>
+            <button onclick="switchView('users-tab', this)">👥 User Profiles</button>
+            <button onclick="switchView('smtp-tab', this)">📧 SMTP Setup</button>
+            <button onclick="switchView('template-tab', this)">📑 HTML Editor</button>
+            <button onclick="switchView('currency-tab', this)">🪙 Currencies</button>
+            <button onclick="switchView('crm-tab', this)">📢 CRM Campaign</button>
+            <button onclick="switchView('intercom-tab', this)">💬 Intercom Chat</button>
+        </aside>
+
+        <main>
+            <div class="analytics-row">
+                <div class="stat-box"><h4>Today Net Revenue</h4><p id="acc-today">₹0.00</p></div>
+                <div class="stat-box"><h4>Daily Performance</h4><p id="acc-daily">₹0.00</p></div>
+                <div class="stat-box"><h4>Monthly Ledger Run</h4><p id="acc-monthly">₹0.00</p></div>
+            </div>
+
+            <div class="main-workspace">
+                <div id="game-tab" class="tab-content active">
+                    <h3>🎰 Live Engine Core Directives</h3>
+                    <div class="form-group">
+                        <label>Execution Mode Rule</label>
+                        <select id="gameMode" onchange="toggleInputs()">
+                            <option value="AUTO">AUTOMATED PERCENTAGE SHIELD</option>
+                            <option value="MANUAL">MANUAL FORCED TERMINATION</option>
+                        </select>
+                    </div>
+                    <div id="auto-sec" class="form-group">
+                        <label>Target Audience Win Probability Probability (<span id="win-rate-lbl">65</span>%)</label>
+                        <input type="range" id="targetWinRate" min="0" max="100" value="65" oninput="document.getElementById('win-rate-lbl').innerText=this.value">
+                    </div>
+                    <div id="manual-sec" class="form-group" style="display:none;">
+                        <label>Enforced Critical Crash Intercept Point (Multiplier)</label>
+                        <input type="number" id="manualCrashAt" step="0.01" value="2.20">
+                    </div>
+                    <button class="btn-submit" onclick="saveGameEngine()">Commit Math Directives</button>
+                </div>
+
+                <div id="users-tab" class="tab-content">
+                    <h3>👥 Multi-Account Security & Wallets Matrix</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Player Details</th><th>IP Node</th><th>Device Token</th><th>Local Funds</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="user-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="smtp-tab" class="tab-content">
+                    <h3>📧 Production SMTP Node Credentials</h3>
+                    <div class="form-group"><label>Host Gateway</label><input type="text" id="smtpHost"></div>
+                    <div class="form-group"><label>Port</label><input type="number" id="smtpPort"></div>
+                    <div class="form-group"><label>Sender Email</label><input type="text" id="smtpSenderEmail"></div>
+                    <div class="form-group"><label>Branded Sender Display Name</label><input type="text" id="smtpSenderName"></div>
+                    <div class="form-group"><label>App Key Passcode</label><input type="password" id="smtpPassword"></div>
+                    <div class="form-group">
+                        <label>Operational State</label>
+                        <select id="smtpStatus">
+                            <option value="false">OFFLINE (Simulated Node Layout)</option>
+                            <option value="true">ONLINE (Live Despatch Network)</option>
+                        </select>
+                    </div>
+                    <button class="btn-submit" onclick="saveSMTP()">Deploy SMTP Engine</button>
+                </div>
+
+                <div id="template-tab" class="tab-content">
+                    <h3>📑 Global HTML System Transactional Emails</h3>
+                    <div class="form-group">
+                        <label>Select Template Hook Event</label>
+                        <select id="templateType" onchange="loadSelectedTemplate()">
+                            <option value="welcome">User Welcome & Onboarding</option>
+                            <option value="deposit">Deposit Realized Confirmation</option>
+                            <option value="withdrawal">Withdrawal Settled Matrix</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>HTML Structural Body</label><textarea id="templateHtml" rows="10"></textarea></div>
+                    <button class="btn-submit" onclick="saveTemplate()">Compile Code Block</button>
+                </div>
+
+                <div id="currency-tab" class="tab-content">
+                    <h3>🪙 Global Currency Exchange Balancing Matrix</h3>
+                    <table>
+                        <thead><tr><th>ISO</th><th>Symbol</th><th>Exchange Factor (vs 1 Base Unit)</th><th>Telecom Dial Code</th></tr></thead>
+                        <tbody id="currency-table-body"></tbody>
+                    </table>
+                    <button class="btn-submit" style="margin-top:15px;" onclick="saveCurrencyGrid()">Recalibrate Systems</button>
+                </div>
+
+                <div id="crm-tab" class="tab-content">
+                    <h3>📢 Targeted Broadcast Marketing Despatch</h3>
+                    <div class="form-group">
+                        <label>Audience Segment Filters</label>
+                        <select id="bulkAudience">
+                            <option value="ALL">All Profile Base Entities Across Geographies</option>
+                            <option value="INDIA">Filtered Segment: India Region Nodes (+91)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Campaign Subject Header</label><input type="text" id="bulkSubject"></div>
+                    <div class="form-group"><label>Raw HTML Campaign Markup Payload</label><textarea id="bulkContent" rows="8"></textarea></div>
+                    <div id="progress-container" style="display:none; background:#05060f; padding:10px; margin-bottom:15px; border-radius:6px;">
+                        <span id="progress-text" style="font-size:12px; color:var(--accent);">Queue Processing...</span>
+                    </div>
+                    <button class="btn-submit" onclick="fireBulkCampaign()">Launch Mass Mail Blast</button>
+                    <h4 style="margin-top:20px;">📜 CRM Dispatch Audit Trail Logs</h4>
+                    <div style="max-height:150px; overflow-y:auto;">
+                        <table><thead><tr><th>Recipient</th><th>Type</th><th>Subject</th><th>Status</th></tr></thead><tbody id="mail-logs-body"></tbody></table>
+                    </div>
+                </div>
+
+                <div id="intercom-tab" class="tab-content">
+                    <h3>💬 Secure Staff Terminal Live Messenger</h3>
+                    <div class="chat-container">
+                        <div class="chat-box" id="staffChatOutput"></div>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="staffIdentity" style="width:130px;" value="Supervisor_HQ">
+                            <input type="text" id="staffMsgInput" placeholder="Type internal diagnostic note...">
+                            <button class="btn-submit" onclick="sendStaffMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="directMailModal" style="display:none; position:fixed; top:15%; left:35%; width:35%; background:var(--panel); border:2px solid var(--accent); padding:20px; border-radius:12px; z-index:9999;">
+        <h3>Direct Profile CRM Message</h3><input type="hidden" id="dmUserId">
+        <div class="form-group"><label>Subject</label><input type="text" id="dmSubject"></div>
+        <div class="form-group"><label>HTML Content Payload</label><textarea id="dmBody" rows="6"></textarea></div>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn-submit" style="background:#333;" onclick="document.getElementById('directMailModal').style.display='none'">Cancel</button>
+            <button class="btn-submit" onclick="submitDirectMail()">Dispatch</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let cachedTemplates = {}; let cachedRates = {};
+
+        function switchView(tId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('aside button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tId).classList.add('active'); btn.classList.add('active');
+        }
+
+        function toggleInputs() {
+            const m = document.getElementById('gameMode').value;
+            document.getElementById('auto-sec').style.display = m === 'AUTO' ? 'block' : 'none';
+            document.getElementById('manual-sec').style.display = m === 'MANUAL' ? 'block' : 'none';
+        }
+
+        socket.on('accounting-sync', (d) => {
+            document.getElementById('acc-today').innerText = "₹" + d.todayProfit.toLocaleString();
+            document.getElementById('acc-daily').innerText = "₹" + d.dailyProfit.toLocaleString();
+            document.getElementById('acc-monthly').innerText = "₹" + d.monthlyProfit.toLocaleString();
+        });
+
+        socket.on('users-sync', (data) => {
+            let html = "";
+            data.forEach(u => {
+                html += `<tr>
+                    <td><strong>${u.id}</strong><br><small>${u.name}</small></td>
+                    <td><span style="color:var(--red); font-weight:bold;">${u.ip}</span></td>
+                    <td><code>${u.deviceId}</code></td>
+                    <td style="color:var(--green); font-weight:bold;">${u.balance} ${u.currency}</td>
+                    <td>
+                        <button class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openDM('${u.id}')">CRM</button>
+                        <button class="btn-submit" style="padding:4px 8px; font-size:11px; background:var(--green); color:#000;" onclick="adjustWallet('${u.id}','CREDIT')">+</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('user-table-body').innerHTML = html;
+        });
+
+        socket.on('templates-sync', (d) => { cachedTemplates = d; loadSelectedTemplate(); });
+        function loadSelectedTemplate() { const t = document.getElementById('templateType').value; document.getElementById('templateHtml').value = cachedTemplates[t] || ""; }
+        function saveTemplate() { socket.emit('update-template', { type: document.getElementById('templateType').value, html: document.getElementById('templateHtml').value }); alert("HTML Compiled!"); }
+
+        socket.on('currency-sync', (d) => {
+            cachedRates = d.rates; let html = "";
+            for(let k in cachedRates) {
+                html += `<tr>
+                    <td><strong>${k}</strong></td>
+                    <td><input type='text' id='sym-${k}' value='${cachedRates[k].symbol}' style='width:50px;'></td>
+                    <td><input type='number' id='fac-${k}' step='0.001' value='${cachedRates[k].factor}' style='width:80px;'></td>
+                    <td><input type='text' id='code-${k}' value='${cachedRates[k].code}' style='width:60px;'></td>
+                </tr>`;
+            }
+            document.getElementById('currency-table-body').innerHTML = html;
+        });
+        function saveCurrencyGrid() {
+            let r = {}; for(let k in cachedRates) { r[k] = { symbol: document.getElementById(`sym-${k}`).value, factor: parseFloat(document.getElementById(`fac-${k}`).value), code: document.getElementById(`code-${k}`).value }; }
+            socket.emit('update-exchange-rates', r); alert("Currency Matrix Refreshed!");
+        }
+
+        function sendStaffMessage() {
+            const txt = document.getElementById('staffMsgInput').value; if(!txt) return;
+            socket.emit('staff-send-msg', { sender: document.getElementById('staffIdentity').value, text: txt });
+            document.getElementById('staffMsgInput').value = "";
+        }
+        socket.on('staff-chat-sync', (d) => {
+            let html = ""; d.forEach(m => { html += `<div class='chat-msg'><strong>[${m.timestamp}] ${m.sender}:</strong> ${m.text}</div>`; });
+            document.getElementById('staffChatOutput').innerHTML = html;
+        });
+
+        socket.on('smtp-sync', (d) => {
+            document.getElementById('smtpHost').value = d.host; document.getElementById('smtpPort').value = d.port;
+            document.getElementById('smtpSenderEmail').value = d.senderEmail; document.getElementById('smtpSenderName').value = d.senderName;
+            document.getElementById('smtpPassword').value = d.appPassword; document.getElementById('smtpStatus').value = d.isActive ? "true" : "false";
+        });
+        function saveSMTP() {
+            socket.emit('update-smtp', { host: document.getElementById('smtpHost').value, port: parseInt(document.getElementById('smtpPort').value), senderEmail: document.getElementById('smtpSenderEmail').value, senderName: document.getElementById('smtpSenderName').value, appPassword: document.getElementById('smtpPassword').value, isActive: document.getElementById('smtpStatus').value === "true" });
+            alert("SMTP Saved!");
+        }
+
+        function openDM(id) { document.getElementById('dmUserId').value = id; document.getElementById('directMailModal').style.display='block'; }
+        function submitDirectMail() { socket.emit('send-direct-email', { userId: document.getElementById('dmUserId').value, subject: document.getElementById('dmSubject').value, htmlBody: document.getElementById('dmBody').value }); document.getElementById('directMailModal').style.display='none'; alert("CRM Processed!"); }
+        function fireBulkCampaign() { socket.emit('trigger-bulk-email', { audience: document.getElementById('bulkAudience').value, subject: document.getElementById('bulkSubject').value, htmlContent: document.getElementById('bulkContent').value }); document.getElementById('progress-container').style.display='block'; }
+        
+        socket.on('bulk-progress', (d) => { document.getElementById('progress-text').innerText = `Sending Queue Blast: ${d.sent} / ${d.total} Done.`; });
+        socket.on('email-logs-sync', (d) => {
+            let html = ""; d.slice().reverse().forEach(l => { html += `<tr><td>${l.target}</td><td>${l.type}</td><td>${l.subject}</td><td>${l.status}</td></tr>`; });
+            document.getElementById('mail-logs-body').innerHTML = html;
+        });
+
+        function saveGameEngine() { socket.emit('update-admin-settings', { gameMode: document.getElementById('gameMode').value, targetWinRate: document.getElementById('targetWinRate').value, manualCrashAt: document.getElementById('manualCrashAt').value }); alert("Algos Committed!"); }
+        function adjustWallet(userId, action) { const a = prompt("Enter Amount:"); if(a) socket.emit('manual-wallet-update', { userId, action, amount: a }); }
+    </script>
+</body>
+</html>
